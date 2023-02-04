@@ -1,0 +1,53 @@
+{
+  "name": "example-node-express-react",
+  "version": "1.0.0",
+  "dependencies": {
+    "@types/node": "^16.18.11",
+    "@types/react": "^18.0.27",
+    "@types/react-dom": "^18.0.10",
+    "@types/react-router-dom": "^5.3.3",
+    "bootstrap": "^5.2.3",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "react": "^18.2.0",
+    "react-bootstrap": "^2.7.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.8.0",
+    "react-scripts": "5.0.1"
+  },
+  "description": "example project to use as a basic reference for node, express, typescript, react, etc",
+  "main": "index.js",
+  "scripts": {
+    "start-client-dev": "react-scripts start",
+    "start-server-dev": "nodemon ./src/server/server.ts",
+    "dev": "concurrently --kill-others \"npm run start-client-dev\" \"npm run start-server-dev\"",
+    "build-client": "cross-env BUILD_PATH=builds/client react-scripts build",
+    "build-server": "cd src && cd server && tsc --build",
+    "build": "npm run build-client && npm run build-server",
+    "start-server": "node ./builds/server/server/server.js",
+    "start-server-local": "concurrently \"npm run start-server\" \"start http://localhost:8000\"",
+    "start-local": "npm install && npm run build && npm run start-server-local",
+    "start": "npm install && npm run build && npm run start-server"
+  },
+  "devDependencies": {
+    "concurrently": "^7.6.0",
+    "nodemon": "^2.0.20",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.4"
+  },
+  "author": "Phineas Ziegler",
+  "license": "ISC",
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
