@@ -1,11 +1,12 @@
 import { router } from "./routes";
 import http from 'http';
-import Coordinate from '../shared/Coordinate';
-import STATIC_PATH from "./static-path"; 
+import STATIC_PATH from "./static-path";
+import UserService from "./services/userService";
+const mysql = require('mysql');
 
 /* 'require' statements are often used by Node.js applications to import modules
     this particular require statement allows us to access environment variables */
-require('dotenv').config(); 
+require('dotenv').config();
 
 /*  Now we can use process.env.<variable-name> to read from the .env file
 
@@ -36,6 +37,20 @@ server.listen(serverPort, () => {
     console.log(`Server started on port ${serverPort} in mode ${ENV}`);
 });
 
-// this being here is super random, but I just wanted an example of using the 'shared' folder to access data types
-let coord: Coordinate = {x: 1, y: 2};  
+// Create database connection object
+const connection = mysql.createConnection({
+    database: process.env.DATABASE_NAME,
+    host: process.env.DATABASE_HOST,
+    user: process.env.DATABASE_USERNAME,
+    password: process.env.DATABASE_PASSWORD,
+});
 
+// Attempt to connect to database
+connection.connect((error: Error) => {
+    if (error) {
+        console.error('Error connecting to MySQL database: ' + error.stack);
+        return;
+    }
+    console.log('Connected to MySQL database as id ' + connection.threadId);
+    new UserService(connection);
+});
