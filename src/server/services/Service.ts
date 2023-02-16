@@ -1,23 +1,86 @@
 import { Connection } from "mysql";
 import util from 'util';
 
+/**
+ * Service classes connect to a particular table and perform SQL queries on them
+ */
 export default class Service {
-    connection: Connection;
-    query: (arg1: string, arg2?: any, ) => Promise<unknown>;
+    db: Connection;
+    query: (arg1: string, arg2?: any,) => Promise<unknown>;
+    table: string;
 
-    constructor(connection: Connection) {
-        this.connection = connection;
-        this.query = util.promisify(this.connection.query).bind(this.connection);
+    constructor(db: Connection, table: string) {
+        this.db = db;
+        this.table = table;
+        this.query = util.promisify(this.db.query).bind(this.db);
     }
 
-    // Return a single result
-    async findOne(query: string, values?: any) {
-        let data: any = await this.findQuantity(1, query, values);
+    /**
+     * Find a single record
+     * @param query the SQL query 
+     * @param values the values replacing ? in the query
+     * @returns a single record
+     */
+    async findOne(fields: string | string[], where?: string, values?: any) {
+        let data: any = await this.findQuantity(1, fields, where, values);
         return data[0];
     }
 
-    // Return a limited number of results
-    async findQuantity(quantity: number, query: string, values?: any) {
-        return await this.query(query + " LIMIT " + quantity, values);
+    /**
+     * Find a limited number of records
+     * @param quantity the quantity of records to return (at the most)
+     * @param query the SQL query
+     * @param values the values replacing ? in the query
+     * @returns A number of records given by the quantity parameter
+     */
+    async findQuantity(quantity: number, fields: string | string[], where?: string, values?: any) {
+        return await this.query(`${this.select(fields, where)} LIMIT ${quantity}`, values);
+    }
+
+    /**
+     * Performs a SELECT query
+     * @param fields the fields to return
+     * @param where the optional where clause
+     * @param values the values replacing '?' in the where clause
+     * @returns an array of row data
+     */
+    async find(fields: string | string[], where?: string, values?: any) {
+        const query = this.select(fields, where)
+        return await this.query(query, values);
+    }
+
+    /**
+     * Generate a SELECT SQL query
+     * @param fields the fields to return from the query
+     * @param where the where clause, if exists
+     * @returns a SELECT SQL query as a string
+     */
+    private select(fields: string | string[], where?: string) {
+        let f = this.commaList(fields);
+        if (where)
+            return `SELECT ${f} FROM ${this.table} WHERE ${where}`;
+        return `SELECT ${f} FROM ${this.table}`;
+    }
+
+    /**
+     * Takes input such as ['a','b','c'] and formats it like 'a, b, c'.
+     * If the input is not a list, it simply returns the input again.
+     * @param fields either a single string, or a list of strings
+     * @returns 
+     */
+    private commaList(fields: string | string[]) {
+        let f = "";
+        if (typeof fields == typeof [""]) {
+            for (let i = 0; i < fields.length; i++) {
+                if (i != fields.length - 1) {
+                    f += fields + ", "
+                } else {
+                    f += fields
+                }
+            }
+        } else {
+            f = String(fields);
+        }
+        return f;
     }
 }

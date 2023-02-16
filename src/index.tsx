@@ -1,14 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './client/routes/App';
-import { createBrowserRouter, RouterProvider, useNavigate, } from 'react-router-dom';
-import Root from './client/routes/PageRoot';
+import Other from './client/routes/Other';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import Root from './client/routes/Root';
 import ErrorPage from './client/routes/ErrorPage';
 import 'bootstrap/dist/css/bootstrap.min.css';  // this is how bootstrap is imported
 import './client/styles/style.css';
 
-
-// const navigate = useNavigate();
 const router = createBrowserRouter([
   {
     path: "/",
@@ -17,7 +15,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "other",
-        element: <App />
+        element: <Other />
       }
     ]
   }
@@ -26,6 +24,7 @@ const router = createBrowserRouter([
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
+
 root.render(
   <React.StrictMode>
     <RouterProvider router={router} />

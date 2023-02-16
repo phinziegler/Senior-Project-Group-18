@@ -1,8 +1,8 @@
 import { router } from "./routes";
 import http from 'http';
 import STATIC_PATH from "./static-path";
-import UserService from "./services/userService";
-const mysql = require('mysql');
+import getDb from "./db-connect";
+const cors = require('cors');
 
 /* 'require' statements are often used by Node.js applications to import modules
     this particular require statement allows us to access environment variables */
@@ -20,11 +20,8 @@ const ENV = process.env.NODE_ENV || 'development';  // ENV will be equal to the 
 const express = require('express');
 const app = express();
 
-/*  
-    The static path is the path to the client files.
-    The ternary operator is used to change the path... this is because the app runs in a different location 
-    when it has been built vs when running the typescript directly (which is the case for npm run dev)
-*/
+// The static path is the path to the client files.
+app.use(cors());
 app.use(express.static(STATIC_PATH));
 app.use(router);
 
@@ -32,25 +29,10 @@ app.use(router);
 const serverPort = process.env.PORT || 8000;
 const server = http.createServer(app);
 
+// Connect to the database
+getDb();
+
 // Starts the server listening for http requests
 server.listen(serverPort, () => {
     console.log(`Server started on port ${serverPort} in mode ${ENV}`);
-});
-
-// Create database connection object
-const connection = mysql.createConnection({
-    database: process.env.DATABASE_NAME,
-    host: process.env.DATABASE_HOST,
-    user: process.env.DATABASE_USERNAME,
-    password: process.env.DATABASE_PASSWORD,
-});
-
-// Attempt to connect to database
-connection.connect((error: Error) => {
-    if (error) {
-        console.error('Error connecting to MySQL database: ' + error.stack);
-        return;
-    }
-    console.log('Connected to MySQL database as id ' + connection.threadId);
-    new UserService(connection);
 });

@@ -2,18 +2,20 @@ import { Connection } from "mysql";
 import Service from "./Service";
 import User from "../../shared/User";
 
+/**
+ * Performs queries on the user table
+ */
 export default class UserService extends Service {
-    constructor(connection: Connection) {
-        super(connection);
+    constructor(db: Connection) {
+        super(db, 'user');
     }
 
     /**
      * Get all user data
      * @returns an array containing all user information
      */
-    async getUsers(): Promise<User[]> {
-        const queryString = `SELECT * FROM user`;
-        return await this.query(queryString) as User[];
+    public async getUsers(): Promise<User[]> {
+        return await this.find("*") as User[];
     }
 
     /**
@@ -21,8 +23,7 @@ export default class UserService extends Service {
      * @param username the username being searched for
      * @returns a single user object
      */
-    async getUserWithName(username: string): Promise<User> {
-        const queryString = `SELECT * FROM user WHERE username = ?`;
-        return await this.findOne(queryString, username) as User;
+    public async getUserWithName(username: string): Promise<User> {
+        return await this.findOne("*", "username = ?", username) as User;
     }
 }
