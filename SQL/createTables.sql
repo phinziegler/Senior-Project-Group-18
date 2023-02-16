@@ -1,0 +1,19 @@
+DROP TABLE IF EXISTS user;
+
+CREATE TABLE user (
+    id INT NOT NULL AUTO_INCREMENT UNIQUE,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    salt VARCHAR(255) NOT NULL,
+    PRIMARY KEY (id)
+);
+
+DROP TABLE IF EXISTS friend;
+
+CREATE TABLE friend (
+    user_id VARCHAR(255) NOT NULL,
+    friend_id VARCHAR(255) NOT NULL,
+    PRIMARY KEY (user_id, friend_id)
+);
+
+SHOW TABLES;
