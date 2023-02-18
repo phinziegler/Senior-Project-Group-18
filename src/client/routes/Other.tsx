@@ -2,6 +2,7 @@ import React from 'react';                      // this is imported for every re
 import 'bootstrap/dist/css/bootstrap.min.css';  // this is how bootstrap is imported
 import User from '../../shared/User';
 import { get } from '../fetch';
+import Environments from '../../shared/Environments';
 
 interface state {
   users: User[]
@@ -20,7 +21,7 @@ export default class Other extends React.Component<{}, state> {
   }
 
   fetchUsers() {
-    const loc = process.env.NODE_ENV == 'production' ? window.location.protocol + "//" + window.location.host + "/users" : "http://localhost:8000/users";
+    const loc = process.env.NODE_ENV == Environments.PRODUCTION ? window.location.protocol + "//" + window.location.host + "/users" : "http://localhost:8000/users";
     get(loc)
       .then((users: User[]) => this.setState({ users: users }));
   }

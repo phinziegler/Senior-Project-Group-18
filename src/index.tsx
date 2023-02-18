@@ -6,6 +6,9 @@ import Root from './client/routes/Root';
 import ErrorPage from './client/routes/ErrorPage';
 import 'bootstrap/dist/css/bootstrap.min.css';  // this is how bootstrap is imported
 import './client/styles/style.css';
+import ClientSocketManager from './client/ClientSocketManager';
+
+new ClientSocketManager();
 
 const router = createBrowserRouter([
   {
