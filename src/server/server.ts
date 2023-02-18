@@ -1,7 +1,9 @@
 import { router } from "./routes";
 import http from 'http';
 import STATIC_PATH from "./static-path";
-import getDb from "./db-connect";
+import getDb from "./services/db-connect";
+import Environments from "../shared/Environments";
+import ServerSocketManager from "./ServerSocketManager";
 const cors = require('cors');
 
 /* 'require' statements are often used by Node.js applications to import modules
@@ -14,7 +16,7 @@ require('dotenv').config();
     without storing them directly in code (for anyone who sees the git repository to steal!).
     as such, .env files should never be committed.
 */
-const ENV = process.env.NODE_ENV || 'development';  // ENV will be equal to the NODE_ENV environment variable, and 
+const ENV = process.env.NODE_ENV || Environments.DEVELOPMENT;  // ENV will be equal to the NODE_ENV environment variable, and 
                                                     // if it is undefined, it will default to 'development'
 
 const express = require('express');
@@ -31,6 +33,10 @@ const server = http.createServer(app);
 
 // Connect to the database
 getDb();
+
+// Create the websocket server/manager
+const wsPort = 8080;    // NOTE: This port is only used in development
+new ServerSocketManager(server, wsPort);
 
 // Starts the server listening for http requests
 server.listen(serverPort, () => {

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import UserService from "../services/userService";
-import getDb from "../db-connect";
+import getDb from "../services/db-connect";
 
 const service = new UserService(getDb());
 export default class UserController {
