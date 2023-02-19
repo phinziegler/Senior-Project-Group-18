@@ -1,9 +1,11 @@
 const mysql = require('mysql');
+const socketPath = (process.env.SYSTEM === "windows") ? null : '/tmp/mysql.sock';
 
 // Create database connection object
 const db = mysql.createConnection({
     database: process.env.DATABASE_NAME,
     host: process.env.DATABASE_HOST,
+    socketPath: socketPath,
     user: process.env.DATABASE_USERNAME,
     password: process.env.DATABASE_PASSWORD,
 });
