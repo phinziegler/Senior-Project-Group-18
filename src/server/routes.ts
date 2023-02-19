@@ -9,15 +9,14 @@ const router = express.Router();
 router.route("/hello").get(Controller.hello);
 router.route("/world").get(Controller.world);
 
-// Used by the button on the 'other' page
+// 'Other' page
 router.route("/users").get(UserController.users);
-
+router.route("/add-user").post(UserController.addUser);
 
 /*  This route catches any unexpected route and returns index.html
     This allows the client side router to see if it has a valid route, and if not, shows the custom error screen 
     CRITCAL: this route should always be at the BOTTOM of this page.*/
 router.route("*").get(Controller.sendHtml);
-
 
 // the router object so that it can be used by the express app (see server.ts)
 export { router }

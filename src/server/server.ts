@@ -24,6 +24,7 @@ const app = express();
 
 // The static path is the path to the client files.
 app.use(cors());
+app.use(express.json());
 app.use(express.static(STATIC_PATH));
 app.use(router);
 

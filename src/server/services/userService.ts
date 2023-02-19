@@ -1,4 +1,4 @@
-import { Connection } from "mysql";
+import { Connection, escape } from "mysql";
 import Service from "./Service";
 import User from "../../shared/User";
 
@@ -24,6 +24,16 @@ export default class UserService extends Service {
      * @returns a single user object
      */
     public async getUserWithName(username: string): Promise<User> {
-        return await this.findOne("*", "username = ?", username) as User;
+        return await this.findOne("*", "username = " + escape(username)) as User;
+    }
+
+    /**
+     * Add a user to the user table
+     * @param user the user being added
+     * @throws a generic error when the insert could not
+     *      be completed, likely do to a duplicate username
+     */
+    public async addUser(user: User) {
+        await this.insert(user);
     }
 }

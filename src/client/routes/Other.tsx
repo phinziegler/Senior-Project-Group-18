@@ -1,7 +1,7 @@
 import React from 'react';                      // this is imported for every react component
 import 'bootstrap/dist/css/bootstrap.min.css';  // this is how bootstrap is imported
 import User from '../../shared/User';
-import { get } from '../fetch';
+import { GET, POST } from '../fetch';
 import Environments from '../../shared/Environments';
 
 interface state {
@@ -17,17 +17,26 @@ export default class Other extends React.Component<{}, state> {
     this.state = {
       users: []
     }
-    this.fetchUsers = this.fetchUsers.bind(this)
+    this.fetchUsers = this.fetchUsers.bind(this);
+    this.addUser = this.addUser.bind(this);
+  }
+
+  addUser() {
+    const loc = process.env.NODE_ENV == Environments.PRODUCTION ? window.location.protocol + "//" + window.location.host + "/add-user" : "http://localhost:8000/add-user";
+    POST(loc, { username: "CLIENT_USERNAME_" + Math.random(), password: "CLIENT_PASSWORD" })
+      .then((res) => {
+        console.log(res.message);
+        this.fetchUsers();
+      });
   }
 
   fetchUsers() {
     const loc = process.env.NODE_ENV == Environments.PRODUCTION ? window.location.protocol + "//" + window.location.host + "/users" : "http://localhost:8000/users";
-    get(loc)
+    GET(loc)
       .then((users: User[]) => this.setState({ users: users }));
   }
 
   users() {
-
     let rows: JSX.Element[] = [];
     this.state.users.forEach(user => {
       rows.push(
@@ -63,6 +72,7 @@ export default class Other extends React.Component<{}, state> {
       <div className='bg-dark'>
         <h1 className='text-center text-white'>Example</h1>
         <button className={"btn " + (isPopulated ? "btn-secondary" : 'btn-success')} disabled={isPopulated} onClick={this.fetchUsers}>Click here to see users!</button>
+        <button className="btn btn-success" onClick={this.addUser}>Add User</button>
         {this.users()}
       </div>
     );

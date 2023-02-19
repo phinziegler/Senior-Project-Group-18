@@ -1,4 +1,4 @@
-import { Connection } from "mysql";
+import { Connection, escape } from "mysql";
 import util from 'util';
 
 /**
@@ -6,13 +6,11 @@ import util from 'util';
  */
 export default class Service {
     db: Connection;
-    query: (arg1: string, arg2?: any,) => Promise<unknown>;
     table: string;
 
     constructor(db: Connection, table: string) {
         this.db = db;
         this.table = table;
-        this.query = util.promisify(this.db.query).bind(this.db);
     }
 
     /**
@@ -21,8 +19,8 @@ export default class Service {
      * @param values the values replacing ? in the query
      * @returns a single record
      */
-    async findOne(fields: string | string[], where?: string, values?: any) {
-        let data: any = await this.findQuantity(1, fields, where, values);
+    async findOne(fields: string | string[], where?: string) {
+        let data: any = await this.findQuantity(1, fields, where);
         return data[0];
     }
 
@@ -33,8 +31,13 @@ export default class Service {
      * @param values the values replacing ? in the query
      * @returns A number of records given by the quantity parameter
      */
-    async findQuantity(quantity: number, fields: string | string[], where?: string, values?: any) {
-        return await this.query(`${this.select(fields, where)} LIMIT ${quantity}`, values);
+    async findQuantity(quantity: number, fields: string | string[], where?: string) {
+        let query= `${this.select(fields, where)} LIMIT ${quantity}`;
+        try {
+            return await util.promisify(this.db.query).bind(this.db)(query);
+        } catch(e: any) {
+            throw new Error(e.message);
+        }
     }
 
     /**
@@ -44,9 +47,13 @@ export default class Service {
      * @param values the values replacing '?' in the where clause
      * @returns an array of row data
      */
-    async find(fields: string | string[], where?: string, values?: any) {
+    async find(fields: string | string[], where?: string) {
         const query = this.select(fields, where)
-        return await this.query(query, values);
+        try {
+            return await util.promisify(this.db.query).bind(this.db)(query);
+        } catch(e: any) {
+            throw new Error(e.message);
+        }
     }
 
     /**
@@ -73,14 +80,59 @@ export default class Service {
         if (typeof fields == typeof [""]) {
             for (let i = 0; i < fields.length; i++) {
                 if (i != fields.length - 1) {
-                    f += fields + ", "
+                    f += fields[i] + ", "
                 } else {
-                    f += fields
+                    f += fields[i]
                 }
             }
         } else {
             f = String(fields);
         }
         return f;
+    }
+
+    /**
+     * Takes input like ['a','b','c'] and gives 'a','b','c'
+     * There is an easier way to do this using String.slice(), but 
+     *      the reason for doing it this way is that I eventually
+     *      want to use mysql.escape to prevent sql injection
+     * @param values 
+     * @returns 
+     */
+    private valuesToSQL(values: string[]) {
+        let output = "";
+        for (let i = 0; i < values.length; i++) {
+            output += `'${values[i]}'`;
+            if(i != values.length - 1) {
+                output += `,`;
+            }
+        }
+        return output;
+    }
+
+    /**
+     * Insert an object
+     * @param object 
+     * @returns 
+     */
+    async insert(object: any) {     // TODO: prevent SQL injection
+        let fields = [];
+        let values = [];
+
+        let property: keyof typeof object;
+        for (property in object) {
+            fields.push(property);
+            values.push(object[property]);
+        }
+
+        let insertString = `(${this.commaList(fields)})`;
+        let valueString = `(${this.valuesToSQL(values)})`;
+
+        let query = `INSERT INTO ${this.table} ${insertString} VALUES ${valueString}`;
+        try {
+            return await util.promisify(this.db.query).bind(this.db)(query);
+        } catch(e: any) {
+            throw new Error(e.message);
+        }
     }
 }
