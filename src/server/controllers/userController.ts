@@ -20,7 +20,7 @@ export default class UserController {
      * @param req the request body should be in the form {username:"", password:""}
      */
     static async addUser(req: Request, res: Response, next: NextFunction) {
-        let user: User = req.body as User;
+        let user: User;
         try {
             user = req.body as User;
             user.salt = "THIS SALT WAS DESIGNATED BY THE SERVER";
@@ -30,13 +30,7 @@ export default class UserController {
             return;
         }
         await service.addUser(user)
-        .then(() => {
-            res.status(200);
-            res.json({message: "Successfully inserted"});
-        })
-        .catch(() => {
-            res.status(409);
-            res.json({message: "Duplicate username"});
-        });
+            .then(() => res.status(200).json({ message: "Successfully inserted" }))
+            .catch(() => res.status(409).json({ message: "Duplicate username" }));
     }
 }
