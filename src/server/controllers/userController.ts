@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import UserService from "../services/userService";
 import getDb from "../services/db-connect";
 import User from "../../shared/User";
+import Crypto from "crypto";
 
 const service = new UserService(getDb());
 export default class UserController {
@@ -14,16 +15,35 @@ export default class UserController {
     }
 
     /**
+     * Hash a password using a salt
+     * @param salt the salt added to the password before hashing
+     * @param password the password being hashed
+     * @returns the value of a sha256 hash in base 64
+     */
+    private static saltedHash(salt: string, password: string) {
+        return Crypto.createHash('sha256').update(salt + password).digest('base64');
+    }
+
+    /**
+     * Create salt treating the combination of the username and password as a source of true random.
+     * @param username the users username
+     * @param password the users password
+     * @returns the value of a sha256 hash in base 64
+     */
+    private static createSalt(username: string, password: string) {
+        return Crypto.createHash('sha256').update(password + Math.random() + username).digest('base64');
+    }
+
+    /**
      * Add a new user to the database.
-     * TODO: This method should eventually generate salt, and hash the password before
-     * passing it into the service function
      * @param req the request body should be in the form {username:"", password:""}
      */
     static async addUser(req: Request, res: Response, next: NextFunction) {
         let user: User;
         try {
             user = req.body as User;
-            user.salt = "THIS SALT WAS DESIGNATED BY THE SERVER";
+            user.salt = UserController.createSalt(user.username, user.password);
+            user.password = UserController.saltedHash(user.salt, user.password);
         } catch {
             console.error('invalid JSON message in request body');
             res.sendStatus(400);
