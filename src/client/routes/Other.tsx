@@ -3,6 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';  // this is how bootstrap is impo
 import User from '../../shared/User';
 import { GET, POST } from '../fetch';
 import Environments from '../../shared/Environments';
+import ServerRoutes from '../../shared/ServerRoutes';
 
 interface state {
   users: User[]
@@ -22,7 +23,9 @@ export default class Other extends React.Component<{}, state> {
   }
 
   addUser() {
-    const loc = process.env.NODE_ENV == Environments.PRODUCTION ? window.location.protocol + "//" + window.location.host + "/add-user" : "http://localhost:8000/add-user";
+    const loc = process.env.NODE_ENV == Environments.PRODUCTION
+      ? window.location.protocol + "//" + window.location.host + ServerRoutes.ADD_USER
+      : "http://localhost:8000" + ServerRoutes.ADD_USER;
     POST(loc, { username: "CLIENT_USERNAME_" + Math.random(), password: "CLIENT_PASSWORD" })
       .then((res) => {
         console.log(res.message);
@@ -31,7 +34,9 @@ export default class Other extends React.Component<{}, state> {
   }
 
   fetchUsers() {
-    const loc = process.env.NODE_ENV == Environments.PRODUCTION ? window.location.protocol + "//" + window.location.host + "/users" : "http://localhost:8000/users";
+    const loc = process.env.NODE_ENV == Environments.PRODUCTION
+      ? window.location.protocol + "//" + window.location.host + ServerRoutes.SHOW_USERS
+      : "http://localhost:8000" + ServerRoutes.SHOW_USERS;
     GET(loc)
       .then((users: User[]) => this.setState({ users: users }));
   }

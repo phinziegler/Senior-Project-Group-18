@@ -53,4 +53,8 @@ export default class UserController {
             .then(() => res.status(200).json({ message: "Successfully inserted" }))
             .catch(() => res.status(409).json({ message: "Duplicate username" }));
     }
+
+    static async login(req: Request, res: Response, next: NextFunction) {
+
+    }
 }

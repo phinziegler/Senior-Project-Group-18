@@ -28,6 +28,7 @@ export default class SideBar extends React.Component<{}, { pathName: string }> {
                 <ul className="nav nav-pills flex-column mb-auto list-group">
                     {this.link("home", "/")}
                     {this.link("other", "other")}
+                    {this.link("login", "login")}
                     {this.link("this will error", "/error")}
                 </ul>
                 <hr />
