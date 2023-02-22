@@ -28,7 +28,7 @@ export default class Other extends React.Component<{}, state> {
       : "http://localhost:8000" + ServerRoutes.ADD_USER;
     POST(loc, { username: "CLIENT_USERNAME_" + Math.random(), password: "CLIENT_PASSWORD" })
       .then((res) => {
-        console.log(res.message);
+        res.json().then(obj => console.log(obj.message));
         this.fetchUsers();
       });
   }
@@ -38,6 +38,7 @@ export default class Other extends React.Component<{}, state> {
       ? window.location.protocol + "//" + window.location.host + ServerRoutes.SHOW_USERS
       : "http://localhost:8000" + ServerRoutes.SHOW_USERS;
     GET(loc)
+      .then(res => res.json())
       .then((users: User[]) => this.setState({ users: users }));
   }
 

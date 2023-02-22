@@ -46,8 +46,8 @@ export default class UserController {
             user.password = UserController.saltedHash(user.salt, user.password);
         } catch {
             console.error('invalid JSON message in request body');
-            res.sendStatus(400);
-            return;
+            return res.sendStatus(400);
+
         }
         await service.addUser(user)
             .then(() => res.status(200).json({ message: "Successfully inserted" }))
@@ -55,6 +55,19 @@ export default class UserController {
     }
 
     static async login(req: Request, res: Response, next: NextFunction) {
-
+        await service.getUserWithName(req.body.username)
+            .then(user => {
+                if (!user)
+                    return res.status(403).json({ message: `No user '${req.body.username}' exists` });
+                if (!user.salt)
+                    return res.status(500).json({ message: `Could not get salt for user '${user.username}'` });
+                if (user.password == UserController.saltedHash(user.salt, req.body.password))
+                    return res.status(200).json({ message: "Successfully authenticated" });
+                return res.status(401).json({ message: "Invalid credentials" });
+            })
+            .catch((e: Error) => {
+                console.error(e.message);
+                return res.status(500).json();
+            });
     }
 }

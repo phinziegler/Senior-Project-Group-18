@@ -31,9 +31,13 @@ export default class UserService extends Service {
      * Add a user to the user table
      * @param user the user being added
      * @throws a generic error when the insert could not
-     *      be completed, likely do to a duplicate username
+     *      be completed, likely due to a duplicate username
      */
     public async addUser(user: User) {
         await this.insert(user);
+    }
+
+    public async getSaltForUser(username: string) {
+        return await this.findOne("salt", "username = " + escape(username));
     }
 }
