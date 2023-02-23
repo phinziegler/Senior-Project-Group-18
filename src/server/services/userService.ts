@@ -36,8 +36,4 @@ export default class UserService extends Service {
     public async addUser(user: User) {
         await this.insert(user);
     }
-
-    public async getSaltForUser(username: string) {
-        return await this.findOne("salt", "username = " + escape(username));
-    }
 }

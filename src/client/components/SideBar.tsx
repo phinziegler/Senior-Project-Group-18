@@ -10,6 +10,12 @@ export default class SideBar extends React.Component<{}, { pathName: string }> {
             pathName: window.location.pathname
         }
     }
+
+    /**
+     * Create a link object for the sidebar
+     * @param text the text displayed for this link
+     * @param path the path this link leads to
+     */
     link(text: string, path: string) {
         if (path.charAt(0) != "/") {
             path = "/" + path;

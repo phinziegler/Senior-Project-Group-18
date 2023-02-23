@@ -10,7 +10,7 @@ export default class UserController {
     /**
      * Return the list of users from the database
      */
-    static async users(req: Request, res: Response, next: NextFunction) {
+    static async users(req: Request, res: Response) {
         await service.getUsers().then(users => res.json(users)).catch(() => console.log("Error getting users"));
     }
 
@@ -38,7 +38,7 @@ export default class UserController {
      * Add a new user to the database.
      * @param req the request body should be in the form {username:"", password:""}
      */
-    static async addUser(req: Request, res: Response, next: NextFunction) {
+    static async addUser(req: Request, res: Response) {
         let user: User;
         try {
             user = req.body as User;
@@ -54,7 +54,11 @@ export default class UserController {
             .catch(() => res.status(409).json({ message: "Duplicate username" }));
     }
 
-    static async login(req: Request, res: Response, next: NextFunction) {
+    /**
+     * Attempt to log in by comparing the username and password from the DB to the input given
+     * @param req the request with a body of the form {username:"", password:""}
+     */
+    static async login(req: Request, res: Response) {
         await service.getUserWithName(req.body.username)
             .then(user => {
                 if (!user)

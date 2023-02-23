@@ -21,6 +21,9 @@ export default class Other extends React.Component<{}, loginState> {
         }
     }
 
+    /**
+     * makes the login request to the server
+     */
     login() {
         const loc = process.env.NODE_ENV == Environments.PRODUCTION
             ? window.location.protocol + "//" + window.location.host + ServerRoutes.LOGIN
@@ -45,7 +48,7 @@ export default class Other extends React.Component<{}, loginState> {
             <>
                 <h1>Login</h1>
                 <form onSubmit={(event) => {
-                    event.preventDefault();
+                    event.preventDefault();     // the page reloads by default when you press submit, but this behavior is not desired
                     this.login();
                 }}>
                     {this.state.status && <p className={this.state.statusClass}>{this.state.status}</p>}

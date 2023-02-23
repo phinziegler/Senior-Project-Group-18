@@ -22,6 +22,9 @@ export default class Other extends React.Component<{}, state> {
     this.addUser = this.addUser.bind(this);
   }
 
+  /** 
+    makes an add user request to the server. TODO: this functionality should be moved to a "create account" page/element
+   * */
   addUser() {
     const loc = process.env.NODE_ENV == Environments.PRODUCTION
       ? window.location.protocol + "//" + window.location.host + ServerRoutes.ADD_USER
@@ -33,6 +36,10 @@ export default class Other extends React.Component<{}, state> {
       });
   }
 
+  /**
+   * Gets a list of all users from the server. TODO: This was made to serve as an example of making requests to the server, 
+   * but since this exposes passwords and salt it should certainly be removed.
+   */
   fetchUsers() {
     const loc = process.env.NODE_ENV == Environments.PRODUCTION
       ? window.location.protocol + "//" + window.location.host + ServerRoutes.SHOW_USERS
@@ -42,6 +49,10 @@ export default class Other extends React.Component<{}, state> {
       .then((users: User[]) => this.setState({ users: users }));
   }
 
+  /**
+   * Creates a table with user information
+   * @returns the user table element
+   */
   users() {
     let rows: JSX.Element[] = [];
     this.state.users.forEach(user => {
