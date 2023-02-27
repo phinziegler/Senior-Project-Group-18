@@ -1,7 +1,14 @@
 import React from "react";
+import { Link, Navigate } from "react-router-dom";
 import Environments from "../../shared/Environments";
 import ServerRoutes from "../../shared/ServerRoutes";
+import User from "../../shared/User";
 import { POST } from "../fetch";
+
+interface LoginProps {
+    setUser: (user: User) => void;
+    user: User | null;
+}
 
 interface loginState {
     username: string;
@@ -10,21 +17,22 @@ interface loginState {
     statusClass: string;
 }
 
-export default class Other extends React.Component<{}, loginState> {
-    constructor(props: {}) {
+export default class Other extends React.Component<LoginProps, loginState> {
+    constructor(props: LoginProps) {
         super(props);
         this.state = {
             username: "",
             password: "",
             status: undefined,
-            statusClass: "text-danger"
+            statusClass: "text-danger",
         }
+        this.login = this.login.bind(this);
     }
 
     /**
      * makes the login request to the server
      */
-    login() {
+    async login() {
         const loc = process.env.NODE_ENV == Environments.PRODUCTION
             ? window.location.protocol + "//" + window.location.host + ServerRoutes.LOGIN
             : "http://localhost:8000" + ServerRoutes.LOGIN;
@@ -37,13 +45,25 @@ export default class Other extends React.Component<{}, loginState> {
         POST(loc, data).then(res => {
             if (res.status == 200) {
                 this.setState({ status: "Success", statusClass: "text-success" });
-                return;
+                return res.json();
             }
             this.setState({ status: "Invalid username or password", statusClass: "text-danger" });
+        }).then((data) => {
+            if (!data) {
+                return;
+            }
+            this.props.setUser(JSON.parse(data.user));
         });
     }
 
     render() {
+        if (this.props.user) {
+            if (this.props.user.username == undefined) {
+                return;
+            }
+            return <Navigate replace to={`/user/${this.props.user.username}`} />
+        }
+
         return (
             <>
                 <h1>Login</h1>
@@ -61,6 +81,8 @@ export default class Other extends React.Component<{}, loginState> {
 
                     <button type="submit">Submit</button>
                 </form>
+
+                <span>No account? <Link to={"/create-account"}>Create one!</Link></span>
             </>
         )
     }

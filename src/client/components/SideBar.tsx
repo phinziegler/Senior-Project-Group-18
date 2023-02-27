@@ -1,10 +1,15 @@
 
 import React from 'react'
 import { Link } from 'react-router-dom';
+import User from '../../shared/User';
 
-export default class SideBar extends React.Component<{}, { pathName: string }> {
+interface SideBarProps {
+    user: User | null
+}
 
-    constructor(props: {}) {
+export default class SideBar extends React.Component<SideBarProps, { pathName: string }> {
+
+    constructor(props: SideBarProps) {
         super(props);
         this.state = {
             pathName: window.location.pathname
@@ -34,7 +39,7 @@ export default class SideBar extends React.Component<{}, { pathName: string }> {
                 <ul className="nav nav-pills flex-column mb-auto list-group">
                     {this.link("home", "/")}
                     {this.link("other", "other")}
-                    {this.link("login", "login")}
+                    {this.props.user ? this.link(`${this.props.user.username}`, `user/${this.props.user.username}`) : this.link("login", "login")}
                     {this.link("this will error", "/error")}
                 </ul>
                 <hr />

@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import UserService from "../services/userService";
 import getDb from "../services/db-connect";
 import User from "../../shared/User";
@@ -12,6 +12,14 @@ export default class UserController {
      */
     static async users(req: Request, res: Response) {
         await service.getUsers().then(users => res.json(users)).catch(() => console.log("Error getting users"));
+    }
+
+    static async getUser(req: Request, res: Response) {
+        console.log(`getting user ${req.params.username}`);
+        if(!req.params.username) {
+            console.log("no username given");
+        }
+        await service.getUserWithName(req.params.username).then((user: User) => res.json(user));
     }
 
     /**
@@ -66,11 +74,11 @@ export default class UserController {
                 if (!user.salt)
                     return res.status(500).json({ message: `Could not get salt for user '${user.username}'` });
                 if (user.password == UserController.saltedHash(user.salt, req.body.password))
-                    return res.status(200).json({ message: "Successfully authenticated" });
+                    return res.status(200).json({ user: JSON.stringify(user) });
                 return res.status(401).json({ message: "Invalid credentials" });
             })
             .catch((e: Error) => {
-                console.error(e.message);
+                console.error(e);
                 return res.status(500).json();
             });
     }

@@ -5,17 +5,15 @@ import ServerRoutes from "../shared/ServerRoutes";
 const express = require("express");
 const router = express.Router();
 
-/*  note that get() refers to a GET request on "/hello"
-    if you wanted to accept POST requests on "/hello" you would use post() and pass in whichever logic you wanted */
-router.route("/hello").get(Controller.hello);
-router.route("/world").get(Controller.world);
-
 // 'Other' page
 router.route(ServerRoutes.SHOW_USERS).get(UserController.users);
 router.route(ServerRoutes.ADD_USER).post(UserController.addUser);
 
 // Login page
 router.route(ServerRoutes.LOGIN).post(UserController.login)
+
+// User page
+router.route(ServerRoutes.USER(":username")).get(UserController.getUser)
 
 /*  This route catches any unexpected route and returns index.html
     This allows the client side router to see if it has a valid route, and if not, shows the custom error screen 

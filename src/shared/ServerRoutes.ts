@@ -1,10 +1,11 @@
 /**
  * ServerRoutes contains the string name for all server routes.
  */
-enum ServerRoutes {
-    SHOW_USERS = "/users",
-    ADD_USER = "/add-user",
-    LOGIN = "/login",
-    ANY = "*"
+const ServerRoutes = {
+    SHOW_USERS: "/users",
+    ADD_USER: "/add-user",
+    LOGIN: "/login",
+    ANY: "*",
+    USER: ((username: string) => "/user/" + username),
 }
 export default ServerRoutes;
