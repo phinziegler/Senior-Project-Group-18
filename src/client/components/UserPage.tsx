@@ -36,12 +36,11 @@ class UserPageElement extends React.Component<UserPageElementProps, UserPageElem
         super(props);
         this.getUser(props.username);
         this.state = {
-            signedOut: props.user?.username != props.username
+            signedOut: false
         }
     }
 
-    /* FIXME: check if the user is logged in as the searched account, if not, no password or salt data should be returned.
-        Right now this is extremely insecure */
+    /* TODO: check if the user is logged in as the searched account, if they are, also return password information */
     async getUser(username: string) {
         if (!username) {
             return;

@@ -6,6 +6,6 @@ const ServerRoutes = {
     ADD_USER: "/add-user",
     LOGIN: "/login",
     ANY: "*",
-    USER: ((username: string) => "/user/" + username),
+    USER: ((username: string) => "/get-user/" + username),
 }
 export default ServerRoutes;

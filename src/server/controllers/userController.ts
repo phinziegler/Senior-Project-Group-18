@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import UserService from "../services/userService";
 import getDb from "../services/db-connect";
-import User from "../../shared/User";
+import User, { safeUser } from "../../shared/User";
 import Crypto from "crypto";
 
 const service = new UserService(getDb());
@@ -14,12 +14,20 @@ export default class UserController {
         await service.getUsers().then(users => res.json(users)).catch(() => console.log("Error getting users"));
     }
 
+    /**
+     * Return non-sensitive user information
+     * @param req The request should have a username parameter
+     */
     static async getUser(req: Request, res: Response) {
-        console.log(`getting user ${req.params.username}`);
-        if(!req.params.username) {
+        if (!req.params.username) {
             console.log("no username given");
         }
-        await service.getUserWithName(req.params.username).then((user: User) => res.json(user));
+        await service.getUserWithName(req.params.username).then((user: User) => {
+            if(!user) {
+                return res.sendStatus(404);
+            }
+            return res.json(safeUser(user));
+        });
     }
 
     /**
@@ -50,11 +58,14 @@ export default class UserController {
         let user: User;
         try {
             user = req.body as User;
+            if (!user.password) {
+                throw new Error();
+            }
             user.salt = UserController.createSalt(user.username, user.password);
             user.password = UserController.saltedHash(user.salt, user.password);
         } catch {
             console.error('invalid JSON message in request body');
-            return res.sendStatus(400);
+            return res.status(400).json({ message: "Failed request" });
 
         }
         await service.addUser(user)
