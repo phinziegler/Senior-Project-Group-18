@@ -50,61 +50,64 @@ export default class CreateAccount extends React.Component<{}, CreateAccountStat
         const buttonDisabled = this.state.password != this.state.confirm || this.state.password == "" || this.state.username == "";
         const passwordRegex = "^(?=.*.)(?=.*\\d).{8,}$";
         return <React.Fragment>
-            <h3>CreateAccount</h3>
-            <form onSubmit={this.newAccount}>
-                {/* USERNAME */}
-                <div className="form-group">
-                    <label htmlFor="username">Username</label>
-                    <div className="text-muted small">Less than 20 letters and numbers.</div>
-                    <input
-                        pattern="^[\d\w]{1,20}$"                            // only letters and numbers, between 1 and 20 characters long
-                        onChange={(e) => this.setState({ username: e.target.value })}
-                        value={this.state.username}
-                        className={`form-control ${this.state.usernameTaken ? "is-invalid" : ""}`}
-                        id="username"
-                        required={true}
-                        type="text" />
-                    {this.state.usernameTaken && <span className="text-danger small">This username has already been taken!</span>}
-                </div>
+           <div className='login-box'>
+                <h1 style={{margin: '1vh'}}>Create Account</h1>
+                <form onSubmit={this.newAccount}>
+                    {/* USERNAME */}
+                    <div className="text-input">
+                        <label htmlFor="username">Username:
+                            <div className="context-text">Less than 20 letters and numbers.</div>
+                        </label>
+                        <div></div>
+                        <input
+                            pattern="^[\d\w]{1,20}$"                            // only letters and numbers, between 1 and 20 characters long
+                            onChange={(e) => this.setState({ username: e.target.value })}
+                            value={this.state.username}
+                            className={`${this.state.usernameTaken ? "is-invalid" : ""}`}
+                            id="username"
+                            required={true}
+                            type="text" />
+                        <div>{this.state.usernameTaken && <span className="text-danger small">This username has already been taken!</span>}</div>
+                    </div>
 
-                {/* PASSWORD */}
-                <div className="form-group">
-                    <label htmlFor="password">Password
-                        <div className="text-muted small">Please include at least one number, 8 letters minimum.</div>
-                    </label>
+                    {/* PASSWORD */}
+                    <div className="text-input">
+                        <label htmlFor="password">Password:
+                            <div className="context-text">Please include at least one number, 8 letters minimum.</div>
+                        </label>
+                        <div></div>
+                        <input
+                            pattern={passwordRegex}    // Minimum eight characters, at least one letter and one number: https://stackoverflow.com/a/21456918
+                            onChange={(e) => this.setState({ password: e.target.value })}
+                            value={this.state.password}
+                            id="password"
+                            required={true}
+                            type="password" />
+                    </div>
 
-                    <input
-                        pattern={passwordRegex}    // Minimum eight characters, at least one letter and one number: https://stackoverflow.com/a/21456918
-                        onChange={(e) => this.setState({ password: e.target.value })}
-                        value={this.state.password}
-                        className="form-control"
-                        id="password"
-                        required={true}
-                        type="password" />
-                </div>
+                    {/* CONFIRM */}
+                    <div className="text-input">
+                        <label htmlFor="confirm-password">Confirm Password</label>
+                        <div></div>
+                        <input
+                            pattern={passwordRegex}
+                            onChange={(e) => this.setState({ confirm: e.target.value })}
+                            value={this.state.confirm}
+                            id="confirm-password"
+                            required={true}
+                            type="password" />
+                    </div>
 
-                {/* CONFIRM */}
-                <div className="form-group">
-                    <label htmlFor="confirm-password">Confirm Password</label>
-                    <input
-                        pattern={passwordRegex}
-                        onChange={(e) => this.setState({ confirm: e.target.value })}
-                        value={this.state.confirm}
-                        className="form-control"
-                        id="confirm-password"
-                        required={true}
-                        type="password" />
-                </div>
-
-                {/* SUBMIT */}
-                <div className="form-group">
-                    <input
-                        disabled={buttonDisabled}
-                        value="Create Account"
-                        className={"btn " + (buttonDisabled ? "btn-secondary" : "btn-primary")}
-                        type="submit" />
-                </div>
-            </form>
+                    {/* SUBMIT */}
+                    <div className="form-group">
+                        <input
+                            disabled={buttonDisabled}
+                            value="Create Account"
+                            className={(buttonDisabled ? "submit-button-disabled" : "submit-button")}
+                            type="submit" />
+                    </div>
+                </form>
+            </div>
         </React.Fragment>
     }
 }
