@@ -25,13 +25,14 @@ export default function RouteManager(props: { user: User | null }) {
                     element: <Other />
                 }, {
                     path: "login",
-                    element: <Login user={user} setUser={(newUser: User) => {
-                        if (newUser) {
-                            window.localStorage.setItem('user', JSON.stringify(newUser));
+                    element: <Login user={user} setUser={(data: any) => {
+                        if (data) {
+                            window.localStorage.setItem('user', JSON.stringify(data));
+                            setUser(data.user);
                         } else {
                             window.localStorage.setItem('user', String());
+                            setUser(null);
                         }
-                        setUser(newUser);
                     }} />
                 },
                 {
@@ -40,13 +41,14 @@ export default function RouteManager(props: { user: User | null }) {
                 },
                 {
                     path: "user/:username",
-                    element: <UserPage setUser={(newUser: User | null) => {
-                        if (newUser) {
-                            window.localStorage.setItem('user', JSON.stringify(newUser));
+                    element: <UserPage setUser={(data: any | null) => {
+                        if (data) {
+                            window.localStorage.setItem('user', JSON.stringify(data));
+                            setUser(data.user);
                         } else {
                             window.localStorage.setItem('user', String());
+                            setUser(null);
                         }
-                        setUser(newUser);
                     }} user={user} />
                 }
             ]

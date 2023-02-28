@@ -60,7 +60,8 @@ class UserPageElement extends React.Component<UserPageElementProps, UserPageElem
         return (
             <>
                 {this.state.signedOut && <Navigate replace to="/login" />}
-                <h1>{this.props.username}</h1>
+                {/* FIXME: This should not accquire the username from the props, it should only render a username once the getUser request is complete */}
+                <h1>{this.props.username}</h1>  
                 {this.props.user && (this.props.user.username == this.props.username) && <button onClick={() => this.signOut()}>Sign Out</button>}
             </>
         )

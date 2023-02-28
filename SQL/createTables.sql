@@ -16,4 +16,17 @@ CREATE TABLE friend (
     PRIMARY KEY (user_id, friend_id)
 );
 
+DROP TABLE IF EXISTS authTokens;
+
+CREATE TABLE authTokens (
+	id INT NOT NULL AUTO_INCREMENT UNIQUE,
+    token VARCHAR(255) NOT NULL,
+    username VARCHAR(255) NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (username)
+		REFERENCES user(username)
+		ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
 SHOW TABLES;

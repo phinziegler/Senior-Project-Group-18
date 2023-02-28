@@ -5,6 +5,7 @@ const ServerRoutes = {
     SHOW_USERS: "/users",
     ADD_USER: "/add-user",
     LOGIN: "/login",
+    TOKEN_LOGIN: "/login-token",
     ANY: "*",
     USER: ((username: string) => "/get-user/" + username),
 }

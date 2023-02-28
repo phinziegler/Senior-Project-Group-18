@@ -3,6 +3,7 @@ import { Link, Navigate } from "react-router-dom";
 import Environments from "../../shared/Environments";
 import ServerRoutes from "../../shared/ServerRoutes";
 import User from "../../shared/User";
+import { login } from "../auth";
 import { POST } from "../fetch";
 
 interface LoginProps {
@@ -52,7 +53,7 @@ export default class Other extends React.Component<LoginProps, loginState> {
             if (!data) {
                 return;
             }
-            this.props.setUser(JSON.parse(data.user));
+            this.props.setUser(data);
         });
     }
 

@@ -2,16 +2,19 @@ import { Request, Response } from "express";
 import UserService from "../services/userService";
 import getDb from "../services/db-connect";
 import User, { safeUser } from "../../shared/User";
-import Crypto from "crypto";
+import Crypto, { randomUUID } from "crypto";
+import AuthTokenService from "../services/AuthTokenService";
+import AuthToken from "../../shared/AuthToken";
 
-const service = new UserService(getDb());
+const userService = new UserService(getDb());
+const authTokenService = new AuthTokenService(getDb());
 export default class UserController {
 
     /**
      * Return the list of users from the database
      */
     static async users(req: Request, res: Response) {
-        await service.getUsers().then(users => res.json(users)).catch(() => console.log("Error getting users"));
+        await userService.getUsers().then(users => res.json(users)).catch(() => console.log("Error getting users"));
     }
 
     /**
@@ -22,8 +25,8 @@ export default class UserController {
         if (!req.params.username) {
             console.log("no username given");
         }
-        await service.getUserWithName(req.params.username).then((user: User) => {
-            if(!user) {
+        await userService.getUserWithName(req.params.username).then((user: User) => {
+            if (!user) {
                 return res.sendStatus(404);
             }
             return res.json(safeUser(user));
@@ -68,7 +71,7 @@ export default class UserController {
             return res.status(400).json({ message: "Failed request" });
 
         }
-        await service.addUser(user)
+        await userService.addUser(user)
             .then(() => res.status(200).json({ message: "Successfully inserted" }))
             .catch(() => res.status(409).json({ message: "Duplicate username" }));
     }
@@ -78,19 +81,41 @@ export default class UserController {
      * @param req the request with a body of the form {username:"", password:""}
      */
     static async login(req: Request, res: Response) {
-        await service.getUserWithName(req.body.username)
+        await userService.getUserWithName(req.body.username)
             .then(user => {
                 if (!user)
                     return res.status(403).json({ message: `No user '${req.body.username}' exists` });
                 if (!user.salt)
                     return res.status(500).json({ message: `Could not get salt for user '${user.username}'` });
-                if (user.password == UserController.saltedHash(user.salt, req.body.password))
-                    return res.status(200).json({ user: JSON.stringify(user) });
+                if (user.password == UserController.saltedHash(user.salt, req.body.password)) {
+                    let token: AuthToken = { username: user.username, token: randomUUID() }
+                    authTokenService.add(token);
+                    let data = { user: user, token: token.token }
+                    return res.status(200).json(data);
+
+                }
                 return res.status(401).json({ message: "Invalid credentials" });
             })
             .catch((e: Error) => {
                 console.error(e);
                 return res.status(500).json();
             });
+    }
+
+    /**
+     * Authenticate a user using an authentication token instead of a username and password
+     * @param req the body should be in the form of an AuthToken (see '/shared/AuthToken.ts')
+     */
+    static async tokenLogin(req: Request, res: Response) {
+        try {
+            let token = req.body as AuthToken;
+            await authTokenService.checkAuthorized(token).then(data => {
+                if (!data)
+                    return res.status(401).json({ message: "Invalid credentials" });
+                return res.status(200).json({ message: "Successfully authenticated" });
+            });
+        } catch {
+            return res.status(400).json({ message: "Invalid Request format" })
+        }
     }
 }

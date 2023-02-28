@@ -1,9 +1,11 @@
+import AuthToken from "../shared/AuthToken";
 import Environments from "../shared/Environments";
 import ServerRoutes from "../shared/ServerRoutes";
 import User from "../shared/User";
+import requestUrl from "./components/requestUrl";
 import { POST } from "./fetch";
 
-export default async function login(username: string | undefined, password: string | undefined): Promise<(User | void)> {
+export async function login(username: string | undefined, password: string | undefined): Promise<(User | void)> {
 
     if (!(username && password)) return;    // if one of the parameters is missing, fail to authenticate;
 
@@ -16,7 +18,7 @@ export default async function login(username: string | undefined, password: stri
         password: password
     }
 
-    POST(loc, obj).then(res => {
+    await POST(loc, obj).then(res => {
         if (res.status == 200) {
             console.log("successful authentication");
             return res.json();
@@ -26,6 +28,32 @@ export default async function login(username: string | undefined, password: stri
             console.log("failed to authenticate");
             return;
         }
-        return JSON.parse(data.user)
+        return data;
+    });
+}
+
+/**
+ * Authenticate a user by using the locally stored authentication token
+ * @returns true if successfully authenticated, false otherwise
+ */
+export async function tokenLogin(): Promise<boolean> {
+    let storageString = window.localStorage.getItem('user');
+    if (!storageString) 
+        return false;
+        
+    let storage = JSON.parse(storageString);
+
+    let token: AuthToken = {
+        username: storage.user.username,
+        token: storage.token
+    }
+
+    let loc = requestUrl(ServerRoutes.TOKEN_LOGIN);
+    return await POST(loc, token).then((res: Response) => {
+        if (res.status == 200) {
+            console.log("successful authentication from token");
+            return true;
+        }
+        return false;
     });
 }

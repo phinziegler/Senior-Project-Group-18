@@ -9,11 +9,12 @@ const router = express.Router();
 router.route(ServerRoutes.SHOW_USERS).get(UserController.users);
 router.route(ServerRoutes.ADD_USER).post(UserController.addUser);
 
-// Login page
-router.route(ServerRoutes.LOGIN).post(UserController.login)
+// Authentication
+router.route(ServerRoutes.LOGIN).post(UserController.login);
+router.route(ServerRoutes.TOKEN_LOGIN).post(UserController.tokenLogin);
 
 // User page
-router.route(ServerRoutes.USER(":username")).get(UserController.getUser)
+router.route(ServerRoutes.USER(":username")).get(UserController.getUser);
 
 /*  This route catches any unexpected route and returns index.html
     This allows the client side router to see if it has a valid route, and if not, shows the custom error screen 
