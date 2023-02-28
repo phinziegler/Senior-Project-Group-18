@@ -10,3 +10,66 @@
 .sidebar-item {
     padding-right: 100px;
 }
+
+.login-box {
+    width: 50vw;
+    max-width: 500px;
+    text-align: center;
+    margin: auto;
+    margin-top: 28vh;
+    border-style: solid;
+    border-color: blue;
+    border-radius: 8px;
+}
+
+.text-input {
+    margin-top: .5vw;
+    margin-bottom: .5vw;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.text-input > input {
+    width: 30vw;
+    max-width: 300px;
+    min-width: 50px;
+    margin-top: .5vw;
+}
+
+.text-input > label {
+    font-size: max(min(2vh, 20px), 15px);
+}
+
+.text-input > label > .context-text{
+    font-size: max(min(2vh, 13px), 10px);
+    color:darkgray;
+}
+
+.submit-button {
+    transition-duration: 0.4s;
+    background-color:green;
+    color: white;
+    margin-top: 1vh;
+    margin-bottom: 2vh;
+    border-color: black;
+    border-width: 2px;
+    border-radius: 8px;
+    padding: 1vh;
+}
+
+.submit-button-disabled {
+    background-color:grey;
+    color: black;
+    margin-top: 1vh;
+    margin-bottom: 2vh;
+    border-color: black;
+    border-width: 2px;
+    border-radius: 8px;
+    padding: 1vh;
+}
+
+.submit-button:hover {
+    background-color: white;
+    color: green;
+    border-color: green;
+}

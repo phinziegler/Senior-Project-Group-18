@@ -4,6 +4,7 @@ import Environments from "../../shared/Environments";
 import ServerRoutes from "../../shared/ServerRoutes";
 import User from "../../shared/User";
 import { POST } from "../fetch";
+import '../styles/style.css';
 
 interface LoginProps {
     setUser: (user: User) => void;
@@ -47,7 +48,8 @@ export default class Other extends React.Component<LoginProps, loginState> {
                 this.setState({ status: "Success", statusClass: "text-success" });
                 return res.json();
             }
-            this.setState({ status: "Invalid username or password", statusClass: "text-danger" });
+            alert("Invalid username or password");
+            //this.setState({ status: "Invalid username or password", statusClass: "text-danger" });
         }).then((data) => {
             if (!data) {
                 return;
@@ -66,23 +68,27 @@ export default class Other extends React.Component<LoginProps, loginState> {
 
         return (
             <>
-                <h1>Login</h1>
-                <form onSubmit={(event) => {
-                    event.preventDefault();     // the page reloads by default when you press submit, but this behavior is not desired
-                    this.login();
-                }}>
-                    {this.state.status && <p className={this.state.statusClass}>{this.state.status}</p>}
+                <div className='login-box'>
+                    <h1 style={{margin: '1vh'}}>Login</h1>
+                    <form onSubmit={(event) => {
+                        event.preventDefault();     // the page reloads by default when you press submit, but this behavior is not desired
+                        this.login();
+                    }}>
+                        {this.state.status && <p className={this.state.statusClass}>{this.state.status}</p>}
 
-                    <label htmlFor="username">username</label>
-                    <input value={this.state.username} onChange={(e) => this.setState({ username: e.target.value })} id="username" type="text" />
+                        <div className='text-input'>
+                            <label htmlFor="username">username:&nbsp;</label>
+                            <input value={this.state.username} onChange={(e) => this.setState({ username: e.target.value })} id="username" type="text" />
+                        </div>
+                        <div className='text-input'>
+                            <label htmlFor="password">password:&nbsp;</label>
+                            <input value={this.state.password} onChange={(e) => this.setState({ password: e.target.value })} id="password" type="password" />
+                        </div>
+                        <div><button className='btn submit-button' type="submit">Submit</button></div>
+                    </form>
 
-                    <label htmlFor="password">password</label>
-                    <input value={this.state.password} onChange={(e) => this.setState({ password: e.target.value })} id="password" type="password" />
-
-                    <button type="submit">Submit</button>
-                </form>
-
-                <span>No account? <Link to={"/create-account"}>Create one!</Link></span>
+                    <div style={{'marginBottom': '1vh'}}>No account? <Link to={"/create-account"}>Create one!</Link></div>
+                </div>
             </>
         )
     }
