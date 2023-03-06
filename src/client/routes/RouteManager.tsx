@@ -4,6 +4,8 @@ import Login from '../components/Login';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Root from './Root';
 import ErrorPage from './ErrorPage';
+import CreateLobby from '../components/CreateLobby';
+import LobbyPage from '../components/LobbyPage';
 import 'bootstrap/dist/css/bootstrap.min.css';  // this is how bootstrap is imported
 import '../../client/styles/style.css';
 import ClientSocketManager from '../ClientSocketManager';
@@ -50,7 +52,16 @@ export default function RouteManager(props: { user: User | null }) {
                             setUser(null);
                         }
                     }} user={user} />
-                }
+                },
+                {
+                    path:"create-lobby",
+                    element: <CreateLobby />
+                },
+                // {
+                //     path: "lobby/:lobbyID",
+                //     element: <LobbyPage />
+                //         /* TODO */
+                // }
             ]
         }
     ]);
