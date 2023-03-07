@@ -15,6 +15,18 @@ import UserPage from '../components/UserPage';
 
 new ClientSocketManager();
 export default function RouteManager(props: { user: User | null }) {
+
+    // used by pages with the capacity to change the user
+    const setUserFunction = (data: any) => {
+        if (data) {
+            window.localStorage.setItem('user', JSON.stringify(data));
+            setUser(data.user);
+            return;
+        }
+        window.localStorage.setItem('user', String());
+        setUser(null);
+    }
+
     const [user, setUser] = useState<(User | null)>(props.user);
     const router = createBrowserRouter([
         {
@@ -27,15 +39,7 @@ export default function RouteManager(props: { user: User | null }) {
                     element: <Other />
                 }, {
                     path: "login",
-                    element: <Login user={user} setUser={(data: any) => {
-                        if (data) {
-                            window.localStorage.setItem('user', JSON.stringify(data));
-                            setUser(data.user);
-                        } else {
-                            window.localStorage.setItem('user', String());
-                            setUser(null);
-                        }
-                    }} />
+                    element: <Login user={user} setUser={setUserFunction} />
                 },
                 {
                     path: "create-account",
@@ -43,18 +47,10 @@ export default function RouteManager(props: { user: User | null }) {
                 },
                 {
                     path: "user/:username",
-                    element: <UserPage setUser={(data: any | null) => {
-                        if (data) {
-                            window.localStorage.setItem('user', JSON.stringify(data));
-                            setUser(data.user);
-                        } else {
-                            window.localStorage.setItem('user', String());
-                            setUser(null);
-                        }
-                    }} user={user} />
+                    element: <UserPage setUser={setUserFunction} user={user} />
                 },
                 {
-                    path:"create-lobby",
+                    path: "create-lobby",
                     element: <CreateLobby />
                 },
                 // {
