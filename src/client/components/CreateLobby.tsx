@@ -1,7 +1,10 @@
 import { request } from "http";
 import React from "react";
 import { Navigate } from "react-router-dom";
+import AuthToken from "../../shared/AuthToken";
 import ServerRoutes from "../../shared/ServerRoutes";
+import User from "../../shared/User";
+import { getAuthToken } from "../auth";
 import { POST } from "../fetch";
 import requestUrl from "./requestUrl";
 
@@ -21,13 +24,23 @@ export default class CreateLobby extends React.Component<{}, CreateLobbyState> {
 
     createLobby(e: React.FormEvent) {
         e.preventDefault();
+        let leader: AuthToken;
+        try {
+            leader = getAuthToken();
+        } catch {
+            console.error("Cannot create lobby, user is not logged in");
+            return;
+            // TODO: Display some kind of message to the user that they need to be logged in
+            // Better yet, if the user is not logged in, it should simply redirect them to the home or login page
+        }
         const data = {
             lobbyName: this.state.lobbyName,
             lobbyPassword: this.state.lobbyPassword,
+            leader: leader
         }
         POST(requestUrl(ServerRoutes.MAKE_LOBBY), data).then(res => {
             if (res.status != 200) {
-                console.log("Failed to create lobby");
+                console.error("Failed to create lobby");
                 return;
             }
             /* TODO: make this reroute to the newly created lobby page */

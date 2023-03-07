@@ -57,3 +57,18 @@ export async function tokenLogin(): Promise<boolean> {
         return false;
     });
 }
+
+export function getAuthToken() {
+    let storageString = window.localStorage.getItem('user');
+    if (!storageString) 
+        throw new Error("Cannot get auth token, user may not be logged in.");
+        
+    let storage = JSON.parse(storageString);
+
+    let token: AuthToken = {
+        username: storage.user.username,
+        token: storage.token
+    }
+
+    return token;
+}

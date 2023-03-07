@@ -1,5 +1,5 @@
 import { Connection, escape } from "mysql";
-import Service from "./Service";
+import Service from "../../tools/Service";
 import AuthToken from "../../shared/AuthToken";
 
 /**
@@ -12,7 +12,12 @@ export default class AuthTokenService extends Service {
 
     /** Check if a user is authenticated */
     async checkAuthorized(token: AuthToken) {
-        return await this.findOne("*", "username = " + escape(token.username) + " AND token = " + escape(token.token));
+        return await this.findOne("*", "username = " + escape(token.username) + " AND token = " + escape(token.token)).then(data => {
+            if(!data) {
+                return false;
+            }
+            return true;
+        })
     }
 
     /** Add an authenticated user */

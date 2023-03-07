@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import path from "path";
-import STATIC_PATH from "../static-path";
+import STATIC_PATH from "../../tools/static-path";
 
 /**
  * This is a General controller class. If the app was more complex, you might have separate controllers for various aspects.
@@ -10,17 +10,6 @@ import STATIC_PATH from "../static-path";
  *                      The "default" keyword means that you can use the form "import Controller from '<relative-path>'"
  */
 export default class Controller {
-
-    // Basic "send" response which simply returns a string to the user
-    static hello(req: Request, res: Response, next: NextFunction) {
-        res.send("Hello");
-    }
-
-    // example sending a json response
-    static world(req: Request, res: Response, next: NextFunction) {
-        res.json({ message: "world" });
-    }
-
     static sendHtml(req: Request, res: Response, next: NextFunction) {
         let file = path.join(STATIC_PATH, 'index.html');
         res.sendFile(file);

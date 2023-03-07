@@ -1,6 +1,7 @@
 import Controller from "./controllers/controller";
 import UserController from "./controllers/userController";
 import ServerRoutes from "../shared/ServerRoutes";
+import LobbyController from "./controllers/lobbyController";
 
 const express = require("express");
 const router = express.Router();
@@ -15,6 +16,9 @@ router.route(ServerRoutes.TOKEN_LOGIN).post(UserController.tokenLogin);
 
 // User page
 router.route(ServerRoutes.USER(":username")).get(UserController.getUser);
+
+// Lobbies
+router.route(ServerRoutes.MAKE_LOBBY).post(LobbyController.makeLobby)
 
 /*  This route catches any unexpected route and returns index.html
     This allows the client side router to see if it has a valid route, and if not, shows the custom error screen 
