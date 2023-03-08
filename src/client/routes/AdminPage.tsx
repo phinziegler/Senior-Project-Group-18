@@ -9,7 +9,7 @@ interface state {
   users: User[]
 }
 
-export default class Other extends React.Component<{}, state> {
+export default class AdminPage extends React.Component<{}, state> {
   myClassVariable: number;  // class variables have to be 'announced' like so
 
   constructor(props: {}) {
@@ -87,7 +87,7 @@ export default class Other extends React.Component<{}, state> {
     let isPopulated = this.state.users.length > 0;
     return (
       <div className='bg-dark'>
-        <h1 className='text-center text-white'>Example</h1>
+        <h1 className='text-center text-white'>Admin Page</h1>
         <button className={"btn " + (isPopulated ? "btn-secondary" : 'btn-success')} disabled={isPopulated} onClick={this.fetchUsers}>Click here to see users!</button>
         <button className="btn btn-success" onClick={this.addUser}>Add User</button>
         {this.users()}

@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS authTokens;
+DROP TABLE IF EXISTS friend;
 DROP TABLE IF EXISTS user;
 
 CREATE TABLE user (
@@ -8,25 +10,18 @@ CREATE TABLE user (
     PRIMARY KEY (id)
 );
 
-DROP TABLE IF EXISTS friend;
-
 CREATE TABLE friend (
-    user_id VARCHAR(255) NOT NULL,
-    friend_id VARCHAR(255) NOT NULL,
-    PRIMARY KEY (user_id, friend_id)
+    user_id INT NOT NULL,
+    friend_id INT NOT NULL,
+    PRIMARY KEY (user_id, friend_id),
+    FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (friend_id) REFERENCES user(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-DROP TABLE IF EXISTS authTokens;
-
 CREATE TABLE authTokens (
-	id INT NOT NULL AUTO_INCREMENT UNIQUE,
+    id INT NOT NULL AUTO_INCREMENT UNIQUE,
     token VARCHAR(255) NOT NULL,
     username VARCHAR(255) NOT NULL,
     PRIMARY KEY (id),
-    FOREIGN KEY (username)
-		REFERENCES user(username)
-		ON DELETE CASCADE
-        ON UPDATE CASCADE
+    FOREIGN KEY (username) REFERENCES user(username) ON DELETE CASCADE ON UPDATE CASCADE
 );
-
-SHOW TABLES;

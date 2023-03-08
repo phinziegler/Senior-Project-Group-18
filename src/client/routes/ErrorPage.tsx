@@ -7,10 +7,8 @@ export default function ErrorPage() {
         <div className="vh-100">
             <div className="center-vertical text-center position-relative" id="error-page">
                 <h1>404</h1>
-                <p>Sorry, an unexpected error has occurred.</p>
-                <p className="text-secondary">
-                    <i>{error.statusText || error.message}</i>
-                </p>
+                <p>Sorry, an unexpected error has occurred</p>
+                <p className="text-secondary">{error.statusText || error.message}</p>
             </div>
         </div>
     );
