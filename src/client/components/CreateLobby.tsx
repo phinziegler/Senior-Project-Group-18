@@ -11,6 +11,8 @@ import requestUrl from "./requestUrl";
 interface CreateLobbyState {
     lobbyName: string;   // the lobby name
     lobbyPassword: string;   // the lobby password
+    reroute: boolean;
+    lobbyId: string;
 }
 
 export default class CreateLobby extends React.Component<{}, CreateLobbyState> {
@@ -19,6 +21,8 @@ export default class CreateLobby extends React.Component<{}, CreateLobbyState> {
         this.state = {
             lobbyName: "",
             lobbyPassword: "",
+            reroute: false,
+            lobbyId: "",
         }
     }
 
@@ -43,15 +47,24 @@ export default class CreateLobby extends React.Component<{}, CreateLobbyState> {
                 console.error("Failed to create lobby");
                 return;
             }
-            /* TODO: make this reroute to the newly created lobby page */
+            return res.json();/* TODO: make this reroute to the newly created lobby page */
+        }).then(e => {
+            if (!e) {
+                return;
+            }
+            try {
+                this.setState({reroute: true, lobbyId: e.id});
+            } catch (error: any) {
+                console.error(`Something went wrong: ${error.message}`)
+            }
         })
     }
 
     render() {
-
         const buttonDisabled = this.state.lobbyName == "";
 
         return <React.Fragment>
+            {this.state.reroute && <Navigate replace to={`/lobby/${this.state.lobbyId}`} />}
             <div className='login-box'>
                 <h1 style={{ margin: '1vh' }}>Create Lobby</h1>
                 <form onSubmit={e => this.createLobby(e)}>
