@@ -29,8 +29,6 @@ PreAuthenticate().then(() => {
     document.getElementById('root') as HTMLElement
   );
 
-    console.log(userTemp);
-
   root.render(
     <RouteManager user={userTemp} />
   );
