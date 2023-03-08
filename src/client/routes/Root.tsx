@@ -13,7 +13,7 @@ export default class Root extends React.Component<RootProps> {
     }
     render() {
         return (
-            <div className="d-flex h-100" >
+            <div className="d-flex h-100" style={{ background: 'black' }}>
                 <SideBar user={this.props.user} />
                 <div className="w-100 h-100">
                     <Outlet />

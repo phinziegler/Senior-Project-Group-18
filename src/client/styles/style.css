@@ -18,8 +18,10 @@
     margin: auto;
     margin-top: 28vh;
     border-style: solid;
-    border-color: blue;
+    border-color: lightgreen;
     border-radius: 8px;
+    color: white;
+    font-family: Lucida Console;
 }
 
 .text-input {
@@ -34,6 +36,7 @@
     max-width: 300px;
     min-width: 50px;
     margin-top: .5vw;
+    background-color: lightgrey;
 }
 
 .text-input > label {
@@ -42,7 +45,7 @@
 
 .text-input > label > .context-text{
     font-size: max(min(2vh, 13px), 10px);
-    color:darkgray;
+    color:lightgreen;
 }
 
 .submit-button {
