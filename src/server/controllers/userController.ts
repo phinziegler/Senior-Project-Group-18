@@ -1,13 +1,10 @@
 import { Request, Response } from "express";
-import UserService from "../services/userService";
-import getDb from "../services/db-connect";
 import User, { safeUser } from "../../shared/User";
 import Crypto, { randomUUID } from "crypto";
-import AuthTokenService from "../services/AuthTokenService";
 import AuthToken from "../../shared/AuthToken";
+import { userService, authTokenService } from "../../tools/services";
 
-const userService = new UserService(getDb());
-const authTokenService = new AuthTokenService(getDb());
+
 export default class UserController {
 
     /**
@@ -109,8 +106,8 @@ export default class UserController {
     static async tokenLogin(req: Request, res: Response) {
         try {
             let token = req.body as AuthToken;
-            await authTokenService.checkAuthorized(token).then(data => {
-                if (!data)
+            await authTokenService.checkAuthorized(token).then(success => {
+                if (!success)
                     return res.status(401).json({ message: "Invalid credentials" });
                 return res.status(200).json({ message: "Successfully authenticated" });
             });

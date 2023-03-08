@@ -49,8 +49,8 @@ export default class Other extends React.Component<LoginProps, loginState> {
                 this.setState({ status: "Success", statusClass: "text-success" });
                 return res.json();
             }
-            alert("Invalid username or password");
-            //this.setState({ status: "Invalid username or password", statusClass: "text-danger" });
+            // alert("Invalid username or password");
+            this.setState({ status: "Invalid username or password", statusClass: "text-danger" });
         }).then((data) => {
             if (!data) {
                 return;
