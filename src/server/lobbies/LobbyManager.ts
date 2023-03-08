@@ -13,7 +13,8 @@ export default class LobbyController {
     addLobby(name: string, password: string, leader: AuthToken) {
         let lobby = new Lobby(name, password, leader)
         this.lobbies.set(lobby.id, lobby);
-        this.userToLobby.set(name, lobby);
+        this.userToLobby.set(leader.username, lobby);
+        return lobby.id;
     }
 
     getLobby(lobbyId: string) {
@@ -26,5 +27,12 @@ export default class LobbyController {
             output.push(lobby.toJson());
         });
         return output;
+    }
+
+    userInLobby(leader: AuthToken) {
+        if (this.userToLobby.has(leader.username)) {
+            return true;
+        }
+        return false;
     }
 }
