@@ -38,7 +38,7 @@ getDb();
 
 // Create the websocket server/manager
 const wsPort = 8080;    // NOTE: This port is only used in development
-new ServerSocketManager(server, wsPort);
+const socketManager = new ServerSocketManager(server, wsPort);
 
 // Create the lobby manager
 const lobbyManager = new LobbyManager();
@@ -48,4 +48,4 @@ server.listen(serverPort, () => {
     console.log(`Server started on port ${serverPort} in mode ${ENV}`);
 });
 
-export { lobbyManager };
+export { lobbyManager, socketManager };

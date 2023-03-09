@@ -5,6 +5,7 @@ import AuthToken from "../../shared/AuthToken";
 import ServerRoutes from "../../shared/ServerRoutes";
 import User from "../../shared/User";
 import { getAuthToken } from "../auth";
+import clientSocketManager from "../ClientSocketManager";
 import { POST } from "../fetch";
 import requestUrl from "./requestUrl";
 
@@ -40,7 +41,8 @@ export default class CreateLobby extends React.Component<{}, CreateLobbyState> {
         const data = {
             lobbyName: this.state.lobbyName,
             lobbyPassword: this.state.lobbyPassword,
-            leader: leader
+            leader: leader,
+            socketId: clientSocketManager.getId()
         }
         POST(requestUrl(ServerRoutes.MAKE_LOBBY), data).then(res => {
             if (res.status != 200) {
