@@ -1,5 +1,5 @@
 import React from "react";
-import { Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import ServerRoutes from "../../shared/ServerRoutes";
 import User from "../../shared/User";
 import { GET, POST } from "../fetch";
@@ -11,6 +11,7 @@ import { getAuthToken } from "../auth";
 
 interface LobbyListState {
     lobbyList: LobbyList[];
+    pathName: string;
 }
 
 export default function LobbyList() {
@@ -29,6 +30,7 @@ class LobbyListElement extends React.Component<{}, LobbyListState> {
         super(props);
         this.state = {
             lobbyList: [],
+            pathName: window.location.pathname
         }
         this.getLobbyList();
     }
@@ -57,12 +59,26 @@ class LobbyListElement extends React.Component<{}, LobbyListState> {
 //
 //    }
 
+    link(text: string, path: string) {
+        if (path.charAt(0) != "/") {
+            path = "/" + path;
+        }
+        return (
+            <div className="col-5">
+                <Link onClick={() => this.setState({ pathName: path })}
+                    className={"link" + (this.state.pathName == path && " active")}
+                    to={path}>{text}
+                </Link>
+            </div>
+        )
+    }
+
     lobbies() {
         let rows: JSX.Element[] = [];
         this.state.lobbyList.forEach((lobby, index) => {
         rows.push(
-        <div className="row align-items-center border-bottom border-green">
-            <div className="col-5">{lobby.name}</div>
+        <div className="row align-items-center border-bottom border-green no-gutters">
+            {this.link(lobby.name, `/lobby/${lobby.id}`)}
             <div className="col-3">{lobby.leader}</div>
             <div className="col-2"><input style={{width: '2vh', height: '2vh'}} type="checkbox" checked={Boolean(lobby.hasPassword)} readOnly={true}/></div>
             <div className="col-2"><input type="button" className="button join-button" value="Join"/></div>
@@ -71,8 +87,8 @@ class LobbyListElement extends React.Component<{}, LobbyListState> {
         });
 
         return (
-            <div className="container container-lobby">
-                <div className="row row-header border-bottom border-green align-items-center">
+            <div className="container-lobby">
+                <div className="row row-header border-bottom border-green align-items-center no-gutters">
                     <div className="col-5">Lobby Name</div>
                     <div className="col-3">Lobby Leader</div>
                     <div className="col-2">Private?</div>

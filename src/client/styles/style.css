@@ -11,8 +11,13 @@
     padding-right: 100px;
 }
 
+.main-font {
+    color: white;
+    font-family: Lucida Console;
+}
+
 .login-box {
-    width: 50vw;
+    width: 50%;
     max-width: 500px;
     text-align: center;
     margin: auto;
@@ -20,8 +25,6 @@
     border-style: solid;
     border-color: lightgreen;
     border-radius: 8px;
-    color: white;
-    font-family: Lucida Console;
 }
 
 .text-input {
@@ -29,12 +32,12 @@
     margin-bottom: .5vw;
     font-weight: bold;
     display: inline-block;
+    width: 100%
 }
 
 .text-input > input {
-    width: 30vw;
+    width: 70%;
     max-width: 300px;
-    min-width: 50px;
     margin-top: .5vw;
     background-color: lightgrey;
 }
@@ -87,12 +90,8 @@
 }
 
 .row-header {
-    font-size: larger;
-    padding: 1vh;
-}
-
-.grid-space {
-    border-color: green;
+    font-size: 2.5vh;
+    padding-bottom: 1vh;
 }
 
 .join-button {
@@ -110,5 +109,52 @@
 }
 
 .border-green {
-    border-color: green!important;
+    border-color: lightgreen!important;
+}
+
+.border-medium {
+    border-radius: 8px;
+    border-style: solid;
+    border-width: medium;
+}
+
+.no-gutters {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.no-gutters .col, [class*="col-"] {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.lobby-box {
+    width: 70%;
+    max-width: 1000px;
+    margin: auto;
+    margin-top: 5vh;
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+.lobby-header-box {
+    margin-top: -1px;
+    border-top-right-radius: 0px;
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+.chat-box {
+    border-bottom-left-radius: 0px;
+    border-top-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+    margin-right: -3px;
+    margin-top: -3px;
+    margin-bottom: -3px;
+}
+
+.ready-box {
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+    margin-bottom: -3px;
 }

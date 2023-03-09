@@ -79,7 +79,7 @@ export default class CreateLobby extends React.Component<{}, CreateLobbyState> {
                             required={true}
                         />
                     </div>
-
+                    <div></div>
                     {/* LOBBY PASSWORD */}
                     <div className="text-input">
                         <label htmlFor="password">Password:</label>

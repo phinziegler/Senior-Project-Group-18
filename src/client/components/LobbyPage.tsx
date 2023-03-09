@@ -59,9 +59,33 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
 
         return (
             <>
-                <h1>{this.state.lobbyName}</h1>
-                {/* FIXME: This should not accquire the username from the props, it should only render a username once the getUser request is complete */}
-                {this.props.user && <div>{this.props.user.username}</div>}
+                <div className='lobby-box border-medium border-green'>
+                    <div className='container'>
+                        <div className='row'>
+                            <div className='col-8'>
+                                <div className='row' style={{margin:'0px'}}>
+                                    <div className='border-green border-medium lobby-header-box' style={{padding:'1vh'}}>
+                                        <h1>Lobby: {this.state.lobbyName}</h1>
+                                    </div>
+                                </div>
+                                <div className='row' style={{margin:'0px', padding:'1vh',}}>
+                                    <div className='col-9'>Users in Lobby:</div>
+                                </div>
+                                <div className='row' style={{margin:'0px', padding:'1vh',}}>
+                                    {this.props.user && <div className='col-9'>{this.props.user.username}</div>}
+                                </div>  
+                            </div>
+                            <div className='col-4 border-green border-medium chat-box' style={{padding: '1vh'}}>
+                                <h3>Chat box</h3>
+                            </div>
+                        </div>
+                        <div className='row'>
+                            <div className='col-12 border-green border-medium ready-box'>
+                                <input type="button" className="button join-button" value="Ready"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </>
         )
     }
