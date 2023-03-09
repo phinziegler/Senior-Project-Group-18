@@ -14,7 +14,6 @@ import CreateAccount from '../components/CreateAccount';
 import User from '../../shared/User';
 import UserPage from '../components/UserPage';
 
-new ClientSocketManager();
 export default function RouteManager(props: { user: User | null }) {
 
     // used by pages with the capacity to change the user
