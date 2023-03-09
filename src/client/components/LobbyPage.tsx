@@ -81,6 +81,7 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         }
         let data: ChatMessage = { message: this.state.chatInput, user: this.props.user.username, lobbyId: this.props.lobbyId }
         clientSocketManager.send(MessageType.CHAT, data);
+        this.setState({chatInput: ""});
     }
 
     // Join the lobby
@@ -113,7 +114,7 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                 {/* FIXME: This should not accquire the username from the props, it should only render a username once the getUser request is complete */}
                 {this.props.user && <div>{this.state.lobbyLeader}</div>}
                 <p>CHAT</p>
-                <input onChange={e => this.setState({ chatInput: e.target.value })} type="text" />
+                <input value={this.state.chatInput} onChange={e => this.setState({ chatInput: e.target.value })} type="text" />
                 <button onClick={this.sendMessage}>Send</button>
                 {this.props.user && <><br /><button className="btn btn-success" onClick={this.joinLobby}>Join</button></>}
             </>
