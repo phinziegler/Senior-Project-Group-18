@@ -24,10 +24,10 @@ export default class LobbyController {
             return res.status(400).json({ message: "Could not create lobby, request body is invalid" });
         }
 
-        // Fail to create the lobby if there is already a lobby for that user OR if the user is in a different lobby
-        if (lobbyManager.userInLobby(leader)) {
-            return res.status(403).json({message: "User is already in a lobby, or is the owner of an existing lobby"});    // TODO: is this too restrictive?
-        }
+        // // Fail to create the lobby if there is already a lobby for that user OR if the user is in a different lobby
+        // if (lobbyManager.userInLobby(leader)) {
+        //     return res.status(403).json({message: "User is already in a lobby, or is the owner of an existing lobby"});    // TODO: is this too restrictive?
+        // }
 
         // Fail to create the lobby if the leader cannot be authorized with the server
         if (!await authTokenService.checkAuthorized(leader)) {

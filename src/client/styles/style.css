@@ -76,3 +76,39 @@
     color: green;
     border-color: green;
 }
+
+.container-lobby {
+    color: white;
+    font-family: Lucida Console;
+    text-align:center;
+    vertical-align:middle;
+    overflow-wrap: break-word;
+    border-color: green;
+}
+
+.row-header {
+    font-size: larger;
+    padding: 1vh;
+}
+
+.grid-space {
+    border-color: green;
+}
+
+.join-button {
+    transition-duration: 0.4s;
+    background-color:green;
+    color: white;
+    margin: 1vh;
+    border-radius: 6px;
+}
+
+.join-button:hover {
+    background-color: white;
+    color: green;
+    border-color: green;
+}
+
+.border-green {
+    border-color: green!important;
+}

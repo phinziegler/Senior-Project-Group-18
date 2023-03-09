@@ -5,7 +5,8 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Root from './Root';
 import ErrorPage from './ErrorPage';
 import CreateLobby from '../components/CreateLobby';
- import LobbyPage from '../components/LobbyPage';
+import LobbyPage from '../components/LobbyPage';
+import LobbyList from '../components/LobbyList';
 import 'bootstrap/dist/css/bootstrap.min.css';  // this is how bootstrap is imported
 import '../../client/styles/style.css';
 import ClientSocketManager from '../ClientSocketManager';
@@ -57,10 +58,10 @@ export default function RouteManager(props: { user: User | null }) {
                     path: "lobby/:lobbyId",
                     element: <LobbyPage user={user}/>
                 },
-                // {
-                //     path: "lobby-list",
-                //     element: <LobbyList/>
-                // },
+                {
+                    path: "lobby-list",
+                    element: <LobbyList/>
+                },
             ]
         }
     ]);
