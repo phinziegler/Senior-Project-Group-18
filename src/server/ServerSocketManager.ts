@@ -2,6 +2,7 @@ import http from 'http';
 import WebSocket, { Server } from 'ws';
 import Environments from '../shared/Environments';
 import MessageType from '../shared/MessageTypes';
+import { lobbyManager } from './server';
 
 require('dotenv').config();
 const ENV = process.env.NODE_ENV || Environments.DEVELOPMENT;
@@ -39,6 +40,12 @@ export default class ServerSocketManager {
                     break;
                 case MessageType.PING:
                     console.log("PING");
+                    break;
+                case MessageType.CHAT:  // FIXME: The lobby manager should be responsible for sending this to the correct people
+                    // // let chat = `${message.data.user}: ${message.data.message}`;
+                    // console.log(message.data);
+                    // ws.send(JSON.stringify({ type: MessageType.CHAT, user: message.data.user, message: message.data.message }));  // Sends the message back to the user who dunnit
+                    lobbyManager.chat(message.data.auth, message.data.message);
                     break;
                 default:
                     console.error("invalid incoming message: " + msg);
