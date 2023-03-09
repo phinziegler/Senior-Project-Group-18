@@ -11,5 +11,6 @@ const ServerRoutes = {
     TOKEN_LOGIN: "/server/login-token",
     ANY: "*",
     USER: ((username: string) => "/server/get-user/" + username),
+    JOIN_LOBBY: "/server/join-lobby"
 }
 export default ServerRoutes;

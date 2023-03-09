@@ -1,4 +1,3 @@
-import AuthToken from "../shared/AuthToken";
 import Environments from "../shared/Environments";
 import MessageType from "../shared/MessageTypes";
 import { getAuthToken } from "./auth";
@@ -12,15 +11,20 @@ export { SocketEvent };
 class ClientSocketManager {
     ws: WebSocket;
     connected: boolean;
+    id: string;
+
     constructor() {
         this.connected = false;
         this.ws = this.connect();
         this.setupEvents();
         this.socket();
+        this.id = "";
     }
 
     public send(type: MessageType, data?: any) {
-        if (!this.connected) return;
+        if (!this.connected) {
+            return;
+        }
         this.ws.send(JSON.stringify({ type: type, auth: getAuthToken(), data: data }));
     }
 
@@ -50,6 +54,10 @@ class ClientSocketManager {
             let messageEvent: CustomEvent;
             messageEvent = new CustomEvent("no-event", { detail: { data: e.data } });
             switch (message.type) {
+                case MessageType.WEBSOCKET_ID:
+                    this.id = message.id;
+                    console.log("WebSocket id: " + this.id);
+                    break;
                 case MessageType.PING:
                     console.log('ping');
                     break;
@@ -57,7 +65,6 @@ class ClientSocketManager {
                     console.log('test');
                     break;
                 case MessageType.CHAT:
-                    console.log(message);
                     messageEvent = new CustomEvent(SocketEvent.CHAT, { detail: { message: message.message, user: message.user } });
                     break;
                 default:
@@ -69,6 +76,10 @@ class ClientSocketManager {
 
     public close() {
         this.ws.close();
+    }
+
+    public getId() {
+        return this.id;
     }
 }
 
