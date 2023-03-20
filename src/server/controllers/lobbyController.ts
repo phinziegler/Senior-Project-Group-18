@@ -94,4 +94,24 @@ export default class LobbyController {
         lobbyManager.addUser(user, lobbyId, socketId);
         return res.status(200).json({ message: "added user to lobby" });
     }
+
+    static async getUsers(req: Request, res: Response) {
+        let lobbyId: string;
+        try {
+            lobbyId = req.params.lobbyId;
+        } catch {
+            return res.status(400).json({ message: "Could not get users for lobby, invalid request" })
+        }
+
+        let users = lobbyManager.getUsers(lobbyId);
+
+        let usersOutput: string[] = [];
+        if(users) {
+            users.forEach((user: string) => {
+                usersOutput.push(user);
+            });
+        }
+
+        return res.status(200).json(usersOutput);
+    }
 }

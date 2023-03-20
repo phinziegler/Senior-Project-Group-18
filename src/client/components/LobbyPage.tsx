@@ -21,7 +21,7 @@ interface LobbyState {
     lobbyName: string;
     lobbyId: string;
     lobbyLeader: string;
-    //lobbyUsers: string[];
+    lobbyUsers: string[];
     chatInput: string;
 }
 
@@ -42,12 +42,13 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
             lobbyName: "",
             lobbyId: "",
             lobbyLeader: "",
-            chatInput: ""
+            chatInput: "",
+            lobbyUsers: [],
         }
         this.sendMessage = this.sendMessage.bind(this);
         this.joinLobby = this.joinLobby.bind(this);
     }
-    
+
     // Runs when component is loaded
     componentDidMount(): void {
         window.addEventListener(SocketEvent.CHAT, chatListener);
@@ -66,14 +67,36 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                 lobbyName: data.name,
                 lobbyId: data.id,
                 lobbyLeader: data.leader,
-            })
+            });
+            this.getUsersLobby(data.id);
             // TODO: Render more information on this page using the data from this GET request
         });
     }
 
-    //    async getUsersLobby() {
-    //
-    //    }\
+    async getUsersLobby(lobbyId: string) {
+        GET(requestUrl(ServerRoutes.GET_LOBBY_USERS(lobbyId))).then(res => res.json()).then((data: any) => {
+            this.setState({
+                lobbyUsers: data
+            });
+            // TODO: Render more information on this page using the data from this GET request
+        });
+    }
+
+    usersList() {
+        let output: JSX.Element[] = [];
+
+        this.state.lobbyUsers.forEach((user: string) => {
+            output.push(
+                <li key={user}>{user}</li>
+            );
+        });
+
+        return (
+            <ul>
+                {output}
+            </ul>
+        );
+    }
 
     sendMessage() {
         if (!this.props.user) {
@@ -81,7 +104,7 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         }
         let data: ChatMessage = { message: this.state.chatInput, user: this.props.user.username, lobbyId: this.props.lobbyId }
         clientSocketManager.send(MessageType.CHAT, data);
-        this.setState({chatInput: ""});
+        this.setState({ chatInput: "" });
     }
 
     // Join the lobby
@@ -97,7 +120,7 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         }
 
         POST(requestUrl(ServerRoutes.JOIN_LOBBY), data).then((res: Response) => {
-            if(res.status != 200) {
+            if (res.status != 200) {
                 console.log("Failed to join lobby");
                 return;
             }
@@ -114,19 +137,20 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                     <div className='container'>
                         <div className='row'>
                             <div className='col-8'>
-                                <div className='row' style={{margin:'0px'}}>
-                                    <div className='border-green border-medium lobby-header-box' style={{padding:'1vh'}}>
+                                <div className='row' style={{ margin: '0px' }}>
+                                    <div className='border-green border-medium lobby-header-box' style={{ padding: '1vh' }}>
                                         <h1>Lobby: {this.state.lobbyName}</h1>
                                     </div>
                                 </div>
-                                <div className='row' style={{margin:'0px', padding:'1vh',}}>
+                                <div className='row' style={{ margin: '0px', padding: '1vh', }}>
                                     <div className='col-9'>Users in Lobby:</div>
+                                    {this.usersList()}
                                 </div>
-                                <div className='row' style={{margin:'0px', padding:'1vh',}}>
+                                <div className='row' style={{ margin: '0px', padding: '1vh', }}>
                                     {this.props.user && <div className='col-9'>{this.props.user.username}</div>}
-                                </div>  
+                                </div>
                             </div>
-                            <div className='col-4 border-green border-medium chat-box' style={{padding: '1vh'}}>
+                            <div className='col-4 border-green border-medium chat-box' style={{ padding: '1vh' }}>
                                 <h3>Chat box</h3>
                                 <input value={this.state.chatInput} onChange={e => this.setState({ chatInput: e.target.value })} type="text" />
                                 <button onClick={this.sendMessage}>Send</button>
@@ -134,8 +158,8 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                         </div>
                         <div className='row'>
                             <div className='col-12 border-green border-medium ready-box'>
-                                <input type="button" className="button join-button" value="Ready"/>
-                                {this.props.user && <input type="button" className="button join-button" onClick={this.joinLobby} value="Join"/>}
+                                <input type="button" className="button join-button" value="Ready" />
+                                {this.props.user && <input type="button" className="button join-button" onClick={this.joinLobby} value="Join" />}
                             </div>
                         </div>
                     </div>

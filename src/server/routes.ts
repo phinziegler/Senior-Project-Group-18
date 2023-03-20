@@ -22,6 +22,7 @@ router.route(ServerRoutes.MAKE_LOBBY).post(LobbyController.makeLobby)
 router.route(ServerRoutes.GET_ALL_LOBBIES).get(LobbyController.getLobbies);
 router.route(ServerRoutes.GET_LOBBY(":lobbyId")).get(LobbyController.getLobby);
 router.route(ServerRoutes.JOIN_LOBBY).post(LobbyController.joinLobby);
+router.route(ServerRoutes.GET_LOBBY_USERS(":lobbyId")).get(LobbyController.getUsers);
 
 /*  This route catches any unexpected route and returns index.html
     This allows the client side router to see if it has a valid route, and if not, shows the custom error screen 

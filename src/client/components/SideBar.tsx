@@ -44,7 +44,7 @@ export default class SideBar extends React.Component<SideBarProps, { pathName: s
                     {this.link("home", "/")}
                     {process.env.NODE_ENV == Environments.DEVELOPMENT && this.link("admin", "admin")}   {/* TODO: This should be entirely removed eventually*/}
                     {this.props.user ? this.link(`${this.props.user.username}`, `user/${this.props.user.username}`) : this.link("login", "login")}
-                    {this.link("create lobby", "create-lobby")}
+                    {this.props.user &&  this.link("create lobby", "create-lobby")}
                     {this.link("lobby list", "/lobby-list")}
                     {this.link("this will error", "/error")}
                 </ul>

@@ -6,6 +6,7 @@ const ServerRoutes = {
     ADD_USER: "/server/add-user",
     MAKE_LOBBY: "/server/make-lobby",
     GET_LOBBY: ((lobbyId: string) => "/server/get-lobby/" + lobbyId),
+    GET_LOBBY_USERS: ((lobbyId: string) => "/server/get-lobby-users/" + lobbyId),
     GET_ALL_LOBBIES: "/server/get-lobbies",
     LOGIN: "/server/login",
     TOKEN_LOGIN: "/server/login-token",

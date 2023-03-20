@@ -112,4 +112,16 @@ export default class LobbyManager {
             ws.send(JSON.stringify({ type: MessageType.CHAT, user: message.user, message: message.message }));
         });
     }
+
+    getUsers(lobbyId: string) {
+        console.log(lobbyId);
+        let lobby = this.lobbies.get(lobbyId);
+
+        if (!lobby) {
+            return;
+        }
+
+        console.log("here");
+        return this.lobbyToUsers.get(lobby);
+    }
 }
