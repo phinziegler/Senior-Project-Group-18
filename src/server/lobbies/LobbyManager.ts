@@ -39,6 +39,8 @@ export default class LobbyManager {
         }
         users = this.lobbyToUsers.get(lobby);
         users?.add(user.username);
+
+        this.updateUserList(lobby);
     }
 
     addLobby(name: string, password: string, leader: AuthToken, socketId: string) {
@@ -69,13 +71,13 @@ export default class LobbyManager {
 
     removeUserBySocketId(socketId: string) {
         let username = this.socketToUser.get(socketId);
-        if(!username) {
+        if (!username) {
             console.log("error getting username from socketId");
             return;
         }
 
         let lobby = this.userToLobby.get(username);
-        if(!lobby) {
+        if (!lobby) {
             console.log("getting lobby from username");
             return;
         }
@@ -84,28 +86,29 @@ export default class LobbyManager {
         this.userToLobby.delete(username);
         this.socketToUser.delete(socketId);
         this.userToSocket.delete(username);
+        this.updateUserList(lobby);
     }
 
     chat(auth: AuthToken, message: ChatMessage) {
         let lobby = this.userToLobby.get(auth.username);
-        if(!lobby) {
+        if (!lobby) {
             console.log("cannot chat in lobby you have not joined");
             return;
         }
 
         let users = this.lobbyToUsers.get(lobby);
-        if(!users) {
+        if (!users) {
             return;
         }
 
         users.forEach((username: string) => {
             let socketId = this.userToSocket.get(username);
-            if(!socketId) {
+            if (!socketId) {
                 return;
             }
 
             let ws = socketManager.getSocketFromId(socketId);
-            if(!ws) {
+            if (!ws) {
                 return;
             }
 
@@ -114,14 +117,34 @@ export default class LobbyManager {
     }
 
     getUsers(lobbyId: string) {
-        console.log(lobbyId);
         let lobby = this.lobbies.get(lobbyId);
 
         if (!lobby) {
             return;
         }
 
-        console.log("here");
         return this.lobbyToUsers.get(lobby);
+    }
+
+    updateUserList(lobby: Lobby) {
+        let users = this.lobbyToUsers.get(lobby);
+
+        if (!users) {
+            return;
+        }
+
+        users.forEach((username: string) => {
+            let socketId = this.userToSocket.get(username);
+            if (!socketId) {
+                return;
+            }
+
+            let ws = socketManager.getSocketFromId(socketId);
+            if (!ws) {
+                return;
+            }
+
+            ws.send(JSON.stringify({ type: MessageType.UPDATE_USER_LIST }));
+        });
     }
 }

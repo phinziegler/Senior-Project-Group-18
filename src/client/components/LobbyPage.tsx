@@ -1,5 +1,5 @@
 import React from "react";
-import { Navigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import ChatMessage from "../../shared/ChatMessage";
 import MessageType from "../../shared/MessageTypes";
 import ServerRoutes from "../../shared/ServerRoutes";
@@ -9,8 +9,6 @@ import clientSocketManager, { SocketEvent } from "../ClientSocketManager";
 import { GET, POST } from "../fetch";
 import ErrorPage from "../routes/ErrorPage";
 import requestUrl from "./requestUrl";
-
-const chatListener = (e: any) => console.log(e.detail); // TODO: make this update the chat box
 
 interface LobbyPageElementProps {
     lobbyId: string;
@@ -23,6 +21,7 @@ interface LobbyState {
     lobbyLeader: string;
     lobbyUsers: string[];
     chatInput: string;
+    chat: any[],    // TODO: figure out a more elegant type choice for this
 }
 
 export default function LobbyPage(props: { user: User | null }) {
@@ -36,6 +35,7 @@ export default function LobbyPage(props: { user: User | null }) {
 }
 
 class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState> {
+
     constructor(props: LobbyPageElementProps) {
         super(props);
         this.state = {
@@ -44,20 +44,37 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
             lobbyLeader: "",
             chatInput: "",
             lobbyUsers: [],
+            chat: [],
         }
+        this.chatListener = this.chatListener.bind(this);
+        this.updateUsersListener = this.updateUsersListener.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
         this.joinLobby = this.joinLobby.bind(this);
     }
 
+    chatListener(e: any) {
+        let chat = this.state.chat;
+        chat.push(e.detail);
+        this.setState({
+            chat: chat
+        });
+    }
+
+    updateUsersListener() {
+        this.getUsersLobby(this.state.lobbyId);
+    }
+
     // Runs when component is loaded
     componentDidMount(): void {
-        window.addEventListener(SocketEvent.CHAT, chatListener);
+        window.addEventListener(SocketEvent.CHAT, this.chatListener);
+        window.addEventListener(SocketEvent.UPDATE_USER_LIST, this.updateUsersListener);
         this.getLobby(this.props.lobbyId);
     }
 
     // Clean up event listenders
     componentWillUnmount(): void {
-        removeEventListener(SocketEvent.CHAT, chatListener);
+        removeEventListener(SocketEvent.CHAT, this.chatListener);
+        removeEventListener(SocketEvent.UPDATE_USER_LIST, this.updateUsersListener);
     }
 
     /* TODO: check if the user is logged in as the searched account, if they are, also return password information */
@@ -129,6 +146,16 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         });
     }
 
+    chat() {
+        let output: JSX.Element[] = [];
+        this.state.chat.forEach((messageInfo, index) => {
+            output.push(
+                <li key={index}>{`${messageInfo.user}: ${messageInfo.message}`}</li>
+            );
+        });
+        return <ul>{output}</ul>
+    }
+
     render() {
 
         return (
@@ -152,6 +179,7 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                             </div>
                             <div className='col-4 border-green border-medium chat-box' style={{ padding: '1vh' }}>
                                 <h3>Chat box</h3>
+                                {this.chat()}
                                 <input value={this.state.chatInput} onChange={e => this.setState({ chatInput: e.target.value })} type="text" />
                                 <button onClick={this.sendMessage}>Send</button>
                             </div>

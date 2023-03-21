@@ -3,7 +3,8 @@ import MessageType from "../shared/MessageTypes";
 import { getAuthToken } from "./auth";
 
 const SocketEvent = {
-    CHAT: "chat"
+    CHAT: "chat",
+    UPDATE_USER_LIST: "update_user_list"
 }
 
 export { SocketEvent };
@@ -66,6 +67,9 @@ class ClientSocketManager {
                     break;
                 case MessageType.CHAT:
                     messageEvent = new CustomEvent(SocketEvent.CHAT, { detail: { message: message.message, user: message.user } });
+                    break;
+                case MessageType.UPDATE_USER_LIST:
+                    messageEvent = new CustomEvent(SocketEvent.UPDATE_USER_LIST);
                     break;
                 default:
                     console.error("Invalid Socket Message: " + e.data);
