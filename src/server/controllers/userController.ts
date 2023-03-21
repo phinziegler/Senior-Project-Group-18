@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import User, { safeUser } from "../../shared/User";
 import Crypto, { randomUUID } from "crypto";
 import AuthToken from "../../shared/AuthToken";
-import { userService, authTokenService } from "../../tools/services";
+import { userService, authTokenService } from "../tools/services";
 
 
 export default class UserController {
@@ -114,5 +114,9 @@ export default class UserController {
         } catch {
             return res.status(400).json({ message: "Invalid Request format" })
         }
+    }
+
+    static async addFriend(req: Request, res: Response) {
+
     }
 }

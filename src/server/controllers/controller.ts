@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import path from "path";
-import STATIC_PATH from "../../tools/static-path";
+import STATIC_PATH from "../tools/static-path";
 
 /**
  * This is a General controller class. If the app was more complex, you might have separate controllers for various aspects.

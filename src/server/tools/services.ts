@@ -1,6 +1,6 @@
-import AuthTokenService from "../server/services/AuthTokenService";
+import AuthTokenService from "../services/AuthTokenService";
 import getDb from "./db-connect";
-import UserService from "../server/services/userService";
+import UserService from "../services/userService";
 
 const userService = new UserService(getDb());
 const authTokenService = new AuthTokenService(getDb());

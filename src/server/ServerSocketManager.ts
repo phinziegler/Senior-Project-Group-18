@@ -3,7 +3,7 @@ import http from 'http';
 import WebSocket, { Server } from 'ws';
 import Environments from '../shared/Environments';
 import MessageType from '../shared/MessageTypes';
-import { authTokenService } from '../tools/services';
+import { authTokenService } from './tools/services';
 import { lobbyManager } from './server';
 
 require('dotenv').config();

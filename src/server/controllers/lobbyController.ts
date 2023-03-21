@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import AuthToken from "../../shared/AuthToken";
-import { authTokenService } from "../../tools/services";
+import { authTokenService } from "../tools/services";
 import { lobbyManager } from "../server";
 
 

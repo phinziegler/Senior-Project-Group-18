@@ -1,5 +1,5 @@
 import path from "path";
-import Environments from "../shared/Environments";
+import Environments from "../../shared/Environments";
 require('dotenv').config();
 
 /*  

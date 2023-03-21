@@ -1,5 +1,5 @@
 import { Connection, escape } from "mysql";
-import Service from "../../tools/Service";
+import Service from "../tools/Service";
 import User from "../../shared/User";
 
 /**
