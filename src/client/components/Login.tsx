@@ -3,8 +3,7 @@ import { Link, Navigate } from "react-router-dom";
 import Environments from "../../shared/Environments";
 import ServerRoutes from "../../shared/ServerRoutes";
 import User from "../../shared/User";
-import { login } from "../auth";
-import { POST } from "../fetch";
+import { POST } from "../tools/fetch";
 import '../styles/style.css';
 
 interface LoginProps {

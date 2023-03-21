@@ -1,8 +1,8 @@
-import AuthToken from "../shared/AuthToken";
-import Environments from "../shared/Environments";
-import ServerRoutes from "../shared/ServerRoutes";
-import User from "../shared/User";
-import requestUrl from "./components/requestUrl";
+import AuthToken from "../../shared/AuthToken";
+import Environments from "../../shared/Environments";
+import ServerRoutes from "../../shared/ServerRoutes";
+import User from "../../shared/User";
+import requestUrl from "./requestUrl";
 import { POST } from "./fetch";
 
 export async function login(username: string | undefined, password: string | undefined): Promise<(User | void)> {

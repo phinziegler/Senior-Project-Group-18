@@ -4,10 +4,10 @@ import { Navigate } from "react-router-dom";
 import AuthToken from "../../shared/AuthToken";
 import ServerRoutes from "../../shared/ServerRoutes";
 import User from "../../shared/User";
-import { getAuthToken } from "../auth";
-import clientSocketManager from "../ClientSocketManager";
-import { POST } from "../fetch";
-import requestUrl from "./requestUrl";
+import { getAuthToken } from "../tools/auth";
+import clientSocketManager from "../websockets/ClientSocketManager";
+import { POST } from "../tools/fetch";
+import requestUrl from "../tools/requestUrl";
 
 interface CreateLobbyState {
     lobbyName: string;   // the lobby name

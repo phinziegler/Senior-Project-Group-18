@@ -9,7 +9,7 @@ import LobbyPage from '../components/LobbyPage';
 import LobbyList from '../components/LobbyList';
 import 'bootstrap/dist/css/bootstrap.min.css';  // this is how bootstrap is imported
 import '../../client/styles/style.css';
-import ClientSocketManager from '../ClientSocketManager';
+import ClientSocketManager from '../websockets/ClientSocketManager';
 import CreateAccount from '../components/CreateAccount';
 import User from '../../shared/User';
 import UserPage from '../components/UserPage';

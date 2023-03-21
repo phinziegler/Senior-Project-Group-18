@@ -1,7 +1,7 @@
 import ReactDOM from 'react-dom/client';
 import User from './shared/User';
-import RouteManager from "./client/routes/RouteManager";
-import { tokenLogin } from './client/auth';
+import RouteManager from "./client/components/RouteManager";
+import { tokenLogin } from './client/tools/auth';
 
 let userGet = window.localStorage.getItem('user');
 let userTemp: User | null;

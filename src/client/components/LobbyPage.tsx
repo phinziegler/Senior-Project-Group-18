@@ -4,11 +4,12 @@ import ChatMessage from "../../shared/ChatMessage";
 import MessageType from "../../shared/MessageTypes";
 import ServerRoutes from "../../shared/ServerRoutes";
 import User from "../../shared/User";
-import { getAuthToken } from "../auth";
-import clientSocketManager, { SocketEvent } from "../ClientSocketManager";
-import { GET, POST } from "../fetch";
-import ErrorPage from "../routes/ErrorPage";
-import requestUrl from "./requestUrl";
+import { getAuthToken } from "../tools/auth";
+import clientSocketManager from "../websockets/ClientSocketManager";
+import { GET, POST } from "../tools/fetch";
+import ErrorPage from "./ErrorPage";
+import requestUrl from "../tools/requestUrl";
+import { SocketEvent } from "../websockets/SocketEvent";
 
 interface LobbyPageElementProps {
     lobbyId: string;

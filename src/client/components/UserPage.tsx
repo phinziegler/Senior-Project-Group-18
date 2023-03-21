@@ -2,9 +2,9 @@ import React from "react";
 import { Navigate, useParams } from "react-router-dom";
 import ServerRoutes from "../../shared/ServerRoutes";
 import User from "../../shared/User";
-import { GET } from "../fetch";
-import ErrorPage from "../routes/ErrorPage";
-import requestUrl from "./requestUrl";
+import { GET } from "../tools/fetch";
+import ErrorPage from "./ErrorPage";
+import requestUrl from "../tools/requestUrl";
 
 interface UserPageProps {
     user: User | null;

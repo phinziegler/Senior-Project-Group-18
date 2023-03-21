@@ -1,7 +1,7 @@
 import React from 'react';                      // this is imported for every react component
 import 'bootstrap/dist/css/bootstrap.min.css';  // this is how bootstrap is imported
 import User from '../../shared/User';
-import { GET, POST } from '../fetch';
+import { GET, POST } from '../tools/fetch';
 import Environments from '../../shared/Environments';
 import ServerRoutes from '../../shared/ServerRoutes';
 

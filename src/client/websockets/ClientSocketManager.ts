@@ -1,13 +1,7 @@
-import Environments from "../shared/Environments";
-import MessageType from "../shared/MessageTypes";
-import { getAuthToken } from "./auth";
-
-const SocketEvent = {
-    CHAT: "chat",
-    UPDATE_USER_LIST: "update_user_list"
-}
-
-export { SocketEvent };
+import Environments from "../../shared/Environments";
+import MessageType from "../../shared/MessageTypes";
+import { getAuthToken } from "../tools/auth";
+import { SocketEvent } from "./SocketEvent";
 
 class ClientSocketManager {
     ws: WebSocket;

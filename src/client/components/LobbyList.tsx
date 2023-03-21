@@ -1,13 +1,10 @@
 import React from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import ServerRoutes from "../../shared/ServerRoutes";
-import User from "../../shared/User";
-import { GET, POST } from "../fetch";
-import ErrorPage from "../routes/ErrorPage";
-import requestUrl from "./requestUrl";
-import Lobby from "../../server/lobbies/lobby";
+import { GET, POST } from "../tools/fetch";
+import requestUrl from "../tools/requestUrl";
 import Environments from "../../shared/Environments";
-import { getAuthToken } from "../auth";
+import { getAuthToken } from "../tools/auth";
 
 interface LobbyListState {
     lobbyList: LobbyList[];

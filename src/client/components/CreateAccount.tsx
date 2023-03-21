@@ -1,8 +1,8 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import ServerRoutes from "../../shared/ServerRoutes";
-import { POST } from "../fetch";
-import requestUrl from "./requestUrl";
+import { POST } from "../tools/fetch";
+import requestUrl from "../tools/requestUrl";
 
 interface CreateAccountState {
     username: string;   // the username 
