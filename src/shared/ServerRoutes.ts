@@ -12,6 +12,8 @@ const ServerRoutes = {
     TOKEN_LOGIN: "/server/login-token",
     ANY: "*",
     USER: ((username: string) => "/server/get-user/" + username),
-    JOIN_LOBBY: "/server/join-lobby"
+    JOIN_LOBBY: "/server/join-lobby",
+    ADD_FRIEND: "/server/add-friend",
+    IS_FRIEND:((username: string, friend: string) => `/server/is-friend/${username}/${friend}`)
 }
 export default ServerRoutes;

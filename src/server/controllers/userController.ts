@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import User, { safeUser } from "../../shared/User";
 import Crypto, { randomUUID } from "crypto";
 import AuthToken from "../../shared/AuthToken";
-import { userService, authTokenService } from "../tools/services";
+import { userService, authTokenService, friendService } from "../tools/services";
 
 
 export default class UserController {
@@ -116,7 +116,77 @@ export default class UserController {
         }
     }
 
+    /**
+     * Add a user/friend pairing in the database
+     * @param req body of the form {auth: AuthToken, target: string}
+     */
     static async addFriend(req: Request, res: Response) {
+        let auth: AuthToken;
+        let targetUsername: string;
+
+        try {
+            auth = req.body.auth;
+            targetUsername = req.body.target;
+        } catch {
+            return res.status(403).json({ message: "invalid request body" })
+        }
+
+        // Check if the user is authenticated
+        if (!await authTokenService.checkAuthorized(auth)) {
+            return res.status(401).json({ message: "user could not be authenticated" })
+        }
+
+        // Check if the user is friending themselves
+        if (auth.username == targetUsername) {
+            return res.status(403).json({ message: "cannot add self oneself as a friend" })
+        }
+
+        // Get the user and friend objects
+        let user = (await userService.getUserWithName(auth.username));
+        let friend = (await userService.getUserWithName(targetUsername));
+
+        // Check that the user and friend exist in the database
+        if (!(user && friend)) {
+            return res.status(404).json({ message: "could not find friend/user" });
+        }
+
+        // Check if already friends
+        if (await friendService.isFriend(user, friend)) {
+            return res.status(403).json({ message: "This user is already a friend" });
+        }
+
+
+        // Add the friend for the user
+        await friendService.addFriend(user, friend)
+            .then(() => res.status(200).json({ message: "successfully added friend" }))
+            .catch(() => res.status(500).json({ message: "server error" }))
+    }
+
+    static async isFriend(req: Request, res: Response) {
+        let username: string;
+        let friendUsername: string;
+
+        try {
+            username = req.params.user;
+            friendUsername = req.params.friend;
+        } catch {
+            return res.status(403).json({ message: "invalid request body" })
+        }
+
+        // Get the user and friend objects
+        let user = (await userService.getUserWithName(username));
+        let friend = (await userService.getUserWithName(friendUsername));
+
+        // Check that the user and friend exist in the database
+        if (!(user && friend)) {
+            return res.status(404).json({ message: "could not find friend/user" });
+        }
+
+        let isFriend = await friendService.isFriend(user, friend).catch(() => {
+            return res.status(500).json({ message: "server error" });
+        });
+
+        return res.status(200).json({ message: "successfully checked if friends", friends: isFriend });
 
     }
 }

@@ -24,6 +24,10 @@ router.route(ServerRoutes.GET_LOBBY(":lobbyId")).get(LobbyController.getLobby);
 router.route(ServerRoutes.JOIN_LOBBY).post(LobbyController.joinLobby);
 router.route(ServerRoutes.GET_LOBBY_USERS(":lobbyId")).get(LobbyController.getUsers);
 
+// Friends
+router.route(ServerRoutes.ADD_FRIEND).post(UserController.addFriend);
+router.route(ServerRoutes.IS_FRIEND(":user", ":friend")).get(UserController.isFriend)
+
 /*  This route catches any unexpected route and returns index.html
     This allows the client side router to see if it has a valid route, and if not, shows the custom error screen 
     CRITCAL: this route should always be at the BOTTOM of this page.*/

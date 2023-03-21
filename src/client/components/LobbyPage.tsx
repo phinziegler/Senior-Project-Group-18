@@ -10,6 +10,7 @@ import { GET, POST } from "../tools/fetch";
 import ErrorPage from "./ErrorPage";
 import requestUrl from "../tools/requestUrl";
 import { SocketEvent } from "../websockets/SocketEvent";
+import UserPreview from "./UserPreview";
 
 interface LobbyPageElementProps {
     lobbyId: string;
@@ -103,9 +104,12 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
     usersList() {
         let output: JSX.Element[] = [];
 
-        this.state.lobbyUsers.forEach((user: string) => {
+        this.state.lobbyUsers.forEach((user: string, index: number) => {
             output.push(
-                <li key={user}>{user}</li>
+                <UserPreview
+                    user={this.props.user}
+                    username={user}
+                    key={index} />
             );
         });
 
