@@ -179,7 +179,8 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                                     {this.usersList()}
                                 </div>
                                 <div className='row' style={{ margin: '0px', padding: '1vh', }}>
-                                    {this.props.user && <div className='col-9'>{this.props.user.username}</div>}
+                                    <div className="col-9">Lobby Leader:</div>
+                                    <div className='col-9'>{this.state.lobbyLeader}</div>
                                 </div>
                             </div>
                             <div className='col-4 border-green border-medium chat-box' style={{ padding: '1vh' }}>
