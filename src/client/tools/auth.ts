@@ -5,7 +5,7 @@ import User from "../../shared/User";
 import requestUrl from "./requestUrl";
 import { POST } from "./fetch";
 
-export async function login(username: string | undefined, password: string | undefined): Promise<(User | void)> {
+export async function login(username: string | undefined, password: string | undefined): Promise<(User | undefined)> {
 
     if (!(username && password)) return;    // if one of the parameters is missing, fail to authenticate;
 
@@ -18,17 +18,13 @@ export async function login(username: string | undefined, password: string | und
         password: password
     }
 
-    await POST(loc, obj).then(res => {
-        if (res.status == 200) {
-            console.log("successful authentication");
-            return res.json();
-        }
-    }).then((data) => {
-        if (!data) {
-            console.log("failed to authenticate");
+    return await POST(loc, obj).then(res => {
+        if (res.status != 200) {
+            console.log("failed authentication");
             return;
         }
-        return data;
+        console.log("successful authentication");
+        return res.json();
     });
 }
 
