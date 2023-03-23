@@ -1,4 +1,6 @@
-DROP TABLE IF EXISTS authTokens;
+DROP TABLE IF EXISTS lobby_user;
+DROP TABLE IF EXISTS lobby;
+DROP TABLE IF EXISTS authToken;
 DROP TABLE IF EXISTS friend;
 DROP TABLE IF EXISTS user;
 
@@ -7,6 +9,7 @@ CREATE TABLE user (
     username VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     salt VARCHAR(255) NOT NULL,
+    websocket_id VARCHAR(255),
     PRIMARY KEY (id)
 );
 
@@ -18,10 +21,27 @@ CREATE TABLE friend (
     FOREIGN KEY (friend_id) REFERENCES user(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE authTokens (
+CREATE TABLE authToken (
     id INT NOT NULL AUTO_INCREMENT UNIQUE,
     token VARCHAR(255) NOT NULL,
     username VARCHAR(255) NOT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (username) REFERENCES user(username) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE lobby (
+	id INT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    password VARCHAR(255),
+    leader_id INT NOT NULL UNIQUE,
+    PRIMARY KEY (id),
+    FOREIGN KEY (leader_id) REFERENCES user(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE lobby_user (
+	lobby_id INT NOT NULL,
+    user_id INT NOT NULL,
+    PRIMARY KEY(lobby_id, user_id),
+    FOREIGN KEY (lobby_id) REFERENCES lobby(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
