@@ -23,6 +23,7 @@ router.route(ServerRoutes.GET_ALL_LOBBIES).get(LobbyController.getLobbies);
 router.route(ServerRoutes.GET_LOBBY(":lobbyId")).get(LobbyController.getLobby);
 router.route(ServerRoutes.JOIN_LOBBY).post(LobbyController.joinLobby);
 router.route(ServerRoutes.GET_LOBBY_USERS(":lobbyId")).get(LobbyController.getUsers);
+router.route(ServerRoutes.GET_LOBBY_OF_USER(":username")).get(LobbyController.getLobbyOfUser);
 
 // Friends
 router.route(ServerRoutes.ADD_FRIEND).post(UserController.addFriend);

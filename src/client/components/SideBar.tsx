@@ -2,10 +2,12 @@
 import React from 'react'
 import { Link } from 'react-router-dom';
 import Environments from '../../shared/Environments';
+import Lobby from '../../shared/Lobby';
 import User from '../../shared/User';
 
 interface SideBarProps {
-    user: User | null
+    user: User | null,
+    lobby: Lobby | null
 }
 
 export default class SideBar extends React.Component<SideBarProps, { pathName: string }> {
@@ -46,6 +48,7 @@ export default class SideBar extends React.Component<SideBarProps, { pathName: s
                     {this.props.user ? this.link(`${this.props.user.username}`, `user/${this.props.user.username}`) : this.link("login", "login")}
                     {this.props.user &&  this.link("create lobby", "create-lobby")}
                     {this.link("lobby list", "/lobby-list")}
+                    {this.props.lobby && this.link(this.props.lobby.name, `lobby/${this.props.lobby.id}`) }
                     {this.link("this will error", "/error")}
                 </ul>
                 <hr />

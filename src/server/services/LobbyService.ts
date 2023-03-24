@@ -35,6 +35,11 @@ export default class LobbyService extends Service {
         return await this.lobbyUserService.userInLobby(username);
     }
 
+    /**
+     * Return the lobby id of the lobby the user is in, or null if not exists
+     * @param username the username of the user we want to find the lobby of
+     * @returns a string lobby id or null
+     */
     public async lobbyOfUser(username: string) {
         return await this.lobbyUserService.lobbyOfUser(username).then(data => data.lobby_id).catch(() => null);
     }

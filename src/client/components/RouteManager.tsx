@@ -12,8 +12,11 @@ import '../../client/styles/style.css';
 import CreateAccount from '../components/CreateAccount';
 import User from '../../shared/User';
 import UserPage from '../components/UserPage';
+import Lobby from '../../shared/Lobby';
 
-export default function RouteManager(props: { user: User | null }) {
+export default function RouteManager(props: { user: User | null, lobby: Lobby | null }) {
+
+    console.log(`Routemanager has lobby: ` + JSON.stringify(props.lobby));
 
     // used by pages with the capacity to change the user
     const setUserFunction = (data: any) => {
@@ -26,11 +29,14 @@ export default function RouteManager(props: { user: User | null }) {
         setUser(null);
     }
 
+    
     const [user, setUser] = useState<(User | null)>(props.user);
+    const [lobby, setLobby] = useState<(Lobby | null)>(props.lobby);
+
     const router = createBrowserRouter([
         {
             path: "/",
-            element: <Root user={user} />,
+            element: <Root lobby={lobby} user={user} />,
             errorElement: <ErrorPage />,
             children: [
                 {
@@ -54,11 +60,11 @@ export default function RouteManager(props: { user: User | null }) {
                 },
                 {
                     path: "lobby/:lobbyId",
-                    element: <LobbyPage user={user}/>
+                    element: <LobbyPage setLobby={setLobby} user={user} />
                 },
                 {
                     path: "lobby-list",
-                    element: <LobbyList/>
+                    element: <LobbyList />
                 },
             ]
         }

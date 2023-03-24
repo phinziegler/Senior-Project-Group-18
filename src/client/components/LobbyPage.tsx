@@ -10,10 +10,12 @@ import ErrorPage from "./ErrorPage";
 import requestUrl from "../tools/requestUrl";
 import { SocketEvent } from "../websockets/SocketEvent";
 import UserPreview from "./UserPreview";
+import Lobby from "../../shared/Lobby";
 
 interface LobbyPageElementProps {
     lobbyId: string;
     user: User | null;
+    setLobby: (_: Lobby | null) => void;
 }
 
 interface LobbyState {
@@ -25,13 +27,13 @@ interface LobbyState {
     chat: any[],    // TODO: figure out a more elegant type choice for this
 }
 
-export default function LobbyPage(props: { user: User | null }) {
+export default function LobbyPage(props: { user: User | null, setLobby: (_: Lobby | null) => void }) {
     const params = useParams();
     if (!params.lobbyId) {
         return <ErrorPage />
     }
     return (
-        <LobbyPageElement lobbyId={params.lobbyId} user={props.user} />
+        <LobbyPageElement setLobby={props.setLobby} lobbyId={params.lobbyId} user={props.user} />
     );
 }
 
@@ -125,7 +127,7 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         }
         let data: ChatMessage = { message: this.state.chatInput, user: this.props.user.username, lobbyId: this.props.lobbyId }
 
-        if(!clientSocketManager) {
+        if (!clientSocketManager) {
             console.error("client socket manager is null");
             return;
         }
@@ -150,6 +152,13 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                 return;
             }
             console.log("Joined lobby");
+            
+            // THIS UPDATES THE SIDEBAR
+            this.props.setLobby({
+                id: this.state.lobbyId,
+                name: this.state.lobbyName,
+                leader: this.state.lobbyLeader
+            });
             // TODO: Remove the join button and show the chat/other lobby controls
         });
     }

@@ -8,6 +8,7 @@ const ServerRoutes = {
     GET_LOBBY: ((lobbyId: string) => "/server/get-lobby/" + lobbyId),
     GET_LOBBY_USERS: ((lobbyId: string) => "/server/get-lobby-users/" + lobbyId),
     GET_ALL_LOBBIES: "/server/get-lobbies",
+    GET_LOBBY_OF_USER: ((username: string) => "/server/get-lobby-of-user/" + username),
     LOGIN: "/server/login",
     TOKEN_LOGIN: "/server/login-token",
     ANY: "*",

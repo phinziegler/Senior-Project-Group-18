@@ -92,6 +92,24 @@ export default class LobbyController {
         return res.status(200).json(lobby);
     }
 
+    static async getLobbyOfUser(req: Request, res: Response) {
+        let username: string;
+
+        try {
+            username = req.params.username;
+        } catch {
+            return res.status(400).json({ message: "Invalid request" })
+        }
+        let lobbyId = await lobbyService.lobbyOfUser(username);
+
+        if(!lobbyId) {
+            return res.status(200).json();
+        }
+
+        let lobby: Lobby = await lobbyService.getLobby(lobbyId);
+        return res.status(200).json(lobby);
+    }
+
     static async joinLobby(req: Request, res: Response) {
         let lobbyId: string;
         let password: string;   // TODO: enforce password use to join a lobby
@@ -113,7 +131,7 @@ export default class LobbyController {
         // Fail to join a lobby if the user is in a different lobby
         // TODO: this should not be the case... The user should instead be removed from any previous lobbies and kept in this one
         if (await lobbyService.userInLobby(user.username)) {
-            return res.status(403).json( {message: "Could not join lobby, already part of another lobby"}); 
+            return res.status(403).json({ message: "Could not join lobby, already part of another lobby" });
         }
 
         await lobbyService.addUser(lobbyId, user.username)
@@ -157,7 +175,7 @@ export default class LobbyController {
     static async chat(auth: AuthToken, message: ChatMessage) {
         let userLobbyId: any = await lobbyService.lobbyOfUser(auth.username);
 
-        if(userLobbyId != message.lobbyId) {
+        if (userLobbyId != message.lobbyId) {
             console.log("cannot participate in a different lobby's chatroom");
             return;
         }
