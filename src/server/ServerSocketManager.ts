@@ -2,8 +2,8 @@ import http from 'http';
 import WebSocket, { Server } from 'ws';
 import Environments from '../shared/Environments';
 import MessageType from '../shared/MessageTypes';
+import LobbyController from './controllers/LobbyController';
 import { authTokenService } from './tools/services';
-import { lobbyManager } from './server';
 
 require('dotenv').config();
 const ENV = process.env.NODE_ENV || Environments.DEVELOPMENT;
@@ -24,7 +24,7 @@ export default class ServerSocketManager {
     }
 
     setUpSocket(ws: WebSocket) {
-        console.log(`New websocket connection established: connections = ${this.wsServer.clients.size}`);
+        // console.log(`New websocket connection established: connections = ${this.wsServer.clients.size}`);
         ws.on("message", (msg: string) => {
             if(this.sockets.has(ws)) {
                 this.handleMessage(ws, msg);
@@ -60,8 +60,8 @@ export default class ServerSocketManager {
             }
 
             switch (message.type) {
-                case MessageType.CHAT:  // FIXME: The lobby manager should be responsible for sending this to the correct people
-                    lobbyManager.chat(message.auth, message.data);
+                case MessageType.CHAT:
+                    LobbyController.chat(message.auth, message.data);
                     break;
                 default:
                     console.error("invalid incoming message: " + msg);

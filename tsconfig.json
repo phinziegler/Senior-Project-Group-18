@@ -23,7 +23,6 @@
   "include": [
     "src/client",
     "src/shared",
-    "src/index.tsx",
-    "src/server/lobbies/lobby.ts"
+    "src/index.tsx"
   ]
 }

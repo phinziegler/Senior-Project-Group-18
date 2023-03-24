@@ -29,18 +29,18 @@ CREATE TABLE authToken (
 );
 
 CREATE TABLE lobby (
-	id INT NOT NULL AUTO_INCREMENT,
+	id VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
     password VARCHAR(255),
-    leader_id INT NOT NULL UNIQUE,
+    leader VARCHAR(255),
     PRIMARY KEY (id),
-    FOREIGN KEY (leader_id) REFERENCES user(id) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (leader) REFERENCES user(username) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE lobby_user (
-	lobby_id INT NOT NULL,
-    user_id INT NOT NULL,
-    PRIMARY KEY(lobby_id, user_id),
+	lobby_id VARCHAR(255) NOT NULL,
+    username VARCHAR(255) NOT NULL,
+    PRIMARY KEY(lobby_id, username),
     FOREIGN KEY (lobby_id) REFERENCES lobby(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (username) REFERENCES user(username) ON DELETE CASCADE ON UPDATE CASCADE
 );

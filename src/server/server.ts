@@ -4,7 +4,6 @@ import STATIC_PATH from "./tools/static-path";
 import getDb from "./tools/db-connect";
 import Environments from "../shared/Environments";
 import ServerSocketManager from "./ServerSocketManager";
-import LobbyManager from "./lobbies/LobbyManager";
 const cors = require('cors');
 
 /* 'require' statements are often used by Node.js applications to import modules
@@ -40,12 +39,9 @@ getDb();
 const wsPort = 8080;    // NOTE: This port is only used in development
 const socketManager = new ServerSocketManager(server, wsPort);
 
-// Create the lobby manager
-const lobbyManager = new LobbyManager();
-
 // Starts the server listening for http requests
 server.listen(serverPort, () => {
     console.log(`Server started on port ${serverPort} in mode ${ENV}`);
 });
 
-export { lobbyManager, socketManager };
+export { socketManager };

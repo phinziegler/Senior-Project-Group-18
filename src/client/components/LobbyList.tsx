@@ -19,7 +19,7 @@ interface LobbyList {
     id: string;
     name: string;
     leader: string;
-    hasPassword: boolean;
+    password: string;
 }
 
 class LobbyListElement extends React.Component<{}, LobbyListState> {
@@ -41,7 +41,6 @@ class LobbyListElement extends React.Component<{}, LobbyListState> {
             this.setState({
                 lobbyList: data
             })
-            // TODO: Render more information on this page using the data from this GET request
         });
     }
 
@@ -54,10 +53,6 @@ class LobbyListElement extends React.Component<{}, LobbyListState> {
                 res.json().then(obj => console.log(obj.message));
             });
     }
-
-    //    async getUsersLobby() {
-    //
-    //    }
 
     link(text: string, path: string) {
         if (path.charAt(0) != "/") {
@@ -80,7 +75,7 @@ class LobbyListElement extends React.Component<{}, LobbyListState> {
                 <div key={index} className="row align-items-center border-bottom border-green no-gutters">
                     {this.link(lobby.name, `/lobby/${lobby.id}`)}
                     <div className="col-3">{lobby.leader}</div>
-                    <div className="col-2"><input style={{ width: '2vh', height: '2vh' }} type="checkbox" checked={Boolean(lobby.hasPassword)} readOnly={true} /></div>
+                    <div className="col-2"><input style={{ width: '2vh', height: '2vh' }} type="checkbox" checked={Boolean(lobby.password != "")} readOnly={true} /></div>
                     <div className="col-2"><input type="button" className="button join-button" value="Join" /></div>
                 </div>
             );
