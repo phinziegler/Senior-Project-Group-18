@@ -4,8 +4,7 @@ import ChatMessage from "../../shared/ChatMessage";
 import MessageType from "../../shared/MessageTypes";
 import ServerRoutes from "../../shared/ServerRoutes";
 import User from "../../shared/User";
-import { getAuthToken } from "../tools/auth";
-import clientSocketManager from "../websockets/ClientSocketManager";
+import { clientSocketManager, getAuthToken } from "../tools/auth";
 import { GET, POST } from "../tools/fetch";
 import ErrorPage from "./ErrorPage";
 import requestUrl from "../tools/requestUrl";
@@ -125,6 +124,11 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
             return;
         }
         let data: ChatMessage = { message: this.state.chatInput, user: this.props.user.username, lobbyId: this.props.lobbyId }
+
+        if(!clientSocketManager) {
+            console.error("client socket manager is null");
+            return;
+        }
         clientSocketManager.send(MessageType.CHAT, data);
         this.setState({ chatInput: "" });
     }
@@ -138,7 +142,6 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
             lobbyId: this.props.lobbyId,
             password: "",   // TODO: implement lobby passwords
             user: getAuthToken(),
-            socketId: clientSocketManager.getId()
         }
 
         POST(requestUrl(ServerRoutes.JOIN_LOBBY), data).then((res: Response) => {

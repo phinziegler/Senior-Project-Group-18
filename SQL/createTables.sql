@@ -9,7 +9,6 @@ CREATE TABLE user (
     username VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     salt VARCHAR(255) NOT NULL,
-    websocket_id VARCHAR(255),
     PRIMARY KEY (id)
 );
 

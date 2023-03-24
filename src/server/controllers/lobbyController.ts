@@ -75,13 +75,11 @@ export default class LobbyController {
         let lobbyId: string;
         let password: string;
         let user: AuthToken;
-        let socketId: string;
 
         try {
             lobbyId = req.body.lobbyId;
             password = req.body.lobbyPassword;
             user = req.body.user;
-            socketId = req.body.socketId;
         } catch {
             return res.status(400).json({ message: "Could not join lobby, request body is invalid" });
         }
@@ -91,7 +89,7 @@ export default class LobbyController {
             return res.status(401).json({ message: "Could not join lobby, user is not authenticated" });
         }
 
-        lobbyManager.addUser(user, lobbyId, socketId);
+        lobbyManager.addUser(user, lobbyId);
         return res.status(200).json({ message: "added user to lobby" });
     }
 

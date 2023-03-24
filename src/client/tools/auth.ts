@@ -4,6 +4,7 @@ import ServerRoutes from "../../shared/ServerRoutes";
 import User from "../../shared/User";
 import requestUrl from "./requestUrl";
 import { POST } from "./fetch";
+import ClientSocketManager from "../websockets/ClientSocketManager";
 
 export async function login(username: string | undefined, password: string | undefined): Promise<(User | undefined)> {
 
@@ -24,6 +25,7 @@ export async function login(username: string | undefined, password: string | und
             return;
         }
         console.log("successful authentication");
+        handleSuccess(username);
         return res.json();
     });
 }
@@ -34,9 +36,9 @@ export async function login(username: string | undefined, password: string | und
  */
 export async function tokenLogin(): Promise<boolean> {
     let storageString = window.localStorage.getItem('user');
-    if (!storageString) 
+    if (!storageString)
         return false;
-        
+
     let storage = JSON.parse(storageString);
 
     let token: AuthToken = {
@@ -48,6 +50,7 @@ export async function tokenLogin(): Promise<boolean> {
     return await POST(loc, token).then((res: Response) => {
         if (res.status == 200) {
             console.log("successful authentication from token");
+            handleSuccess(token.username);
             return true;
         }
         return false;
@@ -56,9 +59,9 @@ export async function tokenLogin(): Promise<boolean> {
 
 export function getAuthToken() {
     let storageString = window.localStorage.getItem('user');
-    if (!storageString) 
+    if (!storageString)
         throw new Error("Cannot get auth token, user may not be logged in.");
-        
+
     let storage = JSON.parse(storageString);
 
     let token: AuthToken = {
@@ -68,3 +71,11 @@ export function getAuthToken() {
 
     return token;
 }
+
+let clientSocketManager: ClientSocketManager | null;
+function handleSuccess(username: string) {
+    // Establish websocket connection
+    clientSocketManager = new ClientSocketManager(username);
+}
+
+export { clientSocketManager };

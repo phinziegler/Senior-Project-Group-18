@@ -8,18 +8,14 @@ export default class LobbyManager {
     lobbies: Map<string, Lobby>;                // maps the lobby id to the lobby object
     userToLobby: Map<string, Lobby>;            // maps a user to the lobby they are a part of
     lobbyToUsers: Map<Lobby, Set<string>>;      // Maps a lobby to the usernames part of them
-    userToSocket: Map<string, string>;          // Maps a username to a websocket id
-    socketToUser: Map<string, string>;   // Maps a socket id to a username
 
     constructor() {
         this.lobbies = new Map<string, Lobby>();
         this.userToLobby = new Map<string, Lobby>();
         this.lobbyToUsers = new Map<Lobby, Set<string>>();
-        this.userToSocket = new Map<string, string>();
-        this.socketToUser = new Map<string, string>();
     }
 
-    addUser(user: AuthToken, lobbyId: string, socketId: string) {
+    addUser(user: AuthToken, lobbyId: string) {
         let lobby = this.lobbies.get(lobbyId);
         if (!lobby) {
             return;
@@ -27,10 +23,6 @@ export default class LobbyManager {
 
         // Associate a user with their lobby
         this.userToLobby.set(user.username, lobby);
-
-        // Associate a user to their websocket
-        this.userToSocket.set(user.username, socketId);     // TODO: verify that the websocket id exists?
-        this.socketToUser.set(socketId, user.username);
 
         // Update the lobbies user Set
         let users = this.lobbyToUsers.get(lobby);
@@ -46,7 +38,7 @@ export default class LobbyManager {
     addLobby(name: string, password: string, leader: AuthToken, socketId: string) {
         let lobby = new Lobby(name, password, leader)
         this.lobbies.set(lobby.id, lobby);
-        this.addUser(leader, lobby.id, socketId);
+        this.addUser(leader, lobby.id);
         return lobby.id;
     }
 
@@ -69,30 +61,12 @@ export default class LobbyManager {
         return false;
     }
 
-    removeUserBySocketId(socketId: string) {
-        let username = this.socketToUser.get(socketId);
-        if (!username) {
-            console.log("error getting username from socketId");
-            return;
-        }
-
-        let lobby = this.userToLobby.get(username);
-        if (!lobby) {
-            console.log("getting lobby from username");
-            return;
-        }
-
-        this.lobbyToUsers.get(lobby)?.delete(username);
-        this.userToLobby.delete(username);
-        this.socketToUser.delete(socketId);
-        this.userToSocket.delete(username);
-        this.updateUserList(lobby);
-    }
-
+    /**
+     * Broadcast a chat message to all users in a given lobby
+     */
     chat(auth: AuthToken, message: ChatMessage) {
         let lobby = this.userToLobby.get(auth.username);
         if (!lobby) {
-            console.log("cannot chat in lobby you have not joined");
             return;
         }
 
@@ -102,17 +76,7 @@ export default class LobbyManager {
         }
 
         users.forEach((username: string) => {
-            let socketId = this.userToSocket.get(username);
-            if (!socketId) {
-                return;
-            }
-
-            let ws = socketManager.getSocketFromId(socketId);
-            if (!ws) {
-                return;
-            }
-
-            ws.send(JSON.stringify({ type: MessageType.CHAT, user: message.user, message: message.message }));
+            socketManager.sendMessageToUser(username, JSON.stringify({ type: MessageType.CHAT, user: message.user, message: message.message }));
         });
     }
 
@@ -131,20 +95,10 @@ export default class LobbyManager {
 
         if (!users) {
             return;
-        }
+        } 
 
         users.forEach((username: string) => {
-            let socketId = this.userToSocket.get(username);
-            if (!socketId) {
-                return;
-            }
-
-            let ws = socketManager.getSocketFromId(socketId);
-            if (!ws) {
-                return;
-            }
-
-            ws.send(JSON.stringify({ type: MessageType.UPDATE_USER_LIST }));
+            socketManager.sendMessageToUser(username, JSON.stringify({ type: MessageType.UPDATE_USER_LIST }));
         });
     }
 }

@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import http from 'http';
 import WebSocket, { Server } from 'ws';
 import Environments from '../shared/Environments';
@@ -11,8 +10,9 @@ const ENV = process.env.NODE_ENV || Environments.DEVELOPMENT;
 
 export default class ServerSocketManager {
     wsServer: Server<WebSocket>;
-    idToSocket = new Map<string, WebSocket>();
-    socketToId = new Map<WebSocket, string>();
+    usernameToSocket = new Map<string, WebSocket>();        // TODO: eventually the username and socket relation should be stored in the database
+                                                            //       instead of a hashmap... this currently eats up ram... but do I care?
+    socketToUsername = new Map<WebSocket, string>();
     sockets = new Set<WebSocket>();
 
     constructor(httpServer: http.Server, wsPort: number) {
@@ -20,21 +20,32 @@ export default class ServerSocketManager {
         this.wsServer = new WebSocket.Server(options);
         this.wsServer.on("connection", (ws: WebSocket) => {
             this.setUpSocket(ws);
-            this.setUpEvents(ws);
         });
     }
 
     setUpSocket(ws: WebSocket) {
         console.log(`New websocket connection established: connections = ${this.wsServer.clients.size}`);
-        let id = randomUUID();
-        this.idToSocket.set(id, ws);
-        this.sockets.add(ws);
-        this.socketToId.set(ws, id);
-        ws.send(JSON.stringify({ type: MessageType.WEBSOCKET_ID, id: id }));
-    }
-
-    setUpEvents(ws: WebSocket) {
-        ws.on("message", (msg: string) => this.handleMessage(ws, msg));
+        ws.on("message", (msg: string) => {
+            if(this.sockets.has(ws)) {
+                this.handleMessage(ws, msg);
+                return;
+            }
+            try {
+                const message = JSON.parse(msg);
+                switch (message.type) {
+                    case MessageType.ASSIGN_WEBSOCKET_USER:
+                        this.usernameToSocket.set(message.username, ws);
+                        this.socketToUsername.set(ws, message.username);
+                        this.sockets.add(ws);
+                        break;
+                    default:
+                        console.log("Cannot accept message of type " + message.type + " right now. user must be assigned to this websocket.");
+                }
+            } catch {
+                console.log("Unacceptable socket message");
+                ws.close();
+            }
+        });
         ws.on('close', () => this.handleClose(ws));
     }
 
@@ -49,12 +60,6 @@ export default class ServerSocketManager {
             }
 
             switch (message.type) {
-                case MessageType.TEST:
-                    console.log("TEST");
-                    break;
-                case MessageType.PING:
-                    console.log("PING");
-                    break;
                 case MessageType.CHAT:  // FIXME: The lobby manager should be responsible for sending this to the correct people
                     lobbyManager.chat(message.auth, message.data);
                     break;
@@ -67,20 +72,22 @@ export default class ServerSocketManager {
     }
 
     handleClose(ws: WebSocket) {
-        let id = this.socketToId.get(ws);
-        if (!id) {
+        let username = this.socketToUsername.get(ws);
+        if (!username) {
             console.log("failed to close websocket correctly");
             return;
         }
         this.sockets.delete(ws);
-        this.socketToId.delete(ws);
-        this.idToSocket.delete(id);
-
-        lobbyManager.removeUserBySocketId(id);
-        console.log(`A websocket connection was dropped: connections: =  ${this.wsServer.clients.size}`);
+        this.usernameToSocket.delete(username);
+        this.socketToUsername.delete(ws);
     }
 
-    getSocketFromId(socketId: string) {
-        return this.idToSocket.get(socketId);
+    public sendMessageToUser(username: string, message: string) {
+        let ws = this.usernameToSocket.get(username);
+        if (!ws) {
+            console.log("could not message user " + username + " not connected");
+            return;
+        }
+        ws.send(message);
     }
 }
