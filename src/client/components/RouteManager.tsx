@@ -13,6 +13,7 @@ import ClientSocketManager from '../websockets/ClientSocketManager';
 import CreateAccount from '../components/CreateAccount';
 import User from '../../shared/User';
 import UserPage from '../components/UserPage';
+import GameTest from '../components/GameTest';
 
 export default function RouteManager(props: { user: User | null }) {
 
@@ -61,6 +62,10 @@ export default function RouteManager(props: { user: User | null }) {
                     path: "lobby-list",
                     element: <LobbyList/>
                 },
+                {
+                    path: "game-test",
+                    element: <GameTest/>
+                }
             ]
         }
     ]);
