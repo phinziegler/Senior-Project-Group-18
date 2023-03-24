@@ -1,10 +1,13 @@
-import AuthTokenService from "../services/AuthTokenService";
 import getDb from "./db-connect";
-import UserService from "../services/userService";
-import FriendService from "../services/friendService";
+
+import AuthTokenService from "../services/AuthTokenService";
+import UserService from "../services/UserService";
+import FriendService from "../services/FriendService";
+import LobbyService from "../services/LobbyService";
 
 const userService = new UserService(getDb());
 const authTokenService = new AuthTokenService(getDb());
 const friendService = new FriendService(getDb());
+const lobbyService = new LobbyService(getDb());
 
-export { userService, authTokenService, friendService }
+export { userService, authTokenService, friendService, lobbyService }
