@@ -7,7 +7,7 @@ import AuthToken from "../../shared/AuthToken";
  */
 export default class AuthTokenService extends Service {
     constructor(db: Connection) {
-        super(db, 'authTokens');
+        super(db, 'authToken');
     }
 
     /** Check if a user is authenticated */

@@ -3,17 +3,17 @@ import MessageType from "../../shared/MessageTypes";
 import { getAuthToken } from "../tools/auth";
 import { SocketEvent } from "./SocketEvent";
 
-class ClientSocketManager {
+export default class ClientSocketManager {
     ws: WebSocket;
     connected: boolean;
-    id: string;
+    username: string;
 
-    constructor() {
+    constructor(username: string) {
         this.connected = false;
         this.ws = this.connect();
         this.setupEvents();
         this.socket();
-        this.id = "";
+        this.username = username;
     }
 
     public send(type: MessageType, data?: any) {
@@ -36,6 +36,7 @@ class ClientSocketManager {
         this.ws.onopen = () => {
             console.log("established websocket connection");
             this.connected = true;
+            this.ws.send(JSON.stringify({type: MessageType.ASSIGN_WEBSOCKET_USER, username: this.username}))
         }
         this.ws.onclose = () => {
             console.log("closed websocket connection");
@@ -49,16 +50,6 @@ class ClientSocketManager {
             let messageEvent: CustomEvent;
             messageEvent = new CustomEvent("no-event", { detail: { data: e.data } });
             switch (message.type) {
-                case MessageType.WEBSOCKET_ID:
-                    this.id = message.id;
-                    console.log("WebSocket id: " + this.id);
-                    break;
-                case MessageType.PING:
-                    console.log('ping');
-                    break;
-                case MessageType.TEST:
-                    console.log('test');
-                    break;
                 case MessageType.CHAT:
                     messageEvent = new CustomEvent(SocketEvent.CHAT, { detail: { message: message.message, user: message.user } });
                     break;
@@ -75,12 +66,4 @@ class ClientSocketManager {
     public close() {
         this.ws.close();
     }
-
-    public getId() {
-        return this.id;
-    }
 }
-
-
-const clientSocketManager = new ClientSocketManager();
-export default clientSocketManager;

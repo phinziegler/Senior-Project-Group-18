@@ -1,7 +1,7 @@
-import Controller from "./controllers/controller";
-import UserController from "./controllers/userController";
-import ServerRoutes from "../shared/ServerRoutes";
-import LobbyController from "./controllers/lobbyController";
+import Controller from "./controllers/Controller";
+import UserController from "./controllers/UserController";
+import ServerRoutes from "../shared/serverRoutes";
+import LobbyController from "./controllers/LobbyController";
 
 const express = require("express");
 const router = express.Router();
@@ -23,6 +23,9 @@ router.route(ServerRoutes.GET_ALL_LOBBIES).get(LobbyController.getLobbies);
 router.route(ServerRoutes.GET_LOBBY(":lobbyId")).get(LobbyController.getLobby);
 router.route(ServerRoutes.JOIN_LOBBY).post(LobbyController.joinLobby);
 router.route(ServerRoutes.GET_LOBBY_USERS(":lobbyId")).get(LobbyController.getUsers);
+router.route(ServerRoutes.GET_LOBBY_OF_USER(":username")).get(LobbyController.getLobbyOfUser);
+router.route(ServerRoutes.DELETE_LOBBY(":auth", ":lobbyId")).delete(LobbyController.deleteLobby);
+router.route(ServerRoutes.REMOVE_USER(":auth", ":lobbyId", ":username")).delete(LobbyController.removeUser);
 
 // Friends
 router.route(ServerRoutes.ADD_FRIEND).post(UserController.addFriend);

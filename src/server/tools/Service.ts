@@ -135,4 +135,34 @@ export default class Service {
             throw new Error(e.message);
         }
     }
+
+    /**
+     * Update a table row
+     * @param fieldValuePairs 
+     * @param where 
+     * @returns 
+     */
+    async update(fieldValuePairs: [key: string, value: string][], where: string) {
+        let queryItems: string[] = [];
+        fieldValuePairs.forEach(pair => {
+            queryItems.push(`${pair[0]} = ${pair[1]}`);
+        });
+
+        let query = `UPDATE ${this.table} SET ${this.commaList(queryItems)} WHERE ${where}`;
+
+        try {
+            return await util.promisify(this.db.query).bind(this.db)(query);
+        } catch (e: any) {
+            throw new Error(e.message);
+        }
+    }
+
+    /**
+     * Delete something
+     * @param where 
+     */
+    async delete(where: string) {
+        let query = `DELETE FROM ${this.table} WHERE ${where}`;
+        return await util.promisify(this.db.query).bind(this.db)(query);
+    }
 }

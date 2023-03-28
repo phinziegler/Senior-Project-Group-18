@@ -1,8 +1,6 @@
 enum MessageType {
-    PING,
-    TEST,
     CHAT,
-    WEBSOCKET_ID,
-    UPDATE_USER_LIST
+    UPDATE_USER_LIST,
+    ASSIGN_WEBSOCKET_USER
 }
 export default MessageType;

@@ -1,10 +1,8 @@
 import React from "react";
 import { Link, Navigate } from "react-router-dom";
-import Environments from "../../shared/Environments";
-import ServerRoutes from "../../shared/ServerRoutes";
 import User from "../../shared/User";
-import { POST } from "../tools/fetch";
 import '../styles/style.css';
+import { login } from "../tools/auth";
 
 interface LoginProps {
     setUser: (user: User) => void;
@@ -34,26 +32,12 @@ export default class Other extends React.Component<LoginProps, loginState> {
      * makes the login request to the server
      */
     async login() {
-        const loc = process.env.NODE_ENV == Environments.PRODUCTION
-            ? window.location.protocol + "//" + window.location.host + ServerRoutes.LOGIN
-            : "http://localhost:8000" + ServerRoutes.LOGIN;
-
-        let data = {
-            username: this.state.username,
-            password: this.state.password
-        }
-
-        POST(loc, data).then(res => {
-            if (res.status == 200) {
-                this.setState({ status: "Success", statusClass: "text-success" });
-                return res.json();
-            }
-            // alert("Invalid username or password");
-            this.setState({ status: "Invalid username or password", statusClass: "text-danger" });
-        }).then((data) => {
+        await login(this.state.username, this.state.password).then(data => {
             if (!data) {
+                this.setState({ status: "Invalid username or password", statusClass: "text-danger" });
                 return;
             }
+            this.setState({ status: "Success", statusClass: "text-success" });
             this.props.setUser(data);
         });
     }

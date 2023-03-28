@@ -4,17 +4,18 @@ import ChatMessage from "../../shared/ChatMessage";
 import MessageType from "../../shared/MessageTypes";
 import ServerRoutes from "../../shared/ServerRoutes";
 import User from "../../shared/User";
-import { getAuthToken } from "../tools/auth";
-import clientSocketManager from "../websockets/ClientSocketManager";
-import { GET, POST } from "../tools/fetch";
+import { clientSocketManager, getAuthToken } from "../tools/auth";
+import { DELETE, GET, POST } from "../tools/fetch";
 import ErrorPage from "./ErrorPage";
 import requestUrl from "../tools/requestUrl";
 import { SocketEvent } from "../websockets/SocketEvent";
 import UserPreview from "./UserPreview";
+import Lobby from "../../shared/Lobby";
 
 interface LobbyPageElementProps {
     lobbyId: string;
     user: User | null;
+    setLobby: (_: Lobby | null) => void;
 }
 
 interface LobbyState {
@@ -24,15 +25,16 @@ interface LobbyState {
     lobbyUsers: string[];
     chatInput: string;
     chat: any[],    // TODO: figure out a more elegant type choice for this
+    deleted: boolean,
 }
 
-export default function LobbyPage(props: { user: User | null }) {
+export default function LobbyPage(props: { user: User | null, setLobby: (_: Lobby | null) => void }) {
     const params = useParams();
     if (!params.lobbyId) {
         return <ErrorPage />
     }
     return (
-        <LobbyPageElement lobbyId={params.lobbyId} user={props.user} />
+        <LobbyPageElement setLobby={props.setLobby} lobbyId={params.lobbyId} user={props.user} />
     );
 }
 
@@ -47,11 +49,13 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
             chatInput: "",
             lobbyUsers: [],
             chat: [],
+            deleted: false,
         }
         this.chatListener = this.chatListener.bind(this);
         this.updateUsersListener = this.updateUsersListener.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
         this.joinLobby = this.joinLobby.bind(this);
+        this.removeUser = this.removeUser.bind(this);
     }
 
     chatListener(e: any) {
@@ -79,9 +83,13 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         removeEventListener(SocketEvent.UPDATE_USER_LIST, this.updateUsersListener);
     }
 
-    /* TODO: check if the user is logged in as the searched account, if they are, also return password information */
     async getLobby(lobbyId: string) {
         GET(requestUrl(ServerRoutes.GET_LOBBY(lobbyId))).then(res => res.json()).then((data: any) => {
+            if (!data) {
+                console.error("Could not get lobby");
+                return;
+                // TODO: display a not found message
+            }
             this.setState({
                 lobbyName: data.name,
                 lobbyId: data.id,
@@ -97,7 +105,28 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
             this.setState({
                 lobbyUsers: data
             });
+            if(this.props.user && this.state.lobbyUsers.includes(this.props.user.username)) {
+                this.props.setLobby({
+                    id: this.state.lobbyId,
+                    leader: this.state.lobbyLeader,
+                    name: this.state.lobbyName,
+                });
+            }
             // TODO: Render more information on this page using the data from this GET request
+        });
+    }
+    
+    async removeUser(username: string) {
+        if (!this.props.user) {
+            return;
+        }
+
+        DELETE(requestUrl(ServerRoutes.REMOVE_USER(JSON.stringify(getAuthToken()), this.props.lobbyId, username))).then((res: Response) => {
+            if (res.status != 200) {
+                console.log("Failed to remove user from lobby");
+                return;
+            }
+            console.log("removed user " + username);
         });
     }
 
@@ -107,6 +136,8 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         this.state.lobbyUsers.forEach((user: string, index: number) => {
             output.push(
                 <UserPreview
+                    removeUser={this.removeUser}
+                    admin={this.state.lobbyLeader == this.props.user?.username}
                     user={this.props.user}
                     username={user}
                     key={index} />
@@ -125,6 +156,11 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
             return;
         }
         let data: ChatMessage = { message: this.state.chatInput, user: this.props.user.username, lobbyId: this.props.lobbyId }
+
+        if (!clientSocketManager) {
+            console.error("client socket manager is null");
+            return;
+        }
         clientSocketManager.send(MessageType.CHAT, data);
         this.setState({ chatInput: "" });
     }
@@ -138,7 +174,6 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
             lobbyId: this.props.lobbyId,
             password: "",   // TODO: implement lobby passwords
             user: getAuthToken(),
-            socketId: clientSocketManager.getId()
         }
 
         POST(requestUrl(ServerRoutes.JOIN_LOBBY), data).then((res: Response) => {
@@ -147,7 +182,32 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                 return;
             }
             console.log("Joined lobby");
+
+            // THIS UPDATES THE SIDEBAR
+            this.props.setLobby({
+                id: this.state.lobbyId,
+                name: this.state.lobbyName,
+                leader: this.state.lobbyLeader
+            });
             // TODO: Remove the join button and show the chat/other lobby controls
+        });
+    }
+
+    // Delete the lobby
+    deleteLobby() {
+        if (!this.props.user) {
+            return;
+        }
+
+        DELETE(requestUrl(ServerRoutes.DELETE_LOBBY(JSON.stringify(getAuthToken()), this.props.lobbyId))).then((res: Response) => {
+            if (res.status != 200) {
+                console.log("Failed to delete lobby");
+                return;
+            }
+            console.log("Deleted lobby");
+            this.setState({ deleted: true });
+            this.props.setLobby(null);
+            // TODO: Navigate to the lobby list page?
         });
     }
 
@@ -162,42 +222,45 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
     }
 
     render() {
-
+        let showDelete = this.props.user && (this.state.lobbyLeader == this.props.user.username);
         return (
             <>
-                <div className='lobby-box border-medium border-green'>
-                    <div className='container'>
-                        <div className='row'>
-                            <div className='col-8'>
-                                <div className='row' style={{ margin: '0px' }}>
-                                    <div className='border-green border-medium lobby-header-box' style={{ padding: '1vh' }}>
-                                        <h1>Lobby: {this.state.lobbyName}</h1>
+                {this.state.deleted ? <p className="m-5 text-center text-success">Lobby Successfully deleted</p> :
+                    <div className='lobby-box border-medium border-green'>
+                        <div className='container'>
+                            <div className='row'>
+                                <div className='col-8'>
+                                    <div className='row' style={{ margin: '0px' }}>
+                                        <div className='border-green border-medium lobby-header-box' style={{ padding: '1vh' }}>
+                                            <h1>Lobby: {this.state.lobbyName}</h1>
+                                        </div>
+                                    </div>
+                                    <div className='row' style={{ margin: '0px', padding: '1vh', }}>
+                                        <div className='col-9'>Users in Lobby:</div>
+                                        {this.usersList()}
+                                    </div>
+                                    <div className='row' style={{ margin: '0px', padding: '1vh', }}>
+                                        <div className="col-9">Lobby Leader:</div>
+                                        <div className='col-9'>{this.state.lobbyLeader}</div>
                                     </div>
                                 </div>
-                                <div className='row' style={{ margin: '0px', padding: '1vh', }}>
-                                    <div className='col-9'>Users in Lobby:</div>
-                                    {this.usersList()}
-                                </div>
-                                <div className='row' style={{ margin: '0px', padding: '1vh', }}>
-                                    <div className="col-9">Lobby Leader:</div>
-                                    <div className='col-9'>{this.state.lobbyLeader}</div>
+                                <div className='col-4 border-green border-medium chat-box' style={{ padding: '1vh' }}>
+                                    <h3>Chat box</h3>
+                                    {this.chat()}
+                                    <input value={this.state.chatInput} onChange={e => this.setState({ chatInput: e.target.value })} type="text" />
+                                    <button onClick={this.sendMessage}>Send</button>
                                 </div>
                             </div>
-                            <div className='col-4 border-green border-medium chat-box' style={{ padding: '1vh' }}>
-                                <h3>Chat box</h3>
-                                {this.chat()}
-                                <input value={this.state.chatInput} onChange={e => this.setState({ chatInput: e.target.value })} type="text" />
-                                <button onClick={this.sendMessage}>Send</button>
-                            </div>
-                        </div>
-                        <div className='row'>
-                            <div className='col-12 border-green border-medium ready-box'>
-                                <input type="button" className="button join-button" value="Ready" />
-                                {this.props.user && <input type="button" className="button join-button" onClick={this.joinLobby} value="Join" />}
+                            <div className='row'>
+                                <div className='col-12 border-green border-medium ready-box'>
+                                    <input type="button" className="button join-button" value="Ready" />
+                                    {this.props.user && <input type="button" className="button join-button" onClick={this.joinLobby} value="Join" />}
+                                    {showDelete && <button onClick={() => this.deleteLobby()} className="btn btn-danger">Delete Lobby</button>}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                }
             </>
         )
     }
