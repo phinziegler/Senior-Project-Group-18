@@ -43,9 +43,8 @@ export default class LobbyService extends Service {
         return await this.lobbyUserService.lobbyOfUser(username).then(data => data.lobby_id).catch(() => null);
     }
 
-    // TODO: implement this
-    public async removeUser() {
-        
+    public async removeUser(lobbyId: string, username: string) {
+        return await this.lobbyUserService.removeUser(lobbyId, username)
     }
 
     public async deleteLobby(lobbyId: string) {

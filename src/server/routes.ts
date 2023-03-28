@@ -1,5 +1,5 @@
-import Controller from "./controllers/controller";
-import UserController from "./controllers/userController";
+import Controller from "./controllers/Controller";
+import UserController from "./controllers/UserController";
 import ServerRoutes from "../shared/serverRoutes";
 import LobbyController from "./controllers/LobbyController";
 
@@ -25,7 +25,7 @@ router.route(ServerRoutes.JOIN_LOBBY).post(LobbyController.joinLobby);
 router.route(ServerRoutes.GET_LOBBY_USERS(":lobbyId")).get(LobbyController.getUsers);
 router.route(ServerRoutes.GET_LOBBY_OF_USER(":username")).get(LobbyController.getLobbyOfUser);
 router.route(ServerRoutes.DELETE_LOBBY(":auth", ":lobbyId")).delete(LobbyController.deleteLobby);
-router.route(ServerRoutes.REMOVE_USER).post(LobbyController.removeUser);
+router.route(ServerRoutes.REMOVE_USER(":auth", ":lobbyId", ":username")).delete(LobbyController.removeUser);
 
 // Friends
 router.route(ServerRoutes.ADD_FRIEND).post(UserController.addFriend);

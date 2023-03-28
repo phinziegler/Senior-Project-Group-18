@@ -8,6 +8,8 @@ import requestUrl from "../tools/requestUrl";
 interface UserPreviewProps {
     user: User | null
     username: string
+    admin: boolean
+    removeUser: (username: string) => void
 }
 
 interface UserPreviewState {
@@ -70,10 +72,16 @@ export default class UserPreview extends React.Component<UserPreviewProps, UserP
                                     ?
                                     <span className="text-success">{"you"}</span>
                                     :
-                                    <button className="btn btn-sm btn-primary" onClick={() => this.addFriend()}>Add Friend</button>}
+                                    <span>
+                                        <button className="btn btn-sm btn-primary" onClick={() => this.addFriend()}>Add Friend</button>
+                                        {this.props.admin && <button onClick={() => this.props.removeUser(this.props.username)} className="btn btn-danger btn-sm">Remove User</button>}
+                                    </span>}
                             </>
                             :
-                            <span className="text-success">{"friend"}</span>}
+                            <span>
+                                <span className="text-success">{"friend"}</span>
+                                {this.props.admin && <button onClick={() => this.props.removeUser(this.props.username)} className="btn btn-danger btn-sm">Remove User</button>}
+                            </span>}
                     </span>
                 }
             </div>

@@ -30,4 +30,9 @@ export default class LobbyUserService extends Service {
     public async getUsers(lobbyId: string) {
         return await this.find(["username"], `lobby_id = ${escape(lobbyId)}`);
     }
+
+    
+    public async removeUser(lobbyId: string, username: string) {
+        return await this.delete(`lobby_id = ${escape(lobbyId)} AND username = ${escape(username)}`);
+    }
 }

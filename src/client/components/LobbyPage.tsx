@@ -55,6 +55,7 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         this.updateUsersListener = this.updateUsersListener.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
         this.joinLobby = this.joinLobby.bind(this);
+        this.removeUser = this.removeUser.bind(this);
     }
 
     chatListener(e: any) {
@@ -114,6 +115,20 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
             // TODO: Render more information on this page using the data from this GET request
         });
     }
+    
+    async removeUser(username: string) {
+        if (!this.props.user) {
+            return;
+        }
+
+        DELETE(requestUrl(ServerRoutes.REMOVE_USER(JSON.stringify(getAuthToken()), this.props.lobbyId, username))).then((res: Response) => {
+            if (res.status != 200) {
+                console.log("Failed to remove user from lobby");
+                return;
+            }
+            console.log("removed user " + username);
+        });
+    }
 
     usersList() {
         let output: JSX.Element[] = [];
@@ -121,6 +136,8 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         this.state.lobbyUsers.forEach((user: string, index: number) => {
             output.push(
                 <UserPreview
+                    removeUser={this.removeUser}
+                    admin={this.state.lobbyLeader == this.props.user?.username}
                     user={this.props.user}
                     username={user}
                     key={index} />

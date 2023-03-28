@@ -214,16 +214,16 @@ export default class LobbyController {
         }
 
         let lobby = await lobbyService.getLobby(lobbyId);
-        if(!lobby) {
-            return res.status(403).json({message:`No lobby with id ${lobbyId} could be found.`});
+        if (!lobby) {
+            return res.status(403).json({ message: `No lobby with id ${lobbyId} could be found.` });
         }
 
         if (lobby.leader != auth.username) {
-            return res.status(401).json({messae: `Only the lobby leader can delete a lobby`});
+            return res.status(401).json({ messae: `Only the lobby leader can delete a lobby` });
         }
 
         await lobbyService.deleteLobby(lobbyId);
-        return res.status(200).json({message: "Successfully deleted lobby"});
+        return res.status(200).json({ message: "Successfully deleted lobby" });
     }
 
     /**
@@ -231,9 +231,34 @@ export default class LobbyController {
      * @param req {auth: AuthToken, lobbyId: string, username: string}
      */
     static async removeUser(req: Request, res: Response) {
-        // Fail to create the lobby if the leader cannot be authorized with the server
-        // if (!await authTokenService.checkAuthorized(leader)) {
-        //     return res.status(401).json({ message: "Could not create lobby, user is not authenticated" });
-        // }
+        let auth: AuthToken;
+        let lobbyId: string;
+        let username: string;
+
+        try {
+            auth = JSON.parse(req.params.auth);
+            lobbyId = req.params.lobbyId;
+            username = req.params.username;
+        } catch {
+            return res.status(400).json({ message: "Failed to remove user, invalid request" });
+        }
+
+        // Check if requesting user is logged in.
+        if (!await authTokenService.checkAuthorized(auth)) {
+            return res.status(401).json({ message: "Could not remove user, requesting user is not authenticated" });
+        }
+
+        let lobby = await lobbyService.getLobby(lobbyId);
+        if (!lobby) {
+            return res.status(403).json({ message: `No lobby with id ${lobbyId} could be found.` });
+        }
+
+        if (lobby.leader != auth.username) {
+            return res.status(401).json({ messae: `Only the lobby leader can remove a user from the lobby` });
+        }
+
+        await lobbyService.removeUser(lobbyId, username);
+        LobbyController.updateUserList(lobbyId);
+        return res.status(200).json({ message: "Successfully removed user" });
     }
 }
