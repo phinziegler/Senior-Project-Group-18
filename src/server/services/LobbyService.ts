@@ -1,7 +1,6 @@
 import { Connection, escape } from "mysql";
 import Service from "../tools/Service";
 import Lobby from "../../shared/Lobby";
-import User from "../../shared/User";
 import LobbyUserService from "./LobbyUserService";
 import getDb from "../tools/db-connect";
 
@@ -47,6 +46,10 @@ export default class LobbyService extends Service {
     // TODO: implement this
     public async removeUser() {
         
+    }
+
+    public async deleteLobby(lobbyId: string) {
+        this.delete(`id = ${escape(lobbyId)}`);
     }
 
     public async getUsers(lobbyId: string) {

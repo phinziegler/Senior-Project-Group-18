@@ -102,7 +102,7 @@ export default class LobbyController {
         }
         let lobbyId = await lobbyService.lobbyOfUser(username);
 
-        if(!lobbyId) {
+        if (!lobbyId) {
             return res.status(200).json();
         }
 
@@ -191,5 +191,49 @@ export default class LobbyController {
         users.forEach((username: string) => {
             socketManager.sendMessageToUser(username, JSON.stringify({ type: MessageType.UPDATE_USER_LIST }));
         });
+    }
+
+    /**
+     * Delete a lobby
+     * @param req {auth: AuthToken, lobbyId: string}
+     */
+    static async deleteLobby(req: Request, res: Response) {
+        let auth: AuthToken;
+        let lobbyId: string;
+
+        try {
+            auth = JSON.parse(req.params.auth);
+            lobbyId = req.params.lobbyId;
+        } catch {
+            return res.status(400).json({ message: "Failed to delete lobby, invalid request" });
+        }
+
+        // Check if requesting user is logged in.
+        if (!await authTokenService.checkAuthorized(auth)) {
+            return res.status(401).json({ message: "Could not delete lobby, requesting user is not authenticated" });
+        }
+
+        let lobby = await lobbyService.getLobby(lobbyId);
+        if(!lobby) {
+            return res.status(403).json({message:`No lobby with id ${lobbyId} could be found.`});
+        }
+
+        if (lobby.leader != auth.username) {
+            return res.status(401).json({messae: `Only the lobby leader can delete a lobby`});
+        }
+
+        await lobbyService.deleteLobby(lobbyId);
+        return res.status(200).json({message: "Successfully deleted lobby"});
+    }
+
+    /**
+     * Remove a user from a lobby - succeeds if the authToken is that of the lobby leader, OR the user being removed
+     * @param req {auth: AuthToken, lobbyId: string, username: string}
+     */
+    static async removeUser(req: Request, res: Response) {
+        // Fail to create the lobby if the leader cannot be authorized with the server
+        // if (!await authTokenService.checkAuthorized(leader)) {
+        //     return res.status(401).json({ message: "Could not create lobby, user is not authenticated" });
+        // }
     }
 }

@@ -156,4 +156,13 @@ export default class Service {
             throw new Error(e.message);
         }
     }
+
+    /**
+     * Delete something
+     * @param where 
+     */
+    async delete(where: string) {
+        let query = `DELETE FROM ${this.table} WHERE ${where}`;
+        return await util.promisify(this.db.query).bind(this.db)(query);
+    }
 }

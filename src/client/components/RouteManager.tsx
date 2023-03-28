@@ -16,8 +16,6 @@ import Lobby from '../../shared/Lobby';
 
 export default function RouteManager(props: { user: User | null, lobby: Lobby | null }) {
 
-    console.log(`Routemanager has lobby: ` + JSON.stringify(props.lobby));
-
     // used by pages with the capacity to change the user
     const setUserFunction = (data: any) => {
         if (data) {

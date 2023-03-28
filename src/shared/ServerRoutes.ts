@@ -9,6 +9,8 @@ const ServerRoutes = {
     GET_LOBBY_USERS: ((lobbyId: string) => "/server/get-lobby-users/" + lobbyId),
     GET_ALL_LOBBIES: "/server/get-lobbies",
     GET_LOBBY_OF_USER: ((username: string) => "/server/get-lobby-of-user/" + username),
+    DELETE_LOBBY: (authTokenJSON: string, lobbyId: string) => `/server/delete-lobby/${authTokenJSON}/${lobbyId}`,
+    REMOVE_USER: "/server/remove-user",
     LOGIN: "/server/login",
     TOKEN_LOGIN: "/server/login-token",
     ANY: "*",
