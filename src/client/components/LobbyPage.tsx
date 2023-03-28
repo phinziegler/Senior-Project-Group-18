@@ -104,6 +104,13 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
             this.setState({
                 lobbyUsers: data
             });
+            if(this.props.user && this.state.lobbyUsers.includes(this.props.user.username)) {
+                this.props.setLobby({
+                    id: this.state.lobbyId,
+                    leader: this.state.lobbyLeader,
+                    name: this.state.lobbyName,
+                });
+            }
             // TODO: Render more information on this page using the data from this GET request
         });
     }
@@ -182,6 +189,7 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
             }
             console.log("Deleted lobby");
             this.setState({ deleted: true });
+            this.props.setLobby(null);
             // TODO: Navigate to the lobby list page?
         });
     }

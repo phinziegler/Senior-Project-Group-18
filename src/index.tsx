@@ -49,8 +49,8 @@ async function getLobbyForUser(username: string) {
 
 async function start() {
   await PreAuthenticate();
-  if (!userTemp) return;
-  await getLobbyForUser(userTemp.username);
+  if (userTemp)
+    await getLobbyForUser(userTemp.username);
 
   const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement

@@ -13,18 +13,45 @@ import CreateAccount from '../components/CreateAccount';
 import User from '../../shared/User';
 import UserPage from '../components/UserPage';
 import Lobby from '../../shared/Lobby';
+import { GET } from '../tools/fetch';
+import ServerRoutes from '../../shared/ServerRoutes';
+import requestUrl from '../tools/requestUrl';
 
 export default function RouteManager(props: { user: User | null, lobby: Lobby | null }) {
+
+    async function updateLobby(username?: string) {
+        console.log("update lobby");
+        if(!username) {
+            setLobby(null);
+            return;
+        }
+
+        await GET(requestUrl(ServerRoutes.GET_LOBBY_OF_USER(username)))
+        .then(res => {
+          return res.json();
+        })
+        .then((lobby: Lobby) => {
+          if (!lobby) {
+            setLobby(null);
+          }
+          setLobby(lobby);
+        })
+        .catch(() => {
+            setLobby(null);
+        });
+    }
 
     // used by pages with the capacity to change the user
     const setUserFunction = (data: any) => {
         if (data) {
             window.localStorage.setItem('user', JSON.stringify(data));
             setUser(data.user);
+            updateLobby(data.user.username);
             return;
         }
         window.localStorage.setItem('user', String());
         setUser(null);
+        updateLobby();
     }
 
     
@@ -50,7 +77,7 @@ export default function RouteManager(props: { user: User | null, lobby: Lobby | 
                 },
                 {
                     path: "user/:username",
-                    element: <UserPage setUser={setUserFunction} user={user} />
+                    element: <UserPage setLobby={setLobby} setUser={setUserFunction} user={user} />
                 },
                 {
                     path: "create-lobby",

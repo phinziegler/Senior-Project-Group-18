@@ -5,16 +5,19 @@ import User from "../../shared/User";
 import { GET } from "../tools/fetch";
 import ErrorPage from "./ErrorPage";
 import requestUrl from "../tools/requestUrl";
+import Lobby from "../../shared/Lobby";
 
 interface UserPageProps {
     user: User | null;
     setUser: (user: User | null) => void;
+    setLobby: (lobby: Lobby | null) => void;
 }
 
 interface UserPageElementProps {
     username: string;
     user: User | null;
     setUser: (user: User | null) => void;
+    setLobby: (lobby: Lobby | null) => void;
 }
 
 export default function UserPage(props: UserPageProps) {
@@ -23,7 +26,7 @@ export default function UserPage(props: UserPageProps) {
         return <ErrorPage />
     }
     return (
-        <UserPageElement setUser={props.setUser} user={props.user} username={params.username} />
+        <UserPageElement setLobby={props.setLobby} setUser={props.setUser} user={props.user} username={params.username} />
     );
 }
 
@@ -53,6 +56,7 @@ class UserPageElement extends React.Component<UserPageElementProps, UserPageElem
     signOut() {
         window.localStorage.setItem('user', String());
         this.props.setUser(null);
+        this.props.setLobby(null);
         this.setState({ signedOut: true })
     }
 
