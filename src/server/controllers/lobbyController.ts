@@ -139,13 +139,13 @@ export default class LobbyController {
 
         // Check that lobby exists
         let lobby = await lobbyService.getLobby(lobbyId);
-        if(!lobby) {
-            return res.status(404).json({message: "Could not join lobby, lobby not foud"});
+        if (!lobby) {
+            return res.status(404).json({ message: "Could not join lobby, lobby not foud" });
         }
 
         // Check the password if the lobby has a password
-        if(lobby.password && (password != lobby.password)) {
-            return res.status(403).json({message: "Incorrect password"});
+        if (lobby.password && (password != lobby.password)) {
+            return res.status(403).json({ message: "Incorrect password" });
         }
 
         // Fail to join a lobby if the user is in a different lobby
@@ -290,6 +290,11 @@ export default class LobbyController {
         let lobby = await lobbyService.getLobby(lobbyId);
         if (!lobby) {
             return res.status(403).json({ message: `No lobby with id ${lobbyId} could be found.` });
+        }
+
+        // Check if removing the lobby leader
+        if (username == lobby.leader) {
+            return res.status(403).json({ message: `Cannot remove lobby leader` });
         }
 
         // If the requesting user is not the lobby leader OR the user being removed, fail to remove them
