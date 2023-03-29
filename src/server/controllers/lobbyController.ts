@@ -37,7 +37,6 @@ export default class LobbyController {
         }
 
         // Create the lobby
-        // let id = lobbyManager.addLobby(name, password, leader);
         let lobby: Lobby = {
             id: randomUUID(),
             name: name,
@@ -62,6 +61,7 @@ export default class LobbyController {
                 return res.status(500).json({ message: "failed to get lobbies" });
             }
 
+            // Hide the passwords of password containing lobbies
             data.forEach((lobby: Lobby) => {
                 if (lobby.password != "") {
                     lobby.password = "****";
@@ -84,6 +84,7 @@ export default class LobbyController {
             return res.status(400).json({ message: "Invalid request" });
         }
 
+        // Check that lobby exists
         let lobby = await lobbyService.getLobby(req.params.lobbyId);
         if (!lobby) {
             return res.status(403).json({ message: `No lobby with id ${req.params.lobbyId} could be found.` })
@@ -92,6 +93,10 @@ export default class LobbyController {
         return res.status(200).json(lobby);
     }
 
+    /**
+     * Get the lobby a user belongs to
+     * @param req has param 'username'
+     */
     static async getLobbyOfUser(req: Request, res: Response) {
         let username: string;
 
@@ -110,6 +115,10 @@ export default class LobbyController {
         return res.status(200).json(lobby);
     }
 
+    /**
+     * Join a lobby
+     * @param req of the form {lobbyId: string, password: string, user: AuthToken}
+     */
     static async joinLobby(req: Request, res: Response) {
         let lobbyId: string;
         let password: string;   // TODO: enforce password use to join a lobby
@@ -123,17 +132,18 @@ export default class LobbyController {
             return res.status(400).json({ message: "Could not join lobby, request body is invalid" });
         }
 
-        // Fail to create the lobby if the leader cannot be authorized with the server
+        // Check auth of user
         if (!await authTokenService.checkAuthorized(user)) {
             return res.status(401).json({ message: "Could not join lobby, user is not authenticated" });
         }
 
+        // Check that lobby exists
         let lobby = await lobbyService.getLobby(lobbyId);
-
         if(!lobby) {
             return res.status(404).json({message: "Could not join lobby, lobby not foud"});
         }
 
+        // Check the password if the lobby has a password
         if(lobby.password && (password != lobby.password)) {
             return res.status(403).json({message: "Incorrect password"});
         }
@@ -152,6 +162,10 @@ export default class LobbyController {
             .catch(() => res.status(500).json({ message: "Could not join lobby due to server error" }));
     }
 
+    /**
+     * Get the list of users for a lobby
+     * @param req has param 'lobbyId'
+     */
     static async getUsers(req: Request, res: Response) {
         let lobbyId: string;
         try {
@@ -167,10 +181,14 @@ export default class LobbyController {
         }
     }
 
+    /**
+     * Get users of a lobby and format them as an array
+     * @param lobbyId the lobbyId of the lobby to gather users for
+     * @returns a string[] containing only the usernames of each user in the lobby
+     */
     static async getUserList(lobbyId: string) {
         return await lobbyService.getUsers(lobbyId)
             .then((data) => {
-                // console.log(data);
                 let output: string[] = [];
                 data.forEach(entry => {
                     output.push(entry.username);
@@ -182,6 +200,11 @@ export default class LobbyController {
             });
     }
 
+    /**
+     * Send a chat message to all users in a lobby
+     * @param auth the AuthToken of the chatting user
+     * @param message the chat message being sent
+     */
     static async chat(auth: AuthToken, message: ChatMessage) {
         let userLobbyId: any = await lobbyService.lobbyOfUser(auth.username);
 
@@ -196,8 +219,13 @@ export default class LobbyController {
         });
     }
 
+    /**
+     * Tell all users of a lobby to refetch their user lists --> a user has left or joined the lobby
+     * @param lobbyId the lobby id of the lobby which has been updated
+     */
     static async updateUserList(lobbyId: string) {
         let users = await LobbyController.getUserList(lobbyId);
+        // Send update message to all users using the socket manager
         users.forEach((username: string) => {
             socketManager.sendMessageToUser(username, JSON.stringify({ type: MessageType.UPDATE_USER_LIST }));
         });
