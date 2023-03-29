@@ -117,7 +117,7 @@ export default class LobbyController {
 
         try {
             lobbyId = req.body.lobbyId;
-            password = req.body.lobbyPassword;
+            password = req.body.password;
             user = req.body.user;
         } catch {
             return res.status(400).json({ message: "Could not join lobby, request body is invalid" });
@@ -126,6 +126,16 @@ export default class LobbyController {
         // Fail to create the lobby if the leader cannot be authorized with the server
         if (!await authTokenService.checkAuthorized(user)) {
             return res.status(401).json({ message: "Could not join lobby, user is not authenticated" });
+        }
+
+        let lobby = await lobbyService.getLobby(lobbyId);
+
+        if(!lobby) {
+            return res.status(404).json({message: "Could not join lobby, lobby not foud"});
+        }
+
+        if(lobby.password && (password != lobby.password)) {
+            return res.status(403).json({message: "Incorrect password"});
         }
 
         // Fail to join a lobby if the user is in a different lobby
@@ -248,13 +258,15 @@ export default class LobbyController {
             return res.status(401).json({ message: "Could not remove user, requesting user is not authenticated" });
         }
 
+        // Check if lobby exists and get lobby
         let lobby = await lobbyService.getLobby(lobbyId);
         if (!lobby) {
             return res.status(403).json({ message: `No lobby with id ${lobbyId} could be found.` });
         }
 
-        if (lobby.leader != auth.username) {
-            return res.status(401).json({ messae: `Only the lobby leader can remove a user from the lobby` });
+        // If the requesting user is not the lobby leader OR the user being removed, fail to remove them
+        if ((username != auth.username) && (lobby.leader != auth.username)) {
+            return res.status(401).json({ messae: `Only the lobby leader or oneself can remove a user from the lobby` });
         }
 
         await lobbyService.removeUser(lobbyId, username);

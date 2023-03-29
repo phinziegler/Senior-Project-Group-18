@@ -22,10 +22,13 @@ interface LobbyState {
     lobbyName: string;
     lobbyId: string;
     lobbyLeader: string;
+    hasPassword: boolean;
     lobbyUsers: string[];
     chatInput: string;
     chat: any[],    // TODO: figure out a more elegant type choice for this
-    deleted: boolean,
+    alternateDisplay: string,
+    passwordInputValue: string,
+    joinStatus: string
 }
 
 export default function LobbyPage(props: { user: User | null, setLobby: (_: Lobby | null) => void }) {
@@ -39,25 +42,29 @@ export default function LobbyPage(props: { user: User | null, setLobby: (_: Lobb
 }
 
 class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState> {
-
     constructor(props: LobbyPageElementProps) {
         super(props);
         this.state = {
             lobbyName: "",
             lobbyId: "",
             lobbyLeader: "",
+            hasPassword: false,
             chatInput: "",
             lobbyUsers: [],
             chat: [],
-            deleted: false,
+            alternateDisplay: "",
+            passwordInputValue: "",
+            joinStatus: ""
         }
         this.chatListener = this.chatListener.bind(this);
         this.updateUsersListener = this.updateUsersListener.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
         this.joinLobby = this.joinLobby.bind(this);
         this.removeUser = this.removeUser.bind(this);
+        this.handlePasswordChange = this.handlePasswordChange.bind(this);
     }
 
+    // Chat event listener function
     chatListener(e: any) {
         let chat = this.state.chat;
         chat.push(e.detail);
@@ -66,6 +73,7 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         });
     }
 
+    // Update users event listener function
     updateUsersListener() {
         this.getUsersLobby(this.state.lobbyId);
     }
@@ -77,35 +85,42 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         this.getLobby(this.props.lobbyId);
     }
 
-    // Clean up event listenders
+    // Clean up event listenders upon unloading
     componentWillUnmount(): void {
         removeEventListener(SocketEvent.CHAT, this.chatListener);
         removeEventListener(SocketEvent.UPDATE_USER_LIST, this.updateUsersListener);
     }
 
+    // Get all lobby information
     async getLobby(lobbyId: string) {
-        GET(requestUrl(ServerRoutes.GET_LOBBY(lobbyId))).then(res => res.json()).then((data: any) => {
-            if (!data) {
+        GET(requestUrl(ServerRoutes.GET_LOBBY(lobbyId))).then(res => {
+            if (res.status != 200) {
                 console.error("Could not get lobby");
+                this.setState({ alternateDisplay: "This lobby no longer exists" });
                 return;
-                // TODO: display a not found message
+            }
+            return res.json();
+        }).then((data: any) => {
+            if (!data) {
+                return;
             }
             this.setState({
                 lobbyName: data.name,
                 lobbyId: data.id,
                 lobbyLeader: data.leader,
+                hasPassword: data.password != "",
             });
             this.getUsersLobby(data.id);
-            // TODO: Render more information on this page using the data from this GET request
         });
     }
 
+    // Get the list of users for a lobby
     async getUsersLobby(lobbyId: string) {
         GET(requestUrl(ServerRoutes.GET_LOBBY_USERS(lobbyId))).then(res => res.json()).then((data: any) => {
             this.setState({
                 lobbyUsers: data
             });
-            if(this.props.user && this.state.lobbyUsers.includes(this.props.user.username)) {
+            if (this.props.user && this.state.lobbyUsers.includes(this.props.user.username)) {
                 this.props.setLobby({
                     id: this.state.lobbyId,
                     leader: this.state.lobbyLeader,
@@ -115,7 +130,8 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
             // TODO: Render more information on this page using the data from this GET request
         });
     }
-    
+
+    // Remove a user --> used by the lobby leader to kick joined users
     async removeUser(username: string) {
         if (!this.props.user) {
             return;
@@ -130,6 +146,7 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         });
     }
 
+    // Render the users list
     usersList() {
         let output: JSX.Element[] = [];
 
@@ -151,6 +168,7 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         );
     }
 
+    // Send a chat message
     sendMessage() {
         if (!this.props.user) {
             return;
@@ -170,18 +188,20 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         if (!this.props.user) {
             return;
         }
+
         let data = {
             lobbyId: this.props.lobbyId,
-            password: "",   // TODO: implement lobby passwords
+            password: this.state.passwordInputValue,   // TODO: implement lobby passwords
             user: getAuthToken(),
         }
 
         POST(requestUrl(ServerRoutes.JOIN_LOBBY), data).then((res: Response) => {
             if (res.status != 200) {
-                console.log("Failed to join lobby");
+                res.json().then(data => this.setState({ joinStatus: data.message }));
                 return;
             }
             console.log("Joined lobby");
+            this.setState({ joinStatus: "" });
 
             // THIS UPDATES THE SIDEBAR
             this.props.setLobby({
@@ -193,7 +213,7 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         });
     }
 
-    // Delete the lobby
+    // Delete the lobby --> used only by the lobby leader
     deleteLobby() {
         if (!this.props.user) {
             return;
@@ -205,12 +225,30 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                 return;
             }
             console.log("Deleted lobby");
-            this.setState({ deleted: true });
+            this.setState({ alternateDisplay: "Lobby Successfully Deleted" });
             this.props.setLobby(null);
             // TODO: Navigate to the lobby list page?
         });
     }
 
+    // Leave the lobby --> used by joined users who are NOT the lobby leader
+    async leaveLobby() {
+        if (!this.props.user) {
+            return;
+        }
+
+        await DELETE(requestUrl(ServerRoutes.REMOVE_USER(JSON.stringify(getAuthToken()), this.props.lobbyId, this.props.user.username))).then((res: Response) => {
+            if (res.status != 200) {
+                console.log("Failed to remove self from lobby");
+                return;
+            }
+            console.log("removed self");
+            this.setState({ alternateDisplay: "Lobby Successfully Left" });
+            this.props.setLobby(null);
+        });
+    }
+
+    // Render the chat messages
     chat() {
         let output: JSX.Element[] = [];
         this.state.chat.forEach((messageInfo, index) => {
@@ -221,11 +259,18 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         return <ul>{output}</ul>
     }
 
+    // Update the state of the password textbox
+    handlePasswordChange(e: React.ChangeEvent<HTMLInputElement>) {
+        this.setState({ passwordInputValue: e.target.value })
+    }
+
     render() {
         let showDelete = this.props.user && (this.state.lobbyLeader == this.props.user.username);
+        let showJoin = this.props.user && !this.state.lobbyUsers.includes(this.props.user.username);
+        let showLeave = this.props.user && !showJoin && !showDelete;
         return (
             <>
-                {this.state.deleted ? <p className="m-5 text-center text-success">Lobby Successfully deleted</p> :
+                {this.state.alternateDisplay != "" ? <p className="m-5 text-center text-success">{this.state.alternateDisplay}</p> :
                     <div className='lobby-box border-medium border-green'>
                         <div className='container'>
                             <div className='row'>
@@ -254,13 +299,18 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                             <div className='row'>
                                 <div className='col-12 border-green border-medium ready-box'>
                                     <input type="button" className="button join-button" value="Ready" />
-                                    {this.props.user && <input type="button" className="button join-button" onClick={this.joinLobby} value="Join" />}
+                                    {showJoin && <>
+                                        {this.props.user && <input type="button" className="button join-button" onClick={this.joinLobby} value="Join" />}
+                                        {this.state.hasPassword && <input type="text" placeholder="lobby password" className="button join-button" onChange={this.handlePasswordChange} value={this.state.passwordInputValue} />}
+                                    </>}
                                     {showDelete && <button onClick={() => this.deleteLobby()} className="btn btn-danger">Delete Lobby</button>}
+                                    {showLeave && <button onClick={() => this.leaveLobby()} className="btn btn-danger">Leave Lobby</button>}
                                 </div>
                             </div>
                         </div>
                     </div>
                 }
+                {this.state.joinStatus != "" && <div className="text-danger text-center">{this.state.joinStatus}</div>}
             </>
         )
     }
