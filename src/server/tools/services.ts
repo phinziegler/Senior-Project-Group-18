@@ -1,8 +1,8 @@
 import getDb from "./db-connect";
 
 import AuthTokenService from "../services/AuthTokenService";
-import UserService from "../services/UserService_";
-import FriendService from "../services/FriendService_";
+import UserService from "../services/UserService";
+import FriendService from "../services/FriendService";
 import LobbyService from "../services/LobbyService";
 
 const userService = new UserService(getDb());

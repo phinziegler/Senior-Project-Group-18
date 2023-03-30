@@ -1,7 +1,7 @@
-import Controller from "./controllers/Controller_";
-import UserController from "./controllers/UserController_";
-import ServerRoutes from "../shared/serverRoutes";
-import LobbyController from "./controllers/LobbyController_";
+import Controller from "./controllers/Controller";
+import UserController from "./controllers/UserController";
+import ServerRoutes from "../shared/ServerRoutes";
+import LobbyController from "./controllers/LobbyController";
 
 const express = require("express");
 const router = express.Router();
