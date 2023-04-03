@@ -62,6 +62,7 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         this.joinLobby = this.joinLobby.bind(this);
         this.removeUser = this.removeUser.bind(this);
         this.handlePasswordChange = this.handlePasswordChange.bind(this);
+        this.handleChatKeyDown = this.handleChatKeyDown.bind(this);
     }
 
     // Chat event listener function
@@ -174,6 +175,12 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         if (!this.props.user) {
             return;
         }
+
+        // Cannot send blank messages
+        if(this.state.chatInput == "") {
+            return;
+        }
+
         let data: ChatMessage = { message: this.state.chatInput, user: this.props.user.username, lobbyId: this.props.lobbyId }
 
         if (!clientSocketManager) {
@@ -254,10 +261,10 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         let output: JSX.Element[] = [];
         this.state.chat.forEach((messageInfo, index) => {
             output.push(
-                <div className={'row ' + (this.props.user && (messageInfo.user == this.props.user.username) ? 'justify-content-end' : '')} style={{ margin: '0px', paddingLeft: '1vh', paddingRight: '1vh' }}>
+                <div key={index} className={'row ' + (this.props.user && (messageInfo.user == this.props.user.username) ? 'justify-content-end' : '')} style={{ margin: '0px', paddingLeft: '7px', paddingRight: '7px' }}>
                     <div className={'col-8 border border-green chat ' + (this.props.user && (messageInfo.user == this.props.user.username) ? 'chat-home' : 'chat-away')}>
-                    {`${messageInfo.user}: ${messageInfo.message}`}
-                     </div>
+                        {`${messageInfo.user}: ${messageInfo.message}`}
+                    </div>
                 </div>
             );
         });
@@ -269,6 +276,13 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         this.setState({ passwordInputValue: e.target.value })
     }
 
+    // When pressing enter while typing, send message
+    handleChatKeyDown(e: React.KeyboardEvent) {
+        if (e.key == "Enter") {
+            this.sendMessage()
+        }
+    }
+
     render() {
         let showDelete = this.props.user && (this.state.lobbyLeader == this.props.user.username);
         let showJoin = this.props.user && !this.state.lobbyUsers.includes(this.props.user.username);
@@ -277,49 +291,63 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
             <>
                 {this.state.alternateDisplay != "" ? <p className="m-5 text-center text-success">{this.state.alternateDisplay}</p> :
                     <div className='lobby-box border border-green'>
-                        <div className='container'>
-                            <div className='row'>
-                                <div className='col-8'>
-                                    <div className='row' style={{ margin: '0px' }}>
-                                        <div className='lobby-header-box border border-green border-medium text-break'>
-                                            <span className='display-4'>Lobby:</span>
-                                            <span className='h2'>{this.state.lobbyName}</span>
-                                        </div>
+                        <div className='container m-0 p-0'>
+                            <div className='row m-0 p-0'>
+
+                                {/* LEFT COLUMN */}
+                                <div className='col-8 d-flex flex-column m-0 p-0'>
+
+                                    {/* LOBBY NAME */}
+                                    <div className='lobby-header-box p-2 border border-green border-medium text-break'>
+                                        <span className='h1'>Lobby: </span>
+                                        <span className='h1'>{this.state.lobbyName}</span>
                                     </div>
-                                    <div className='row' style={{ margin: '0px', padding: '1vh', }}>
-                                        <div className='col-9 display-6'>Users in Lobby:</div>
+
+                                    {/* USER LIST */}
+                                    <div className="flex-grow-1 p-2">
+                                        <h2>Users in Lobby:</h2>
                                         {this.usersList()}
                                     </div>
+
+                                    {/* BUTTONS */}
+                                    <div className='ready-box border border-green border-medium'>
+                                        {/* JOIN BUTTON */}
+                                        <input type="button" className="button join-button" value="Ready" />
+                                        {showJoin && <>
+                                            {/* JOIN BUTTON */}
+                                            {this.props.user && <input type="button" className="button join-button" onClick={this.joinLobby} value="Join" />}
+                                            {/* PASSWORD INPUT */}
+                                            {this.state.hasPassword && <input type="text" placeholder="lobby password" className="button join-button" onChange={this.handlePasswordChange} value={this.state.passwordInputValue} />}
+                                        </>}
+                                        {/* DELETE LOBBY BUTTON */}
+                                        {showDelete && <button onClick={() => this.deleteLobby()} className="button delete-button">Delete Lobby</button>}
+                                        {/* LEAVE LOBBY BUTTOn */}
+                                        {showLeave && <button onClick={() => this.leaveLobby()} className="button delete-button">Leave Lobby</button>}
+                                    </div>
                                 </div>
+
+                                {/* CHAT (RIGHT COLUMN) */}
                                 <div className='col-4 chat-box border border-green border-medium'>
-                                    <div className='row' style={{ margin: '0px', padding: '1vh', }}>
-                                        <div className='col-12'>
-                                            <h3>Chat</h3>
-                                        </div>
-                                        <div className='col-12 border border-green border-medium' style={{ padding: '1vh' }}>
-                                            {this.chat()}
-                                        </div>
+                                    <div className='row'>
+                                        <h2 className="m-2">Chat</h2>
+                                        {this.chat()}
                                     </div>
-                                    <div className='row' style={{ margin: '0px', padding: '1vh', }}>
-                                        <div className='col-8'>
-                                            <input style={{ width: '100%' }} value={this.state.chatInput} onChange={e => this.setState({ chatInput: e.target.value })} type="text" />
-                                        </div>
-                                        <div className='col-4'>
-                                            <button onClick={this.sendMessage}>Send</button>
-                                        </div>
+
+                                    {/* SEND MESSAGE */}
+                                    {/* <div className='row d-flex flex-row flex-wrap'> */}
+                                    <div className="p-2 mw-100 d-flex flex-wrap justify-content-end">
+                                        {/* CHAT MESSAGE INPUT */}
+                                        <input className="chat-text-input mw-100 flex-grow-1" 
+                                        spellCheck={false} 
+                                        value={this.state.chatInput} 
+                                        onChange={e => this.setState({ chatInput: e.target.value })} 
+                                        type="text" 
+                                        onKeyDown={this.handleChatKeyDown}/>
+                                        {/* SEND MESSAGE BUTTON */}
+                                        <button className="button chat-button" onClick={this.sendMessage}>Send</button>
                                     </div>
                                 </div>
-                            </div>
-                            <div className='row'>
-                                <div className='col-12 ready-box border border-green border-medium'>
-                                    <input type="button" className="button join-button" value="Ready" />
-                                    {showJoin && <>
-                                        {this.props.user && <input type="button" className="button join-button" onClick={this.joinLobby} value="Join" />}
-                                        {this.state.hasPassword && <input type="text" placeholder="lobby password" className="button join-button" onChange={this.handlePasswordChange} value={this.state.passwordInputValue} />}
-                                    </>}
-                                    {showDelete && <button onClick={() => this.deleteLobby()} className="btn btn-danger">Delete Lobby</button>}
-                                    {showLeave && <button onClick={() => this.leaveLobby()} className="btn btn-danger">Leave Lobby</button>}
-                                </div>
+
                             </div>
                         </div>
                     </div>
