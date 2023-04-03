@@ -156,6 +156,7 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                     removeUser={this.removeUser}
                     admin={this.state.lobbyLeader == this.props.user?.username}
                     user={this.props.user}
+                    owner={this.state.lobbyLeader == user}
                     username={user}
                     key={index} />
             );
@@ -253,10 +254,14 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         let output: JSX.Element[] = [];
         this.state.chat.forEach((messageInfo, index) => {
             output.push(
-                <li key={index}>{`${messageInfo.user}: ${messageInfo.message}`}</li>
+                <div className={'row ' + (this.props.user && (messageInfo.user == this.props.user.username) ? 'justify-content-end' : '')} style={{ margin: '0px', paddingLeft: '1vh', paddingRight: '1vh' }}>
+                    <div className={'col-8 border border-green chat ' + (this.props.user && (messageInfo.user == this.props.user.username) ? 'chat-home' : 'chat-away')}>
+                    {`${messageInfo.user}: ${messageInfo.message}`}
+                     </div>
+                </div>
             );
         });
-        return <ul>{output}</ul>
+        return <div className='scroller'>{output}</div>
     }
 
     // Update the state of the password textbox
@@ -271,33 +276,42 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         return (
             <>
                 {this.state.alternateDisplay != "" ? <p className="m-5 text-center text-success">{this.state.alternateDisplay}</p> :
-                    <div className='lobby-box border-medium border-green'>
+                    <div className='lobby-box border border-green'>
                         <div className='container'>
                             <div className='row'>
                                 <div className='col-8'>
                                     <div className='row' style={{ margin: '0px' }}>
-                                        <div className='border-green border-medium lobby-header-box' style={{ padding: '1vh' }}>
-                                            <h1>Lobby: {this.state.lobbyName}</h1>
+                                        <div className='lobby-header-box border border-green border-medium text-break'>
+                                            <span className='display-4'>Lobby:</span>
+                                            <span className='h2'>{this.state.lobbyName}</span>
                                         </div>
                                     </div>
                                     <div className='row' style={{ margin: '0px', padding: '1vh', }}>
-                                        <div className='col-9'>Users in Lobby:</div>
+                                        <div className='col-9 display-6'>Users in Lobby:</div>
                                         {this.usersList()}
                                     </div>
-                                    <div className='row' style={{ margin: '0px', padding: '1vh', }}>
-                                        <div className="col-9">Lobby Leader:</div>
-                                        <div className='col-9'>{this.state.lobbyLeader}</div>
-                                    </div>
                                 </div>
-                                <div className='col-4 border-green border-medium chat-box' style={{ padding: '1vh' }}>
-                                    <h3>Chat box</h3>
-                                    {this.chat()}
-                                    <input value={this.state.chatInput} onChange={e => this.setState({ chatInput: e.target.value })} type="text" />
-                                    <button onClick={this.sendMessage}>Send</button>
+                                <div className='col-4 chat-box border border-green border-medium'>
+                                    <div className='row' style={{ margin: '0px', padding: '1vh', }}>
+                                        <div className='col-12'>
+                                            <h3>Chat</h3>
+                                        </div>
+                                        <div className='col-12 border border-green border-medium' style={{ padding: '1vh' }}>
+                                            {this.chat()}
+                                        </div>
+                                    </div>
+                                    <div className='row' style={{ margin: '0px', padding: '1vh', }}>
+                                        <div className='col-8'>
+                                            <input style={{ width: '100%' }} value={this.state.chatInput} onChange={e => this.setState({ chatInput: e.target.value })} type="text" />
+                                        </div>
+                                        <div className='col-4'>
+                                            <button onClick={this.sendMessage}>Send</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div className='row'>
-                                <div className='col-12 border-green border-medium ready-box'>
+                                <div className='col-12 ready-box border border-green border-medium'>
                                     <input type="button" className="button join-button" value="Ready" />
                                     {showJoin && <>
                                         {this.props.user && <input type="button" className="button join-button" onClick={this.joinLobby} value="Join" />}
