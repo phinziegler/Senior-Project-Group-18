@@ -59,11 +59,13 @@ class LobbyListElement extends React.Component<{}, LobbyListState> {
             path = "/" + path;
         }
         return (
-            <div className="col-5">
-                <Link onClick={() => this.setState({ pathName: path })}
-                    className={"link" + (this.state.pathName == path && " active")}
-                    to={path}>{text}
-                </Link>
+            <div className="col-5 ">
+                <h4>
+                    <Link onClick={() => this.setState({ pathName: path })}
+                        className={"link" + (this.state.pathName == path && " active")}
+                        to={path}>{text}
+                    </Link>
+                </h4>
             </div>
         )
     }
@@ -72,22 +74,31 @@ class LobbyListElement extends React.Component<{}, LobbyListState> {
         let rows: JSX.Element[] = [];
         this.state.lobbyList.forEach((lobby, index) => {
             rows.push(
-                <div key={index} className="row align-items-center border-bottom border-green no-gutters">
+                <div key={index} className="row align-items-center border-bottom border-green no-gutters" style={{ padding: '1vw' }}>
                     {this.link(lobby.name, `/lobby/${lobby.id}`)}
-                    <div className="col-3">{lobby.leader}</div>
-                    <div className="col-2"><input style={{ width: '2vh', height: '2vh' }} type="checkbox" checked={Boolean(lobby.password != "")} readOnly={true} /></div>
-                    <div className="col-2"><input type="button" className="button join-button" value="Join" /></div>
+                    <div className="col-4"><h4>{lobby.leader}</h4></div>
+                    <div className="col-1">{lobby.password == ""
+                    ?
+                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-unlock-fill" viewBox="0 0 16 16">
+                        <path d="M11 1a2 2 0 0 0-2 2v4a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h5V3a3 3 0 0 1 6 0v4a.5.5 0 0 1-1 0V3a2 2 0 0 0-2-2z"/>
+                    </svg>
+                    :
+                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-lock-fill" viewBox="0 0 16 16">
+                        <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+                    </svg>
+                    }</div>
+                    <div className="col-2"><input type="button" className="btn btn-success btn-block join-button" value="Join" style={{ marginRight: '0px' }} /></div>
                 </div>
             );
         });
 
         return (
             <div className="container-lobby">
-                <div className="row row-header border-bottom border-green align-items-center no-gutters">
-                    <div className="col-5">Lobby Name</div>
-                    <div className="col-3">Lobby Leader</div>
-                    <div className="col-2">Private?</div>
-                    <div className="col-2">Join</div>
+                <div className="row border-bottom border-green align-items-center no-gutters">
+                    <div className="col-5"><h4>Lobby Name</h4></div>
+                    <div className="col-4"><h4>Owner</h4></div>
+                    <div className="col-1"></div>
+                    <div className="col-2"><h4>Join</h4></div>
                 </div>
                 {rows}
             </div>
@@ -101,7 +112,7 @@ class LobbyListElement extends React.Component<{}, LobbyListState> {
             <>
                 <div className='bg-dark'>
                     <h1 className='text-center text-white'>Lobby List</h1>
-                    <button className="btn btn-success" onClick={this.addLobby}>Add Lobby</button>
+                    <button className="btn btn-success" style={{ margin: '20px 10px' }} onClick={this.addLobby}>Add Lobby</button>
                     {this.lobbies()}
                 </div>
             </>

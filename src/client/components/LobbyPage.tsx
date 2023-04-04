@@ -271,6 +271,31 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         return <div className='scroller'>{output}</div>
     }
 
+    chatbox() {
+        return (
+        <>
+            <div className='row'>
+                <h2 className="m-2">Chat</h2>
+                {this.chat()}
+            </div>
+
+            {/* SEND MESSAGE */}
+            {/* <div className='row d-flex flex-row flex-wrap'> */}
+            <div className="p-2 mw-100 d-flex flex-wrap justify-content-end">
+                {/* CHAT MESSAGE INPUT */}
+                <input className="chat-text-input flex-grow-1" 
+                spellCheck={false} 
+                value={this.state.chatInput} 
+                onChange={e => this.setState({ chatInput: e.target.value })} 
+                type="text" 
+                onKeyDown={this.handleChatKeyDown}/>
+                {/* SEND MESSAGE BUTTON */}
+                <button className="button chat-button" onClick={this.sendMessage}>Send</button>
+            </div>
+        </>
+        )
+    }
+
     // Update the state of the password textbox
     handlePasswordChange(e: React.ChangeEvent<HTMLInputElement>) {
         this.setState({ passwordInputValue: e.target.value })
@@ -295,7 +320,7 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                             <div className='row m-0 p-0'>
 
                                 {/* LEFT COLUMN */}
-                                <div className='col-8 d-flex flex-column m-0 p-0'>
+                                <div className='col-12 col-md-8 d-flex flex-column m-0 p-0'>
 
                                     {/* LOBBY NAME */}
                                     <div className='lobby-header-box p-2 border border-green border-medium text-break'>
@@ -307,6 +332,10 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                                     <div className="flex-grow-1 p-2">
                                         <h2>Users in Lobby:</h2>
                                         {this.usersList()}
+                                    </div>
+
+                                    <div className='col-12 d-md-none chat-box border border-green border-medium'>
+                                        {this.chatbox()}
                                     </div>
 
                                     {/* BUTTONS */}
@@ -327,25 +356,8 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                                 </div>
 
                                 {/* CHAT (RIGHT COLUMN) */}
-                                <div className='col-4 chat-box border border-green border-medium'>
-                                    <div className='row'>
-                                        <h2 className="m-2">Chat</h2>
-                                        {this.chat()}
-                                    </div>
-
-                                    {/* SEND MESSAGE */}
-                                    {/* <div className='row d-flex flex-row flex-wrap'> */}
-                                    <div className="p-2 mw-100 d-flex flex-wrap justify-content-end">
-                                        {/* CHAT MESSAGE INPUT */}
-                                        <input className="chat-text-input flex-grow-1" 
-                                        spellCheck={false} 
-                                        value={this.state.chatInput} 
-                                        onChange={e => this.setState({ chatInput: e.target.value })} 
-                                        type="text" 
-                                        onKeyDown={this.handleChatKeyDown}/>
-                                        {/* SEND MESSAGE BUTTON */}
-                                        <button className="button chat-button" onClick={this.sendMessage}>Send</button>
-                                    </div>
+                                <div className='col-4 d-none d-md-block chat-box border border-green border-medium'>
+                                    {this.chatbox()}
                                 </div>
 
                             </div>

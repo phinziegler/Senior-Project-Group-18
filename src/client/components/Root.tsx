@@ -14,8 +14,9 @@ export default class Root extends React.Component<RootProps> {
         super(props);
     }
     render() {
+        document.body.classList.add('body-css');
         return (
-            <div className="main-font vh-100" style={{ background: 'black' }}>
+            <div className="main-font vh-100 vw-100" style={{ background: 'black' }}>
                 <SideBar lobby={this.props.lobby} user={this.props.user} />
                 <div>
                     <Outlet />
