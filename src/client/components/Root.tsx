@@ -15,9 +15,9 @@ export default class Root extends React.Component<RootProps> {
     }
     render() {
         return (
-            <div className="d-flex h-100 main-font" style={{ background: 'black' }}>
+            <div className="main-font vh-100" style={{ background: 'black' }}>
                 <SideBar lobby={this.props.lobby} user={this.props.user} />
-                <div className="w-100 h-100">
+                <div>
                     <Outlet />
                 </div>
             </div>

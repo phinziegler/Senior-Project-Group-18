@@ -337,7 +337,7 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                                     {/* <div className='row d-flex flex-row flex-wrap'> */}
                                     <div className="p-2 mw-100 d-flex flex-wrap justify-content-end">
                                         {/* CHAT MESSAGE INPUT */}
-                                        <input className="chat-text-input mw-100 flex-grow-1" 
+                                        <input className="chat-text-input flex-grow-1" 
                                         spellCheck={false} 
                                         value={this.state.chatInput} 
                                         onChange={e => this.setState({ chatInput: e.target.value })} 
