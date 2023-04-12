@@ -1,18 +1,18 @@
 export default class Room {
-    left: Boolean;
+    up: Boolean;
     right: Boolean;
-    forward: Boolean;
-    back: Boolean;
+    down: Boolean;
+    left: Boolean;
     isSafe: Boolean;
     isGoal: Boolean;
     isVisited: Boolean;
 
-    constructor(left: Boolean = false, right: Boolean = false, forward: Boolean = false,
-          back: Boolean = false, isSafe: Boolean = true, isGoal: Boolean = false) {
-        this.left = left;
+    constructor(forward: Boolean = false, right: Boolean = false, back: Boolean = false, 
+        left: Boolean = false, isSafe: Boolean = true, isGoal: Boolean = false) {
+        this.up = forward;
         this.right = right;
-        this.forward = forward;
-        this.back = back;
+        this.down = back;
+        this.left = left;
         this.isSafe = isSafe;
         this.isGoal = isGoal;
         this.isVisited = false;

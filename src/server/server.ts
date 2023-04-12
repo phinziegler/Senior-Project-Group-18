@@ -5,6 +5,7 @@ import getDb from "./tools/db-connect";
 import Environments from "../shared/Environments";
 import ServerSocketManager from "./ServerSocketManager";
 import LobbyManager from "./lobbies/LobbyManager";
+import Board from "./game/Board";
 const cors = require('cors');
 
 /* 'require' statements are often used by Node.js applications to import modules
@@ -42,6 +43,9 @@ const socketManager = new ServerSocketManager(server, wsPort);
 
 // Create the lobby manager
 const lobbyManager = new LobbyManager();
+
+// Create game board
+const board = new Board(10, 10);
 
 // Starts the server listening for http requests
 server.listen(serverPort, () => {
