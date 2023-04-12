@@ -45,7 +45,7 @@ const socketManager = new ServerSocketManager(server, wsPort);
 const lobbyManager = new LobbyManager();
 
 // Create game board
-const board = new Board(10, 10);
+const board = new Board(10, 10, true);
 
 // Starts the server listening for http requests
 server.listen(serverPort, () => {

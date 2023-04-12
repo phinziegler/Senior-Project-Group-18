@@ -5,14 +5,14 @@ export default class Board {
     rows:number;
     cols:number;
 
-    constructor(rows:number, cols:number) {
+    constructor(rows:number, cols:number, isGuaranteedSafe:boolean) {
         this.rows = rows;
         this.cols = cols;
-        this.generateBoard(rows, cols);
+        this.generateBoard(rows, cols, isGuaranteedSafe);
         this.print();
     }
 
-    generateBoard(rows:number, cols:number) {
+    generateBoard(rows:number, cols:number, isGuaranteedSafe:boolean) {
         let boardIsCorrect = false;
         while (!boardIsCorrect) {
             this.board = [];
@@ -21,7 +21,7 @@ export default class Board {
             while (!boardIsCorrect && k < 3) {
                 let goalRow = Math.floor(Math.random() * (this.rows / 2)) + Math.floor(this.rows / 2);
                 let goalCol = Math.floor(Math.random() * this.cols);
-                if (this.goalIsReachable(goalRow, goalCol)) {
+                if (this.goalIsReachable(goalRow, goalCol, isGuaranteedSafe)) {
                     this.board[goalRow][goalCol].isSafe = true;
                     this.board[goalRow][goalCol].isGoal = true;
                     boardIsCorrect = true;
@@ -52,7 +52,7 @@ export default class Board {
         }
     }
 
-    goalIsReachable(goalRow:number, goalCol:number) : boolean {
+    goalIsReachable(goalRow:number, goalCol:number, isGuaranteedSafe:boolean) : boolean {
         let currRow = 0;
         let currCol = Math.floor(this.cols / 2);
         let visitedRooms:Set<Room> = new Set();
@@ -68,16 +68,20 @@ export default class Board {
                 if (currRow == goalRow && currCol == goalCol) {
                     return true;
                 }
-                if (this.board[currRow][currCol].up && !visitedRooms.has(this.board[currRow - 1][currCol])) {
+                if (this.board[currRow][currCol].up && !visitedRooms.has(this.board[currRow - 1][currCol]) 
+                && (this.board[currRow - 1][currCol].isSafe || !isGuaranteedSafe)) {
                     roomsToVisit.push([currRow - 1, currCol]);
                 }
-                if (this.board[currRow][currCol].right && !visitedRooms.has(this.board[currRow][currCol + 1])) {
+                if (this.board[currRow][currCol].right && !visitedRooms.has(this.board[currRow][currCol + 1])
+                && (this.board[currRow][currCol + 1].isSafe || !isGuaranteedSafe)) {
                     roomsToVisit.push([currRow, currCol + 1])
                 }
-                if (this.board[currRow][currCol].down && !visitedRooms.has(this.board[currRow + 1][currCol])) {
+                if (this.board[currRow][currCol].down && !visitedRooms.has(this.board[currRow + 1][currCol])
+                && (this.board[currRow + 1][currCol].isSafe || !isGuaranteedSafe)) {
                     roomsToVisit.push([currRow + 1, currCol]);
                 }
-                if (this.board[currRow][currCol].left && !visitedRooms.has(this.board[currRow][currCol - 1])) {
+                if (this.board[currRow][currCol].left && !visitedRooms.has(this.board[currRow][currCol - 1])
+                && (this.board[currRow][currCol - 1].isSafe || !isGuaranteedSafe)) {
                     roomsToVisit.push([currRow, currCol - 1]);
                 }
             }
