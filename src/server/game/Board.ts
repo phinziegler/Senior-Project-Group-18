@@ -1,4 +1,4 @@
-import Room from './Room'
+import Room from '../../shared/Room'
 
 export default class Board {
     board: Room[][] = [];
@@ -127,5 +127,9 @@ export default class Board {
         });
 
         console.log(output);
+    }
+
+    toJson() {
+        return JSON.stringify(this.board);
     }
 }
