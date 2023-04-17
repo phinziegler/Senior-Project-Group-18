@@ -28,11 +28,33 @@ export default class GamePage extends React.Component<{}, GameState> {
             role: Role.INNOCENT,
             sabotages: 0
         }
+
+        this.wsConnectListener = this.wsConnectListener.bind(this);
+    }
+
+    // Clean up event listeners upon unloading
+    componentWillUnmount(): void {
+        removeEventListener("wsConnect", this.wsConnectListener);
+    }
+
+    // Chat event listener function
+    wsConnectListener() {
+        this.requestUpdate();
+        console.log("requested update after connection to WS")
     }
 
     // On load
     componentDidMount() {
-        this.requestUpdate();
+        window.addEventListener("wsConnect", this.wsConnectListener);
+        if (!clientSocketManager) {
+            return; // not logged in
+        }
+
+        if (clientSocketManager.connected) {
+            this.requestUpdate();
+            console.log("requested update after game page loading");
+            return;
+        }
     }
 
     // Returns a text representation of the map
