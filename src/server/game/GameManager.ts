@@ -21,6 +21,7 @@ class GameManagerClass {
 
         try {
             this.games.set(lobbyId, new GameState(usernames, numTraitors));
+            usernames.forEach(username => socketManager.sendMessageToUser(username, JSON.stringify({type: MessageType.GAME_START})));
         } catch {
             console.log("Failed to create game: too many traitors");
         }

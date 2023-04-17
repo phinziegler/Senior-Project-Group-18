@@ -6,11 +6,12 @@ import Room from "../../shared/Room";
 
 export default class GameState {
     board: Board;
+    exploredRooms: Room[] = [];
     players: Player[] = [];
+    sabotaged: Player[] = [];
     torches: number;
     playerToDirection: Map<Player, Direction> = new Map();
     directionToVotes: Map<Direction, number> = new Map();
-    exploredRooms: Room[] = [];
 
     constructor(usernames: string[], numTraitors: number) {
 

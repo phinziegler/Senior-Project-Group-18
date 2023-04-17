@@ -52,17 +52,16 @@ export default class Board {
         }
     }
 
-    // TODO: Refactor
     goalIsReachable(goalRow: number, goalCol: number, isGuaranteedSafe: boolean): boolean {
         let currRow = 0;
         let currCol = Math.floor(this.cols / 2);
         let visitedRooms: Set<Room> = new Set();
-        let roomsToVisit: number[][] = [];
-        roomsToVisit.push([currRow, currCol]);
+        let roomsToVisit: Room[] = [];
+        roomsToVisit.push(this.board[currRow][currCol]);
 
         while (roomsToVisit.length > 0) {
-            currRow = roomsToVisit[0][0];
-            currCol = roomsToVisit[0][1];
+            currRow = roomsToVisit[0].row;
+            currCol = roomsToVisit[0].col;
             if (!visitedRooms.has(this.board[currRow][currCol])) {
                 visitedRooms.add(this.board[currRow][currCol]);
 
@@ -71,19 +70,19 @@ export default class Board {
                 }
                 if (this.board[currRow][currCol].up && !visitedRooms.has(this.board[currRow - 1][currCol])
                     && (this.board[currRow - 1][currCol].isSafe || !isGuaranteedSafe)) {
-                    roomsToVisit.push([currRow - 1, currCol]);
+                    roomsToVisit.push(this.board[currRow - 1][currCol]);
                 }
                 if (this.board[currRow][currCol].right && !visitedRooms.has(this.board[currRow][currCol + 1])
                     && (this.board[currRow][currCol + 1].isSafe || !isGuaranteedSafe)) {
-                    roomsToVisit.push([currRow, currCol + 1])
+                    roomsToVisit.push(this.board[currRow][currCol + 1])
                 }
                 if (this.board[currRow][currCol].down && !visitedRooms.has(this.board[currRow + 1][currCol])
                     && (this.board[currRow + 1][currCol].isSafe || !isGuaranteedSafe)) {
-                    roomsToVisit.push([currRow + 1, currCol]);
+                    roomsToVisit.push(this.board[currRow + 1][currCol]);
                 }
                 if (this.board[currRow][currCol].left && !visitedRooms.has(this.board[currRow][currCol - 1])
                     && (this.board[currRow][currCol - 1].isSafe || !isGuaranteedSafe)) {
-                    roomsToVisit.push([currRow, currCol - 1]);
+                    roomsToVisit.push(this.board[currRow][currCol - 1]);
                 }
             }
             roomsToVisit.shift();
