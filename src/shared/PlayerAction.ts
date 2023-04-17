@@ -1,7 +1,8 @@
 enum PlayerAction {
     VOTE,
     VIEW,
-    SABOTAGE
+    SABOTAGE,
+    UPDATE
 }
 
 export default PlayerAction;

@@ -1,6 +1,7 @@
 import Environments from "../../shared/Environments";
 import MessageType from "../../shared/MessageTypes";
 import { getAuthToken } from "../tools/auth";
+import GameMessageHandler from "./GameMessageManager";
 import { SocketEvent } from "./SocketEvent";
 
 export default class ClientSocketManager {
@@ -55,6 +56,9 @@ export default class ClientSocketManager {
                     break;
                 case MessageType.UPDATE_USER_LIST:
                     messageEvent = new CustomEvent(SocketEvent.UPDATE_USER_LIST);
+                    break;
+                case MessageType.GAME:
+                    GameMessageHandler.handle(message);
                     break;
                 default:
                     console.error("Invalid Socket Message: " + e.data);
