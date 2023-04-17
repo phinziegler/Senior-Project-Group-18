@@ -2,6 +2,7 @@ import Board from "./Board";
 import Direction from "../../shared/Direction";
 import Player from "./Player";
 import Traitor from "./Traitor";
+import Room from "../../shared/Room";
 
 export default class GameState {
     board: Board;
@@ -9,6 +10,7 @@ export default class GameState {
     torches: number;
     playerToDirection: Map<Player, Direction> = new Map();
     directionToVotes: Map<Direction, number> = new Map();
+    exploredRooms: Room[] = [];
 
     constructor(usernames: string[], numTraitors: number) {
 
@@ -41,5 +43,23 @@ export default class GameState {
         }
 
         return numbers;
+    }
+
+    getPlayerByUsername(username: string): Player | void {
+        return this.players.forEach(player => {
+            if (player.username === username) {
+                return player;
+            }
+        });
+    }
+
+    getTorchbearers(): string[] {
+        let torchbearers: string[] = [];
+        this.players.forEach(player => {
+            if (player.hasTorch) {
+                torchbearers.push(player.username);
+            }
+        });
+        return torchbearers;
     }
 }

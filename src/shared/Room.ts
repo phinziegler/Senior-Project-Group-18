@@ -1,4 +1,6 @@
 export default interface Room {
+    row: number;
+    col: number;
     up: boolean;
     right: boolean;
     down: boolean;

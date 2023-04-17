@@ -38,20 +38,21 @@ export default class Board {
             let row: Room[] = [];
             for (let j = 0; j < cols; j++) {
                 if (i == 0 && j == Math.floor(cols / 2)) {
-                    row.push(this.newRoom(false, true, true, true, true, false));
+                    row.push(this.newRoom(i, j, false, true, true, true, true, false));
                 } else {
                     let up = i > 0 && this.board[i - 1][j].down;
                     let right = (j == Math.floor(cols / 2) - 1) || j < (cols - 1) && Math.random() <= directionProb;
                     let down = i < (rows - 1) && Math.random() <= directionProb;
                     let left = j > 0 && row[j - 1].right;
                     let isSafe = Math.random() <= safetyProb;
-                    row.push(this.newRoom(up, right, down, left, isSafe, false));
+                    row.push(this.newRoom(i, j, up, right, down, left, isSafe, false));
                 }
             }
             this.board.push(row);
         }
     }
 
+    // TODO: Refactor
     goalIsReachable(goalRow: number, goalCol: number, isGuaranteedSafe: boolean): boolean {
         let currRow = 0;
         let currCol = Math.floor(this.cols / 2);
@@ -133,8 +134,10 @@ export default class Board {
         return JSON.stringify(this.board);
     }
 
-    private newRoom(forward: boolean = false, right: boolean = false, back: boolean = false, left: boolean = false, isSafe: boolean = true, isGoal: boolean = false) {
+    private newRoom(row: number, col: number, forward: boolean = false, right: boolean = false, back: boolean = false, left: boolean = false, isSafe: boolean = true, isGoal: boolean = false) {
         return {
+            row: row,
+            col: col,
             up: forward,
             right: right,
             down: back,
