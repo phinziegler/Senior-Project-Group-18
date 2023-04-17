@@ -4,6 +4,7 @@ import STATIC_PATH from "./tools/static-path";
 import getDb from "./tools/db-connect";
 import Environments from "../shared/Environments";
 import ServerSocketManager from "./ServerSocketManager";
+import Board from "./game/Board";
 const cors = require('cors');
 
 /* 'require' statements are often used by Node.js applications to import modules
@@ -34,6 +35,8 @@ const server = http.createServer(app);
 
 // Connect to the database
 getDb();
+
+const board = new Board(10, 10, true);
 
 // Create the websocket server/manager
 const wsPort = 8080;    // NOTE: This port is only used in development
