@@ -65,6 +65,7 @@ export default class ServerSocketManager {
                     LobbyController.chat(message.auth, message.data);
                     break;
                 case MessageType.GAME:
+                    console.log("GOT GAME MESSAGE FROM USER");
                     GameManager.handleMessage(message.auth.username, message.data);
                     break;
                 default:
