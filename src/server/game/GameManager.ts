@@ -1,7 +1,8 @@
 import GameState from "./GameState";
 import { lobbyService } from "../tools/services";
+import UserAction from "../../shared/UserAction";
 
-export default class GameManager {
+class GameManagerClass {
     games: Map<string, GameState> = new Map();
 
     async addGame(lobbyId: string, numTraitors: number) {
@@ -21,4 +22,21 @@ export default class GameManager {
     removeGame(lobbyId: string) {
         this.games.delete(lobbyId);
     }
+
+    async handleMessage(username: string, data: {action: UserAction, data: any}) {
+        let lobbyId = await lobbyService.lobbyOfUser(username);
+        if (!lobbyId) {
+            return;
+        }
+        let gameState = this.games.get(lobbyId);
+        switch (data.action) {
+            case UserAction.UPDATE:
+                
+                break;
+        }
+    }
 }
+
+const GameManager = new GameManagerClass();
+
+export default GameManager;
