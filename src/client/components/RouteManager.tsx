@@ -16,6 +16,7 @@ import Lobby from '../../shared/Lobby';
 import { GET } from '../tools/fetch';
 import ServerRoutes from '../../shared/ServerRoutes';
 import requestUrl from '../tools/requestUrl';
+import GamePage from './GamePage';
 
 export default function RouteManager(props: { user: User | null, lobby: Lobby | null }) {
 
@@ -91,6 +92,10 @@ export default function RouteManager(props: { user: User | null, lobby: Lobby | 
                     path: "lobby-list",
                     element: <LobbyList />
                 },
+                {
+                    path: "game",
+                    element: <GamePage />
+                }
             ]
         }
     ]);
