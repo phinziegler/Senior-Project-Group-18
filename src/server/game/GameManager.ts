@@ -58,6 +58,8 @@ class GameManagerClass {
                 break;
             case UserAction.VOTE:
                 break;
+            default:
+                break;
         }
     }
 

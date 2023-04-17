@@ -6,6 +6,7 @@ import Lobby from "../../shared/Lobby";
 import MessageType from "../../shared/MessageTypes";
 import { socketManager } from "../server";
 import { authTokenService, lobbyService } from "../tools/services";
+import GameManager from "../game/GameManager";
 
 export default class LobbyController {
     /**
@@ -305,5 +306,10 @@ export default class LobbyController {
         await lobbyService.removeUser(lobbyId, username);
         LobbyController.updateUserList(lobbyId);
         return res.status(200).json({ message: "Successfully removed user" });
+    }
+
+    static async startGame(lobbyId: string) {
+        // TODO: Decide how many traitors we want
+        GameManager.addGame(lobbyId, 1);
     }
 }
