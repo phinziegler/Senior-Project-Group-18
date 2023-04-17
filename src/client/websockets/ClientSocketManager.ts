@@ -40,8 +40,8 @@ export default class ClientSocketManager {
         this.ws.onopen = () => {
             console.log("established websocket connection");
             this.connected = true;
-            window.dispatchEvent(connectEvent);
             this.ws.send(JSON.stringify({type: MessageType.ASSIGN_WEBSOCKET_USER, username: this.username}))
+            window.dispatchEvent(connectEvent);
         }
         this.ws.onclose = () => {
             console.log("closed websocket connection");
