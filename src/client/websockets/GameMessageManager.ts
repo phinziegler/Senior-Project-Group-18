@@ -1,17 +1,24 @@
 import GameEvent from "../../shared/GameEvent";
 
 class GameMessageHandlerClass {
+    /*
+    Handle Websocket Game messages
+        ROLE_ASSIGN,
+        BOARD_UPDATE,
+        TORCH_ASSIGN,
+        VIEW_ROOM,
+        PLAYER_VOTE,
+        VOTE_RESULT,
+        GAME_END,
+    */
     handle(messageData: { event: GameEvent, data: any }) {
         console.log(messageData);
         switch (messageData.event) {
             case GameEvent.ROLE_ASSIGN:
                 console.log("ROLE ASSIGN");
                 break;
-            case GameEvent.MAP_UPDATE:
-                console.log("MAP UPDATE");
-                break;
-            case GameEvent.FULL_MAP:
-                console.log("FULL MAP");
+            case GameEvent.BOARD_UPDATE:
+                console.log("BOARD UPDATE");
                 break;
             case GameEvent.TORCH_ASSIGN:
                 console.log("TORCH ASSIGN");
@@ -27,9 +34,6 @@ class GameMessageHandlerClass {
                 break;
             case GameEvent.GAME_END:
                 console.log("GAME END");
-                break;
-            case GameEvent.UPDATE:
-                console.log("UPDATE");
                 break;
             default:
                 console.log("INVALID GAME EVENT");

@@ -4,7 +4,7 @@ import User from "../../shared/User";
 import Role from "../../shared/Role";
 import { clientSocketManager } from "../tools/auth";
 import MessageType from "../../shared/MessageTypes";
-import PlayerAction from "../../shared/PlayerAction";
+import UserAction from "../../shared/UserAction";
 import Direction from "../../shared/Direction";
 
 
@@ -84,22 +84,22 @@ export default class GamePage extends React.Component<{}, GameState> {
 
     // Request update from server
     requestUpdate() {
-        clientSocketManager?.send(MessageType.GAME, { action: PlayerAction.UPDATE, data: {} });     // Sends a WS message requesting an update
+        clientSocketManager?.send(MessageType.GAME, { action: UserAction.UPDATE, data: {} });     // Sends a WS message requesting an update
     }
 
     // Send Vote to server
     placeVote(direction: Direction) {
-        clientSocketManager?.send(MessageType.GAME, { action: PlayerAction.VOTE, data: { direction: direction } });
+        clientSocketManager?.send(MessageType.GAME, { action: UserAction.VOTE, data: { direction: direction } });
     }
 
     // Tell the server to sabotage a player
     sabotage(victim: string) {
-        clientSocketManager?.send(MessageType.GAME, { action: PlayerAction.SABOTAGE, data: { victim: victim } });
+        clientSocketManager?.send(MessageType.GAME, { action: UserAction.SABOTAGE, data: { victim: victim } });
     }
 
     // Tell the server that you intend to view a room
     viewRoom(direction: Direction) {
-        clientSocketManager?.send(MessageType.GAME, { action: PlayerAction.VIEW, data: { direction: direction } })
+        clientSocketManager?.send(MessageType.GAME, { action: UserAction.VIEW, data: { direction: direction } })
     }
 
 
