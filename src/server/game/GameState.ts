@@ -44,11 +44,33 @@ export default class GameState {
             }
         });
 
-        this.torches = 3 + ((numTraitors - 1) * 2);
+        this.torches = Math.min(this.players.length, 3 + ((numTraitors - 1) * 2));
 
         for (let i = 0; i < this.torches; i++) {
             this.players[i].hasTorch = true;
         }
+
+        this.updateGame();
+    }
+
+    updateGame() {
+        if (this.currentPhase == GamePhase.SABOTAGE) {
+            setTimeout(() => this.handleSabotagePhase(), 20000);
+        }
+        if (this.currentPhase == GamePhase.VOTE) {
+            setTimeout(() => this.handleVotePhase(), 60000);
+        }
+    }
+
+    handleSabotagePhase() {
+        let sabotagedPlayers: Set<Player> = new Set();
+        this.traitorToVictim.forEach((player) => sabotagedPlayers.add(player));
+
+        sabotagedPlayers.forEach((player) => console.log("Hi"));
+    }
+
+    handleVotePhase() {
+
     }
 
     // handles player sabotage. Returns true if sabotage is successful, otherwise returns false
