@@ -163,12 +163,12 @@
 .border-medium {
   border-width: medium !important;
 }
-
+/* 
 .no-gutters .col,
 [class*="col-"] {
   padding-right: 0;
   padding-left: 0;
-}
+} */
 
 .lobby-box {
   width: 70%;

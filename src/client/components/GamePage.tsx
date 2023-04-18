@@ -7,29 +7,38 @@ import MessageType from "../../shared/MessageTypes";
 import UserAction from "../../shared/UserAction";
 import Direction from "../../shared/Direction";
 import GameEvent from "../../shared/GameEvent";
+import Chat from "./Chat";
+import { GET } from "../tools/fetch";
+import requestUrl from "../tools/requestUrl";
+import ServerRoutes from "../../shared/ServerRoutes";
 
+interface GameProps {
+    user: User | null
+}
 
 interface GameState {
-    board: Room[][];
+    rooms: Room[][];
     exploredRooms: Room[];
     currentRoom: Room | null,
     players: User[];
     torchAssignments: string[];
     role: Role;
     sabotages: number;
+    lobbyId: string;
 }
 
-export default class GamePage extends React.Component<{}, GameState> {
-    constructor(props: {}) {
+export default class GamePage extends React.Component<GameProps, GameState> {
+    constructor(props: GameProps) {
         super(props);
         this.state = {
-            board: [],
+            rooms: [],
             exploredRooms: [],
             currentRoom: null,
             players: [],
             torchAssignments: [],
             role: Role.INNOCENT,
-            sabotages: 0
+            sabotages: 0,
+            lobbyId: ""
         }
 
         this.wsConnectListener = this.wsConnectListener.bind(this);
@@ -93,26 +102,47 @@ export default class GamePage extends React.Component<{}, GameState> {
     }
 
     roleAssignEvent(e: any) {
-        console.log(e.detail.data.isTraitor)
-    }
+        let isTraitor = e.detail.data.isTraitor;
 
-    boardUpdateEvent(e: any) {
-        let exploredRooms = e.detail.data.exploredRooms;
-        let board = e.detail.data.board.board;
-
-        this.setState({
-            exploredRooms: exploredRooms
-        });
-
-        if (board) {
+        if (isTraitor) {
             this.setState({
-                board: board
+                role: Role.TRAITOR
             });
         }
     }
 
+    // Explored rooms, full board, and lobbyId
+    boardUpdateEvent(e: any) {
+        let exploredRooms = e.detail.data.exploredRooms;
+        let lobbyId = e.detail.data.lobbyId;
+        let board;
+        try {
+            board = e.detail.data.board.board;
+        } catch {
+            console.log("Innocent");
+        }
+
+
+        this.setState({
+            exploredRooms: exploredRooms,
+        });
+
+        if (board) {
+            this.setState({
+                rooms: board
+            });
+        }
+        // Now that we have the lobby ID, we can also look up the list of players
+        if (lobbyId != this.state.lobbyId) {
+            this.setState({
+                lobbyId: lobbyId
+            });
+            this.getUsersLobby(lobbyId);
+        }
+    }
+
     torchAssignEvent(e: any) {
-        console.log(e.detail.data.torchAssignments);
+        // console.log(e.detail.data.torchAssignments);
     }
 
     viewRoomEvent(e: any) {
@@ -131,13 +161,27 @@ export default class GamePage extends React.Component<{}, GameState> {
         // this.setState({})
     }
 
+
+    // Get the list of users for a lobby
+    async getUsersLobby(lobbyId: string) {
+        GET(requestUrl(ServerRoutes.GET_LOBBY_USERS(lobbyId))).then(res => res.json()).then((data: any) => {
+            console.log(data);
+            this.setState({
+                players: data
+            });
+        });
+    }
+
     // Returns a text representation of the map
-    printMap() {
+    map(fontSize: number = 1) {
         let rooms = this.bfs();
         let output: JSX.Element[] = [];
-        this.state.board.forEach((row, rowIndex) => {
+        this.state.rooms.forEach((row, rowIndex) => {
             let rowElements1: JSX.Element[] = [];
             row.forEach((node, index) => {
+                if (rowIndex == 0) {
+                    return;
+                }
                 if (!rooms.has(node)) {
                     rowElements1.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
                     return;
@@ -169,6 +213,9 @@ export default class GamePage extends React.Component<{}, GameState> {
             });
             let rowElements3: JSX.Element[] = [];
             row.forEach((node, index) => {
+                if (rowIndex == this.state.rooms.length - 1) {
+                    return;
+                }
                 if (!rooms.has(node)) {
                     rowElements3.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
                     return;
@@ -180,10 +227,9 @@ export default class GamePage extends React.Component<{}, GameState> {
                 let down = node.down ? "| " : "  ";
                 rowElements3.push(<span key={`${rowIndex},${index}`}>{`   ${down}  `}</span>);
             });
+
             output.push(
-                <div style={{
-                    lineHeight: ".885rem"
-                }} key={rowIndex} className="">
+                <div key={rowIndex}>
                     <div>
                         {rowElements1}
                     </div>
@@ -197,48 +243,41 @@ export default class GamePage extends React.Component<{}, GameState> {
             );
         });
 
-        return output;
+        return <div style={{ whiteSpace: "pre", lineHeight: `${fontSize}em`, fontSize: `${fontSize}em` }} className="m-0" >{output}</div>;
     }
 
     bfs(): Set<Room> {
-        if (this.state.board.length == 0) {
+        if (this.state.rooms.length == 0) {
             return new Set();
         }
         let currRow = 0;
-        let currCol = Math.floor(this.state.board[0].length / 2);
+        let currCol = Math.floor(this.state.rooms[0].length / 2);
         let visitedRooms: Set<Room> = new Set();
         let roomsToVisit: Room[] = [];
-        roomsToVisit.push(this.state.board[currRow][currCol]);
+        roomsToVisit.push(this.state.rooms[currRow][currCol]);
 
         while (roomsToVisit.length > 0) {
             currRow = roomsToVisit[0].row;
             currCol = roomsToVisit[0].col;
-            if (!visitedRooms.has(this.state.board[currRow][currCol])) {
-                visitedRooms.add(this.state.board[currRow][currCol]);
+            if (!visitedRooms.has(this.state.rooms[currRow][currCol])) {
+                visitedRooms.add(this.state.rooms[currRow][currCol]);
 
-                if (this.state.board[currRow][currCol].up && !visitedRooms.has(this.state.board[currRow - 1][currCol])) {
-                    roomsToVisit.push(this.state.board[currRow - 1][currCol]);
+                if (this.state.rooms[currRow][currCol].up && !visitedRooms.has(this.state.rooms[currRow - 1][currCol])) {
+                    roomsToVisit.push(this.state.rooms[currRow - 1][currCol]);
                 }
-                if (this.state.board[currRow][currCol].right && !visitedRooms.has(this.state.board[currRow][currCol + 1])) {
-                    roomsToVisit.push(this.state.board[currRow][currCol + 1])
+                if (this.state.rooms[currRow][currCol].right && !visitedRooms.has(this.state.rooms[currRow][currCol + 1])) {
+                    roomsToVisit.push(this.state.rooms[currRow][currCol + 1])
                 }
-                if (this.state.board[currRow][currCol].down && !visitedRooms.has(this.state.board[currRow + 1][currCol])) {
-                    roomsToVisit.push(this.state.board[currRow + 1][currCol]);
+                if (this.state.rooms[currRow][currCol].down && !visitedRooms.has(this.state.rooms[currRow + 1][currCol])) {
+                    roomsToVisit.push(this.state.rooms[currRow + 1][currCol]);
                 }
-                if (this.state.board[currRow][currCol].left && !visitedRooms.has(this.state.board[currRow][currCol - 1])) {
-                    roomsToVisit.push(this.state.board[currRow][currCol - 1]);
+                if (this.state.rooms[currRow][currCol].left && !visitedRooms.has(this.state.rooms[currRow][currCol - 1])) {
+                    roomsToVisit.push(this.state.rooms[currRow][currCol - 1]);
                 }
             }
             roomsToVisit.shift();
         }
         return visitedRooms;
-    }
-
-    // Render the map 
-    map() {
-        <div>
-            {this.printMap()}
-        </div>
     }
 
     // Request update from server
@@ -261,6 +300,23 @@ export default class GamePage extends React.Component<{}, GameState> {
         clientSocketManager?.send(MessageType.GAME, { action: UserAction.VIEW, data: { direction: direction } })
     }
 
+    // Gaming
+    game() {
+        let color = this.state.role == Role.INNOCENT ? "success" : "danger";
+        let phrase = this.state.role == Role.INNOCENT ? "You are an " : "You are a ";
+        let role = this.state.role == Role.INNOCENT ? "ADVENTURER" : "TRAITOR"
+
+        return <>
+            <div className="position-relative">
+                <div style={{
+                    right: "0"
+                }} className="position-absolute">
+                    <span>{phrase}</span><span className={`text-${color}`}>{role}</span>
+                </div>
+            </div>
+        </>
+    }
+
 
     /*
         1. MAP
@@ -271,13 +327,41 @@ export default class GamePage extends React.Component<{}, GameState> {
         6. ??
     */
     render() {
-        // console.log(this.printMap());
         return (<>
-            <div className="p-3">MAP</div>
-            {/* {this.map()} */}
-            <pre>
-                {this.printMap()}
-            </pre>
+
+            <div className="border border-warning w-100 mw-100">
+                <div className="d-flex w-100 h-100">
+                    {/* NOT CHAT (vertical flex) */}
+                    <div className="d-flex flex-column flex-grow-1">
+                        {/* Game/MAP horizontal */}
+                        <div className="d-flex flex-row flex-grow-1">
+                            {/* MAP */}
+                            <div className="border border-white p-3">
+                                <h2>MAP</h2>
+                                {this.map()}
+                            </div>
+
+                            {/* GAME */}
+                            <div className="border border-success flex-grow-1 p-3">
+                                <h2>GAME</h2>
+                                {this.game()}
+                            </div>
+                        </div>
+
+                        {/* PLAYERS */}
+                        <div className="border border-primary p-3 d-flex justify-content-around">
+                            <span>Player 1</span>
+                            <span>Player 2</span>
+                        </div>
+                    </div>
+                    {/* ----------------------------------------------------------------------------------------------- */}
+                    {/* CHAT */}
+                    <div className="border border-danger p-3">
+                        <h3>Chat</h3>
+                        <Chat lobbyId={this.state.lobbyId} user={this.props.user} />
+                    </div>
+                </div>
+            </div>
         </>);
     }
 }

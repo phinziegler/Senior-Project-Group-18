@@ -252,7 +252,7 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                                     </div>
 
                                     <div className='col-12 d-md-none chat-box border border-green border-medium'>
-                                        {/* {this.chatbox()} */}
+                                        <h2 className="m-2">Chat</h2>
                                         <Chat lobbyId={this.props.lobbyId} user={this.props.user} />
                                     </div>
 
@@ -276,6 +276,7 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                                 {/* CHAT (RIGHT COLUMN) */}
                                 <div className='col-4 d-none d-md-block chat-box border border-green border-medium'>
                                     {/* {this.chatbox()} */}
+                                    <h2 className="m-2">Chat</h2>
                                     <Chat lobbyId={this.props.lobbyId} user={this.props.user} />
                                 </div>
 
