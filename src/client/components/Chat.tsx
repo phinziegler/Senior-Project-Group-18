@@ -96,13 +96,10 @@ export default class Chat extends React.Component<ChatProps, ChatState> {
     render() {
         return <>
             <div className='row'>
-                <h2 className="m-2">Chat</h2>
                 {this.chat()}
-                {/* <Chat lobbyId={this.props.lobbyId} user={this.props.user} /> */}
             </div>
 
             {/* SEND MESSAGE */}
-            {/* <div className='row d-flex flex-row flex-wrap'> */}
             <div className="p-2 mw-100 d-flex flex-wrap justify-content-end">
                 {/* CHAT MESSAGE INPUT */}
                 <input className="chat-text-input flex-grow-1"

@@ -94,7 +94,7 @@ export default function RouteManager(props: { user: User | null, lobby: Lobby | 
                 },
                 {
                     path: "game",
-                    element: <GamePage />
+                    element: <GamePage user={user} />
                 }
             ]
         }
