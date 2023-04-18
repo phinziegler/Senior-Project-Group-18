@@ -8,11 +8,13 @@ import GamePhase from "./GamePhase";
 export default class GameState {
     lobbyId: string;
     board: Board;
+    currentRoom: Room;
     exploredRooms: Room[] = [];
     players: Player[] = [];
     sabotaged: Player[] = [];
     torches: number;
-    playerToDirection: Map<Player, Direction> = new Map();
+    playerToRoomView: Map<Player, Room> = new Map();
+    playerToVoteDirection: Map<Player, Direction> = new Map();
     directionToVotes: Map<Direction, number> = new Map();
     currentPhase: GamePhase = GamePhase.SABOTAGE;
 
@@ -28,6 +30,7 @@ export default class GameState {
 
         let boardSize = players.length * 4;
         this.board = new Board(boardSize, boardSize, true);
+        this.currentRoom = this.board.rooms[0][boardSize / 2];
 
         players.forEach((player, index) => {
             if (traitorIndexes.has(index)) {
@@ -41,7 +44,7 @@ export default class GameState {
         this.torches = 3;
     }
 
-    // deals with player sabotage. Returns true if sabotage is successful, otherwise returns false
+    // handles player sabotage. Returns true if sabotage is successful, otherwise returns false
     sabotage(traitor: Player, victimUsername: string): boolean {
         if (!(traitor instanceof Traitor) || this.currentPhase !== GamePhase.SABOTAGE || traitor.sabotages <= 0) {
             return false;
@@ -52,6 +55,52 @@ export default class GameState {
         }
         this.sabotaged.push(sabotagedPlayer);
         return true;
+    }
+
+    // sets room that the player will view. Returns true if successful, otherwise returns false
+    setRoomToView(player: Player, direction: Direction) {
+        if (!player.hasTorch) {
+            return false;
+        }
+
+        let row;
+        let col;
+
+        switch (direction) {
+            case Direction.UP:
+                if (this.currentRoom.up) {
+                    row = this.currentRoom.row - 1;
+                    col = this.currentRoom.col;
+                    this.playerToRoomView.set(player, this.board.rooms[row][col]);
+                    return true;
+                }
+                break;
+            case Direction.RIGHT:
+                if (this.currentRoom.right) {
+                    row = this.currentRoom.row;
+                    col = this.currentRoom.col + 1;
+                    this.playerToRoomView.set(player, this.board.rooms[row][col]);
+                    return true;
+                }
+                break;
+            case Direction.DOWN:
+                if (this.currentRoom.down) {
+                    row = this.currentRoom.row + 1;
+                    col = this.currentRoom.col;
+                    this.playerToRoomView.set(player, this.board.rooms[row][col]);
+                    return true;
+                }
+                break;
+            case Direction.LEFT:
+                if (this.currentRoom.left) {
+                    row = this.currentRoom.row;
+                    col = this.currentRoom.col - 1;
+                    this.playerToRoomView.set(player, this.board.rooms[row][col]);
+                    return true;
+                }
+                break;
+        }
+        return false;
     }
 
 

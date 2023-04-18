@@ -8,6 +8,7 @@ import Traitor from "./Traitor";
 import Board from "./Board";
 import Room from "../../shared/Room";
 import GameEvent from "../../shared/GameEvent";
+import Direction from "../../shared/Direction";
 
 class GameManagerClass {
     games: Map<string, GameState> = new Map();
@@ -58,6 +59,7 @@ class GameManagerClass {
                 this.handleSabotage(player, gameState, message.data.victim);
                 break;
             case UserAction.VIEW:
+                this.handleViewRoom(player, gameState, message.data.direction);
                 break;
             case UserAction.VOTE:
                 break;
@@ -68,9 +70,17 @@ class GameManagerClass {
 
     handleSabotage(player: Player, gameState: GameState, victimUsername: string) {
         if (gameState.sabotage(player, victimUsername)) {
-            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.SABOTAGE, data: { success: true, remainingSabotages: (player as Traitor).sabotages}}}));
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.SABOTAGE, data: { remainingSabotages: (player as Traitor).sabotages, success: true } } }));
         } else {
-            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.SABOTAGE, data: { success: false, message: "Sabotage failed."}}}));
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.SABOTAGE, data: { message: "Sabotage failed.", success: false } } }));
+        }
+    }
+
+    handleViewRoom(playerToView: Player, gameState: GameState, direction: Direction) {
+        if (gameState.setRoomToView(playerToView, direction)) {
+            gameState.players.forEach((player) => socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.ROOM_SELECT, data: { player: playerToView.username, direction: direction, success: true }}})));
+        } else {
+            socketManager.sendMessageToUser(playerToView.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.ROOM_SELECT, data: { message: "Room selection failed.", success: false } } }));
         }
     }
 
