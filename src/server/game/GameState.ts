@@ -31,6 +31,7 @@ export default class GameState {
         let boardSize = players.length * 4;
         this.board = new Board(boardSize, boardSize, true);
         this.currentRoom = this.board.rooms[0][boardSize / 2];
+        this.exploredRooms.push(this.currentRoom);
 
         players.forEach((player, index) => {
             if (traitorIndexes.has(index)) {
