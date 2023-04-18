@@ -13,22 +13,22 @@ export default class GameState {
     playerToDirection: Map<Player, Direction> = new Map();
     directionToVotes: Map<Direction, number> = new Map();
 
-    constructor(usernames: string[], numTraitors: number) {
+    constructor(players: { username: string }[], numTraitors: number) {
 
-        if (usernames.length >= numTraitors) {
+        if (players.length <= numTraitors) {
             throw new Error("Too many traitors");
         }
 
-        let traitorIndexes = this.pickRandomNumbers(numTraitors, usernames.length);
+        let traitorIndexes = this.pickRandomNumbers(numTraitors, players.length);
 
-        let boardSize = usernames.length * 2;
+        let boardSize = players.length * 2;
         this.board = new Board(boardSize, boardSize, true);
 
-        usernames.forEach((username, index) => {
+        players.forEach((player, index) => {
             if (traitorIndexes.has(index)) {
-                this.players.push(new Traitor(username, 3));    // TODO: make this not hardcoded
+                this.players.push(new Traitor(player.username, 3));    // TODO: make this not hardcoded
             } else {
-                this.players.push(new Player(username));
+                this.players.push(new Player(player.username));
             }
         });
 
@@ -47,11 +47,11 @@ export default class GameState {
     }
 
     getPlayerByUsername(username: string): Player | void {
-        return this.players.forEach(player => {
+        for (let player of this.players) {
             if (player.username === username) {
                 return player;
             }
-        });
+        }
     }
 
     getTorchbearers(): string[] {

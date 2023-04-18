@@ -12,7 +12,6 @@ class GameMessageHandlerClass {
         GAME_END,
     */
     handle(messageData: { event: GameEvent, data: any }) {
-        console.log(messageData);
         switch (messageData.event) {
             case GameEvent.ROLE_ASSIGN:
                 console.log("ROLE ASSIGN");

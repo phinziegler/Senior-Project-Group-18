@@ -36,8 +36,6 @@ const server = http.createServer(app);
 // Connect to the database
 getDb();
 
-const board = new Board(10, 10, true);
-
 // Create the websocket server/manager
 const wsPort = 8080;    // NOTE: This port is only used in development
 const socketManager = new ServerSocketManager(server, wsPort);

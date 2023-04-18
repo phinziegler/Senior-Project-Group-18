@@ -62,7 +62,10 @@ export default class ClientSocketManager {
                     messageEvent = new CustomEvent(SocketEvent.UPDATE_USER_LIST);
                     break;
                 case MessageType.GAME:
-                    GameMessageHandler.handle(message);
+                    GameMessageHandler.handle(message.data);
+                    break;
+                case MessageType.GAME_START:
+                    console.log("START GAME");  // TODO: this redirects players in a lobby to the game page
                     break;
                 default:
                     console.error("Invalid Socket Message: " + e.data);

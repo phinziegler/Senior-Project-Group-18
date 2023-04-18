@@ -13,15 +13,15 @@ class GameManagerClass {
     games: Map<string, GameState> = new Map();
 
     async addGame(lobbyId: string, numTraitors: number) {
-        let usernames = await lobbyService.getUsers(lobbyId);
+        let players = await lobbyService.getUsers(lobbyId);
 
-        if (!usernames) {
+        if (!players) {
             return;
         }
 
         try {
-            this.games.set(lobbyId, new GameState(usernames, numTraitors));
-            usernames.forEach(username => socketManager.sendMessageToUser(username, JSON.stringify({type: MessageType.GAME_START})));
+            this.games.set(lobbyId, new GameState(players, numTraitors));
+            players.forEach(player => socketManager.sendMessageToUser(player.username, JSON.stringify({type: MessageType.GAME_START})));
         } catch {
             console.log("Failed to create game: too many traitors");
         }
@@ -33,6 +33,7 @@ class GameManagerClass {
 
     async handleMessage(username: string, message: { action: UserAction, data: any }) {
         let lobbyId = await lobbyService.lobbyOfUser(username);
+
         if (!lobbyId) {
             return;
         }
@@ -66,7 +67,7 @@ class GameManagerClass {
 
     sendRole(player: Player) {
         let isTraitor: boolean = typeof player == typeof Traitor;
-        socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {type: GameEvent.ROLE_ASSIGN, isTraitor: isTraitor}}));
+        socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.ROLE_ASSIGN, isTraitor: isTraitor}}));
     }
 
     sendBoard(player: Player, gameState: GameState) {
@@ -74,15 +75,16 @@ class GameManagerClass {
         let exploredRooms: Room[] = gameState.exploredRooms;
         let board: Board = gameState.board;
 
+
         if (!isTraitor) {
-            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {type: GameEvent.BOARD_UPDATE, exploredRooms: exploredRooms} }));
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.BOARD_UPDATE, exploredRooms: exploredRooms} }));
         } else {
-            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {type: GameEvent.BOARD_UPDATE, exploredRooms: exploredRooms, board: board} }));
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.BOARD_UPDATE, exploredRooms: exploredRooms, board: board} }));
         }
     }
 
     sendTorchAssignments(player: Player, gameState: GameState) {
-        socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {type: GameEvent.TORCH_ASSIGN, torchAssignments: gameState.getTorchbearers()}}));
+        socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.TORCH_ASSIGN, torchAssignments: gameState.getTorchbearers()}}));
     }
 }
 

@@ -283,6 +283,11 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                         </div>
                     </div>
                 }
+
+                <button onClick={() => {
+                    clientSocketManager?.send(MessageType.GAME_START, { lobbyId: this.props.lobbyId });  // TODO: THIS IS TEMPORARY
+                }}>CLICK HERE TO START THE GAME</button>
+
                 {this.state.joinStatus != "" && <div className="text-danger text-center">{this.state.joinStatus}</div>}
             </>
         )

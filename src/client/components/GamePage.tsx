@@ -134,9 +134,15 @@ export default class GamePage extends React.Component<{}, GameState> {
         6. ??
     */
     render() {
+        // return (<>
+        //     <div>GAME PAGE</div>
+        //     {this.map()}
+        // </>);
+
         return (<>
-            <div>GAME PAGE</div>
-            {this.map()}
-        </>);
+            <div>
+            </div>
+        </>
+        );
     }
 }

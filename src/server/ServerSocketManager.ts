@@ -68,6 +68,10 @@ export default class ServerSocketManager {
                     console.log("GOT GAME MESSAGE FROM USER");
                     GameManager.handleMessage(message.auth.username, message.data);
                     break;
+                case MessageType.GAME_START:
+                    console.log("STARTED GAME");
+                    LobbyController.startGame(message.data.lobbyId);
+                    break;
                 default:
                     console.error("invalid incoming message: " + msg);
             }
@@ -90,7 +94,7 @@ export default class ServerSocketManager {
     public sendMessageToUser(username: string, message: string) {
         let ws = this.usernameToSocket.get(username);
         if (!ws) {
-            console.log("could not message user " + username + " not connected");
+            console.log("could not message user " + JSON.stringify(username) + " not connected");
             return;
         }
         ws.send(message);
