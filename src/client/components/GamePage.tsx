@@ -11,9 +11,10 @@ import GameEvent from "../../shared/GameEvent";
 
 interface GameState {
     board: Room[][];
-    explored: Room[];
+    exploredRooms: Room[];
     currentRoom: Room | null,
     players: User[];
+    torchAssignments: string[];
     role: Role;
     sabotages: number;
 }
@@ -23,20 +24,30 @@ export default class GamePage extends React.Component<{}, GameState> {
         super(props);
         this.state = {
             board: [],
-            explored: [],
+            exploredRooms: [],
             currentRoom: null,
             players: [],
+            torchAssignments: [],
             role: Role.INNOCENT,
             sabotages: 0
         }
 
         this.wsConnectListener = this.wsConnectListener.bind(this);
+
+        this.roleAssignEvent = this.roleAssignEvent.bind(this);
+        this.boardUpdateEvent = this.boardUpdateEvent.bind(this);
+        this.torchAssignEvent = this.torchAssignEvent.bind(this);
+        this.viewRoomEvent = this.playerVoteEvent.bind(this);
+        this.playerVoteEvent = this.playerVoteEvent.bind(this);
+        this.voteResultEvent = this.voteResultEvent.bind(this);
+        this.gameEndEvent = this.gameEndEvent.bind(this);
+
     }
 
     // REMOVE EVENT LISTENERS
     componentWillUnmount(): void {
         window.removeEventListener("wsConnect", this.wsConnectListener);
-        
+
         window.removeEventListener(GameEvent.ROLE_ASSIGN, this.roleAssignEvent);
         window.removeEventListener(GameEvent.BOARD_UPDATE, this.boardUpdateEvent);
         window.removeEventListener(GameEvent.TORCH_ASSIGN, this.torchAssignEvent);
@@ -46,7 +57,7 @@ export default class GamePage extends React.Component<{}, GameState> {
         window.removeEventListener(GameEvent.GAME_END, this.gameEndEvent);
     }
 
-    
+
     componentDidMount() {
         // ADD EVENT LISTENERS
         window.addEventListener("wsConnect", this.wsConnectListener);
@@ -63,18 +74,18 @@ export default class GamePage extends React.Component<{}, GameState> {
         if (!clientSocketManager) {
             return; // not logged in
         }
-        
+
         if (clientSocketManager.connected) {
             this.requestUpdate();
             console.log("requested update after game page loading");
             return;
         }
     }
-    
+
     /****************************************************************************/
     /***************************** EVENT LISTENERS ******************************/
     /****************************************************************************/
-    
+
     // Connect to websocket listener
     wsConnectListener() {
         this.requestUpdate();
@@ -86,8 +97,18 @@ export default class GamePage extends React.Component<{}, GameState> {
     }
 
     boardUpdateEvent(e: any) {
-        console.log(e.detail.data.exploredRooms);
-        console.log(e.detail.data.board);
+        let exploredRooms = e.detail.data.exploredRooms;
+        let board = e.detail.data.board.board;
+
+        this.setState({
+            exploredRooms: exploredRooms
+        });
+
+        if (board) {
+            this.setState({
+                board: board
+            });
+        }
     }
 
     torchAssignEvent(e: any) {
@@ -187,6 +208,7 @@ export default class GamePage extends React.Component<{}, GameState> {
         6. ??
     */
     render() {
+        console.log(this.printMap());
         return (<>
             <div>GAME PAGE</div>
             {this.map()}
