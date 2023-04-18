@@ -37,15 +37,15 @@ export default class GameState {
         players.forEach((player, index) => {
             if (traitorIndexes.has(index)) {
                 console.log(`TRAITOR: ${player.username}`);
-                let traitor = new Traitor(player.username, 3);
-                this.players.push(traitor);    // TODO: make this not hardcoded
+                let traitor = new Traitor(player.username, 2);
+                this.players.push(traitor);
                 this.traitors.push(traitor);
             } else {
                 this.players.push(new Player(player.username));
             }
         });
 
-        this.torches = 3;
+        this.torches = 3 + ((numTraitors - 1) * 2);
     }
 
     // handles player sabotage. Returns true if sabotage is successful, otherwise returns false

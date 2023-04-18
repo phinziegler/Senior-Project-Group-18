@@ -22,7 +22,7 @@ class GameManagerClass {
 
         try {
             this.games.set(lobbyId, new GameState(lobbyId, players, numTraitors));
-            players.forEach(player => socketManager.sendMessageToUser(player.username, JSON.stringify({type: MessageType.GAME_START})));
+            players.forEach(player => socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME_START })));
         } catch {
             console.log("Failed to create game: too many traitors");
         }
@@ -78,7 +78,7 @@ class GameManagerClass {
 
     handleViewRoom(playerToView: Player, gameState: GameState, direction: Direction) {
         if (gameState.setRoomToView(playerToView, direction)) {
-            gameState.players.forEach((player) => socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.ROOM_SELECT, data: { player: playerToView.username, direction: direction, success: true }}})));
+            gameState.players.forEach((player) => socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.ROOM_SELECT, data: { player: playerToView.username, direction: direction, success: true } } })));
         } else {
             socketManager.sendMessageToUser(playerToView.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.ROOM_SELECT, data: { message: "Room selection failed.", success: false } } }));
         }
@@ -87,9 +87,9 @@ class GameManagerClass {
     sendRole(player: Player, gameState: GameState) {
         let isTraitor: boolean = player instanceof Traitor;
         if (isTraitor) {
-            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.ROLE_ASSIGN, data: { traitors: gameState.traitors, isTraitor: isTraitor}}}));
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.ROLE_ASSIGN, data: { traitors: gameState.traitors, isTraitor: isTraitor } } }));
         } else {
-            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.ROLE_ASSIGN, data: {isTraitor: isTraitor}}}));
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.ROLE_ASSIGN, data: { isTraitor: isTraitor } } }));
         }
     }
 
@@ -100,14 +100,14 @@ class GameManagerClass {
 
 
         if (!isTraitor) {
-            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.BOARD_UPDATE, data:{lobbyId: gameState.lobbyId, exploredRooms: exploredRooms}} }));
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.BOARD_UPDATE, data: { lobbyId: gameState.lobbyId, exploredRooms: exploredRooms, rows: board.rows, cols: board.cols } } }));
         } else {
-            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.BOARD_UPDATE, data: {lobbyId: gameState.lobbyId, exploredRooms: exploredRooms, board: board}} }));
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.BOARD_UPDATE, data: { lobbyId: gameState.lobbyId, exploredRooms: exploredRooms, board: board } } }));
         }
     }
 
     sendTorchAssignments(player: Player, gameState: GameState) {
-        socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.TORCH_ASSIGN, data: {torchAssignments: gameState.getTorchbearers()}}}));
+        socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.TORCH_ASSIGN, data: { torchAssignments: gameState.getTorchbearers() } } }));
     }
 }
 
