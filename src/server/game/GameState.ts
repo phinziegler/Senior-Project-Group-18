@@ -19,7 +19,6 @@ export default class GameState {
     directionToVotes: Map<Direction, number> = new Map();
     currentPhase: GamePhase = GamePhase.SABOTAGE;
 
-    // TODO: deal with torchbearers/torch assignments
     constructor(lobbyId: string, players: { username: string }[], numTraitors: number) {
         this.lobbyId = lobbyId;
 
@@ -46,6 +45,10 @@ export default class GameState {
         });
 
         this.torches = 3 + ((numTraitors - 1) * 2);
+
+        for (let i = 0; i < this.torches; i++) {
+            this.players[i].hasTorch = true;
+        }
     }
 
     // handles player sabotage. Returns true if sabotage is successful, otherwise returns false
