@@ -132,10 +132,8 @@ export default class GamePage extends React.Component<{}, GameState> {
     }
 
     // Returns a text representation of the map
-    // TODO: add some color stuff
     printMap() {
         let rooms = this.bfs();
-        // let output = "";
         let output: JSX.Element[] = [];
         this.state.board.forEach((row, rowIndex) => {
             let rowElements1: JSX.Element[] = [];
@@ -148,10 +146,9 @@ export default class GamePage extends React.Component<{}, GameState> {
                     rowElements1.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
                     return;
                 }
-                let up = node.up ? "||" : "  ";
+                let up = node.up ? "| " : "  ";
                 rowElements1.push(<span key={`${rowIndex},${index}`}>{`   ${up}  `}</span>);
             });
-            // output += "\n";
             let rowElements2: JSX.Element[] = [];
             row.forEach((node, index) => {
                 if (!rooms.has(node)) {
@@ -162,15 +159,14 @@ export default class GamePage extends React.Component<{}, GameState> {
                     rowElements2.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
                     return;
                 }
-                let right = node.right ? "==" : "  ";
-                let left = node.left ? "==" : "  ";
+                let right = node.right ? "――" : "  ";
+                let left = node.left ? "――" : "  ";
                 let nodeType = node.isGoal ? "W" : node.isSafe ? "O" : "X";
 
-                rowElements2.push(<span>{`${left}[${nodeType}]${right}`}</span>);
-
-                // output += `${left}[${nodeType}]${right}`;  // length is 7
+                rowElements2.push(<span key={`${rowIndex},${index}`}>
+                    <span>{`${left}`}</span><span className={node.isGoal ? "text-success" : !node.isSafe ? "text-danger" : ""}>{`[${nodeType}]`}</span><span>{`${right}`}</span>
+                </span>)
             });
-            // output += "\n";
             let rowElements3: JSX.Element[] = [];
             row.forEach((node, index) => {
                 if (!rooms.has(node)) {
@@ -181,13 +177,13 @@ export default class GamePage extends React.Component<{}, GameState> {
                     rowElements3.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
                     return;
                 }
-                let down = node.down ? "||" : "  ";
-                // output += `   ${down}  `;
+                let down = node.down ? "| " : "  ";
                 rowElements3.push(<span key={`${rowIndex},${index}`}>{`   ${down}  `}</span>);
             });
-            // output += "\n";
             output.push(
-                <div key={rowIndex} className="">
+                <div style={{
+                    lineHeight: ".885rem"
+                }} key={rowIndex} className="">
                     <div>
                         {rowElements1}
                     </div>
