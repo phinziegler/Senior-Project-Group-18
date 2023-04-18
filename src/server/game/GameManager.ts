@@ -20,7 +20,7 @@ class GameManagerClass {
         }
 
         try {
-            this.games.set(lobbyId, new GameState(players, numTraitors));
+            this.games.set(lobbyId, new GameState(lobbyId, players, numTraitors));
             players.forEach(player => socketManager.sendMessageToUser(player.username, JSON.stringify({type: MessageType.GAME_START})));
         } catch {
             console.log("Failed to create game: too many traitors");
@@ -50,11 +50,12 @@ class GameManagerClass {
 
         switch (message.action) {
             case UserAction.UPDATE:
-                this.sendRole(lobbyId, player);
-                this.sendBoard(lobbyId, player, gameState);
-                this.sendTorchAssignments(lobbyId, player, gameState);
+                this.sendRole(player);
+                this.sendBoard(player, gameState);
+                this.sendTorchAssignments(player, gameState);
                 break;
             case UserAction.SABOTAGE:
+                this.handleSabotage(player, gameState, message.data.victim);
                 break;
             case UserAction.VIEW:
                 break;
@@ -65,26 +66,30 @@ class GameManagerClass {
         }
     }
 
-    sendRole(lobbyId: string, player: Player) {
-        let isTraitor: boolean = player instanceof Traitor;
-        socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.ROLE_ASSIGN, data: {lobbyId: lobbyId, isTraitor: isTraitor}}}));
+    handleSabotage(player: Player, gameState: GameState, victimUsername: string) {
+        gameState.sabotage(player, victimUsername);
     }
 
-    sendBoard(lobbyId: string, player: Player, gameState: GameState) {
+    sendRole(player: Player) {
+        let isTraitor: boolean = player instanceof Traitor;
+        socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.ROLE_ASSIGN, data: {isTraitor: isTraitor}}}));
+    }
+
+    sendBoard(player: Player, gameState: GameState) {
         let isTraitor: boolean = player instanceof Traitor;
         let exploredRooms: Room[] = gameState.exploredRooms;
         let board: Board = gameState.board;
 
 
         if (!isTraitor) {
-            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.BOARD_UPDATE, data:{lobbyId: lobbyId, exploredRooms: exploredRooms}} }));
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.BOARD_UPDATE, data:{lobbyId: gameState.lobbyId, exploredRooms: exploredRooms}} }));
         } else {
-            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.BOARD_UPDATE, data: {lobbyId: lobbyId, exploredRooms: exploredRooms, board: board}} }));
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.BOARD_UPDATE, data: {lobbyId: gameState.lobbyId, exploredRooms: exploredRooms, board: board}} }));
         }
     }
 
-    sendTorchAssignments(lobbyId: string, player: Player, gameState: GameState) {
-        socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.TORCH_ASSIGN, data: {lobbyId: lobbyId, torchAssignments: gameState.getTorchbearers()}}}));
+    sendTorchAssignments(player: Player, gameState: GameState) {
+        socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.TORCH_ASSIGN, data: {torchAssignments: gameState.getTorchbearers()}}}));
     }
 }
 

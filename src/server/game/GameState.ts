@@ -5,6 +5,7 @@ import Traitor from "./Traitor";
 import Room from "../../shared/Room";
 
 export default class GameState {
+    lobbyId: string;
     board: Board;
     exploredRooms: Room[] = [];
     players: Player[] = [];
@@ -13,7 +14,8 @@ export default class GameState {
     playerToDirection: Map<Player, Direction> = new Map();
     directionToVotes: Map<Direction, number> = new Map();
 
-    constructor(players: { username: string }[], numTraitors: number) {
+    constructor(lobbyId: string, players: { username: string }[], numTraitors: number) {
+        this.lobbyId = lobbyId;
 
         if (players.length <= numTraitors) {
             throw new Error("Too many traitors");
@@ -34,6 +36,10 @@ export default class GameState {
         });
 
         this.torches = 3;
+    }
+
+    sabotage(traitor: Player, victimUsername: string) {
+        
     }
 
 
