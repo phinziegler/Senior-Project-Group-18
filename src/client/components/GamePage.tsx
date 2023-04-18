@@ -135,57 +135,77 @@ export default class GamePage extends React.Component<{}, GameState> {
     // TODO: add some color stuff
     printMap() {
         let rooms = this.bfs();
-        let output = "";
-        this.state.board.forEach(row => {
-            row.forEach(node => {
-                if(!rooms.has(node)) {
-                    output += ``.padStart(7);
+        // let output = "";
+        let output: JSX.Element[] = [];
+        this.state.board.forEach((row, rowIndex) => {
+            let rowElements1: JSX.Element[] = [];
+            row.forEach((node, index) => {
+                if (!rooms.has(node)) {
+                    rowElements1.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
                     return;
                 }
                 if (!(node.up || node.right || node.down || node.left)) {
-                    output += ''.padStart(7);
+                    rowElements1.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
                     return;
                 }
                 let up = node.up ? "||" : "  ";
-                output += `   ${up}  `;
+                rowElements1.push(<span key={`${rowIndex},${index}`}>{`   ${up}  `}</span>);
             });
-            output += "\n";
-            row.forEach(node => {
-                if(!rooms.has(node)) {
-                    output += ``.padStart(7);
+            // output += "\n";
+            let rowElements2: JSX.Element[] = [];
+            row.forEach((node, index) => {
+                if (!rooms.has(node)) {
+                    rowElements2.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
                     return;
                 }
                 if (!(node.up || node.right || node.down || node.left)) {
-                    output += ''.padStart(7);
+                    rowElements2.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
                     return;
                 }
                 let right = node.right ? "==" : "  ";
                 let left = node.left ? "==" : "  ";
                 let nodeType = node.isGoal ? "W" : node.isSafe ? "O" : "X";
 
-                output += `${left}[${nodeType}]${right}`;  // length is 7
+                rowElements2.push(<span>{`${left}[${nodeType}]${right}`}</span>);
+
+                // output += `${left}[${nodeType}]${right}`;  // length is 7
             });
-            output += "\n";
-            row.forEach(node => {
-                if(!rooms.has(node)) {
-                    output += ``.padStart(7);
+            // output += "\n";
+            let rowElements3: JSX.Element[] = [];
+            row.forEach((node, index) => {
+                if (!rooms.has(node)) {
+                    rowElements3.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
                     return;
                 }
                 if (!(node.up || node.right || node.down || node.left)) {
-                    output += ''.padStart(7);
+                    rowElements3.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
                     return;
                 }
                 let down = node.down ? "||" : "  ";
-                output += `   ${down}  `;
+                // output += `   ${down}  `;
+                rowElements3.push(<span key={`${rowIndex},${index}`}>{`   ${down}  `}</span>);
             });
-            output += "\n";
+            // output += "\n";
+            output.push(
+                <div key={rowIndex} className="">
+                    <div>
+                        {rowElements1}
+                    </div>
+                    <div>
+                        {rowElements2}
+                    </div>
+                    <div>
+                        {rowElements3}
+                    </div>
+                </div>
+            );
         });
 
         return output;
     }
 
     bfs(): Set<Room> {
-        if(this.state.board.length == 0) {
+        if (this.state.board.length == 0) {
             return new Set();
         }
         let currRow = 0;
@@ -255,10 +275,13 @@ export default class GamePage extends React.Component<{}, GameState> {
         6. ??
     */
     render() {
-        console.log(this.printMap());
+        // console.log(this.printMap());
         return (<>
-            <div>GAME PAGE</div>
-            {this.map()}
+            <div className="p-3">MAP</div>
+            {/* {this.map()} */}
+            <pre>
+                {this.printMap()}
+            </pre>
         </>);
     }
 }

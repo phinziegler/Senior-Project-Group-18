@@ -21,7 +21,7 @@ export default class GameState {
 
         let traitorIndexes = this.pickRandomNumbers(numTraitors, players.length);
 
-        let boardSize = players.length * 2;
+        let boardSize = players.length * 4;
         this.board = new Board(boardSize, boardSize, true);
 
         players.forEach((player, index) => {
