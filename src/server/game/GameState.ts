@@ -26,6 +26,7 @@ export default class GameState {
 
         players.forEach((player, index) => {
             if (traitorIndexes.has(index)) {
+                console.log(`TRAITOR: ${player.username}`);
                 this.players.push(new Traitor(player.username, 3));    // TODO: make this not hardcoded
             } else {
                 this.players.push(new Player(player.username));

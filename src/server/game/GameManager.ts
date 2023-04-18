@@ -66,25 +66,25 @@ class GameManagerClass {
     }
 
     sendRole(player: Player) {
-        let isTraitor: boolean = typeof player == typeof Traitor;
-        socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.ROLE_ASSIGN, isTraitor: isTraitor}}));
+        let isTraitor: boolean = player instanceof Traitor;
+        socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.ROLE_ASSIGN, data: {isTraitor: isTraitor}}}));
     }
 
     sendBoard(player: Player, gameState: GameState) {
-        let isTraitor: boolean = typeof player == typeof Traitor;
+        let isTraitor: boolean = player instanceof Traitor;
         let exploredRooms: Room[] = gameState.exploredRooms;
         let board: Board = gameState.board;
 
 
         if (!isTraitor) {
-            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.BOARD_UPDATE, exploredRooms: exploredRooms} }));
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.BOARD_UPDATE, data:{exploredRooms: exploredRooms}} }));
         } else {
-            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.BOARD_UPDATE, exploredRooms: exploredRooms, board: board} }));
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.BOARD_UPDATE, data: {exploredRooms: exploredRooms, board: board}} }));
         }
     }
 
     sendTorchAssignments(player: Player, gameState: GameState) {
-        socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.TORCH_ASSIGN, torchAssignments: gameState.getTorchbearers()}}));
+        socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.TORCH_ASSIGN, data: {torchAssignments: gameState.getTorchbearers()}}}));
     }
 }
 

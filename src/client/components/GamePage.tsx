@@ -6,6 +6,7 @@ import { clientSocketManager } from "../tools/auth";
 import MessageType from "../../shared/MessageTypes";
 import UserAction from "../../shared/UserAction";
 import Direction from "../../shared/Direction";
+import GameEvent from "../../shared/GameEvent";
 
 
 interface GameState {
@@ -32,29 +33,81 @@ export default class GamePage extends React.Component<{}, GameState> {
         this.wsConnectListener = this.wsConnectListener.bind(this);
     }
 
-    // Clean up event listeners upon unloading
+    // REMOVE EVENT LISTENERS
     componentWillUnmount(): void {
-        removeEventListener("wsConnect", this.wsConnectListener);
+        window.removeEventListener("wsConnect", this.wsConnectListener);
+        
+        window.removeEventListener(GameEvent.ROLE_ASSIGN, this.roleAssignEvent);
+        window.removeEventListener(GameEvent.BOARD_UPDATE, this.boardUpdateEvent);
+        window.removeEventListener(GameEvent.TORCH_ASSIGN, this.torchAssignEvent);
+        window.removeEventListener(GameEvent.VIEW_ROOM, this.viewRoomEvent);
+        window.removeEventListener(GameEvent.PLAYER_VOTE, this.playerVoteEvent);
+        window.removeEventListener(GameEvent.VOTE_RESULT, this.voteResultEvent);
+        window.removeEventListener(GameEvent.GAME_END, this.gameEndEvent);
     }
 
-    // Chat event listener function
-    wsConnectListener() {
-        this.requestUpdate();
-        console.log("requested update after connection to WS")
-    }
-
-    // On load
+    
     componentDidMount() {
+        // ADD EVENT LISTENERS
         window.addEventListener("wsConnect", this.wsConnectListener);
+
+        window.addEventListener(GameEvent.ROLE_ASSIGN, this.roleAssignEvent);
+        window.addEventListener(GameEvent.BOARD_UPDATE, this.boardUpdateEvent);
+        window.addEventListener(GameEvent.TORCH_ASSIGN, this.torchAssignEvent);
+        window.addEventListener(GameEvent.VIEW_ROOM, this.viewRoomEvent);
+        window.addEventListener(GameEvent.PLAYER_VOTE, this.playerVoteEvent);
+        window.addEventListener(GameEvent.VOTE_RESULT, this.voteResultEvent);
+        window.addEventListener(GameEvent.GAME_END, this.gameEndEvent);
+
+        // REQUEST UPDATE
         if (!clientSocketManager) {
             return; // not logged in
         }
-
+        
         if (clientSocketManager.connected) {
             this.requestUpdate();
             console.log("requested update after game page loading");
             return;
         }
+    }
+    
+    /****************************************************************************/
+    /***************************** EVENT LISTENERS ******************************/
+    /****************************************************************************/
+    
+    // Connect to websocket listener
+    wsConnectListener() {
+        this.requestUpdate();
+        console.log("requested update after connection to WS")
+    }
+
+    roleAssignEvent(e: any) {
+        console.log(e.detail.data.isTraitor)
+    }
+
+    boardUpdateEvent(e: any) {
+        console.log(e.detail.data.exploredRooms);
+        console.log(e.detail.data.board);
+    }
+
+    torchAssignEvent(e: any) {
+        console.log(e.detail.data.torchAssignments);
+    }
+
+    viewRoomEvent(e: any) {
+        // this.setState({});
+    }
+
+    playerVoteEvent(e: any) {
+        // this.setState({});
+    }
+
+    voteResultEvent(e: any) {
+        // this.setState({});
+    }
+
+    gameEndEvent(e: any) {
+        // this.setState({})
     }
 
     // Returns a text representation of the map
@@ -134,15 +187,9 @@ export default class GamePage extends React.Component<{}, GameState> {
         6. ??
     */
     render() {
-        // return (<>
-        //     <div>GAME PAGE</div>
-        //     {this.map()}
-        // </>);
-
         return (<>
-            <div>
-            </div>
-        </>
-        );
+            <div>GAME PAGE</div>
+            {this.map()}
+        </>);
     }
 }
