@@ -62,7 +62,7 @@ export default class GameState {
     }
 
     // sets room that the player will view. Returns true if successful, otherwise returns false
-    setRoomToView(player: Player, direction: Direction) {
+    setRoomToView(player: Player, direction: Direction): boolean {
         if (!player.hasTorch) {
             return false;
         }
@@ -105,6 +105,15 @@ export default class GameState {
                 break;
         }
         return false;
+    }
+
+    // handles vote selection. Returns true if vote is successful, otherwise returns false
+    setVote(player: Player, direction: Direction): boolean {
+        if (this.currentPhase != GamePhase.VOTE) {
+            return false;
+        }
+        this.playerToVoteDirection.set(player, direction);
+        return true;
     }
 
 

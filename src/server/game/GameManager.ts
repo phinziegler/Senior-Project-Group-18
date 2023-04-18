@@ -62,6 +62,7 @@ class GameManagerClass {
                 this.handleViewRoom(player, gameState, message.data.direction);
                 break;
             case UserAction.VOTE:
+                this.handleVote(player, gameState, message.data.direction);
                 break;
             default:
                 break;
@@ -81,6 +82,14 @@ class GameManagerClass {
             gameState.players.forEach((player) => socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.ROOM_SELECT, data: { player: playerToView.username, direction: direction, success: true }}})));
         } else {
             socketManager.sendMessageToUser(playerToView.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.ROOM_SELECT, data: { message: "Room selection failed.", success: false } } }));
+        }
+    }
+
+    handleVote(playerToView: Player, gameState: GameState, direction: Direction) {
+        if (gameState.setVote(playerToView, direction)) {
+            gameState.players.forEach((player) => socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.PLAYER_VOTE, data: { player: playerToView.username, direction: direction, success: true }}})));
+        } else {
+            socketManager.sendMessageToUser(playerToView.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.PLAYER_VOTE, data: { message: "Vote operation failed.", success: false } } }));
         }
     }
 
