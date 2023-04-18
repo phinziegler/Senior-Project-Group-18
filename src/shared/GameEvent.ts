@@ -2,6 +2,7 @@ enum GameEvent {
     ROLE_ASSIGN = "roleAssign",
     BOARD_UPDATE = "boardUpdate",
     TORCH_ASSIGN = "torchAssign",
+    SABOTAGE = "sabotage",
     VIEW_ROOM = "viewRoom",
     PLAYER_VOTE = "playerVote",
     VOTE_RESULT = "voteResult",

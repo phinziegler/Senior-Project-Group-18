@@ -3,6 +3,7 @@ import Direction from "../../shared/Direction";
 import Player from "./Player";
 import Traitor from "./Traitor";
 import Room from "../../shared/Room";
+import GamePhase from "./GamePhase";
 
 export default class GameState {
     lobbyId: string;
@@ -13,7 +14,9 @@ export default class GameState {
     torches: number;
     playerToDirection: Map<Player, Direction> = new Map();
     directionToVotes: Map<Direction, number> = new Map();
+    currentPhase: GamePhase = GamePhase.SABOTAGE;
 
+    // TODO: deal with torchbearers/torch assignments
     constructor(lobbyId: string, players: { username: string }[], numTraitors: number) {
         this.lobbyId = lobbyId;
 
@@ -38,8 +41,17 @@ export default class GameState {
         this.torches = 3;
     }
 
-    sabotage(traitor: Player, victimUsername: string) {
-        
+    // deals with player sabotage. Returns true if sabotage is successful, otherwise returns false
+    sabotage(traitor: Player, victimUsername: string): boolean {
+        if (!(traitor instanceof Traitor) || this.currentPhase !== GamePhase.SABOTAGE || traitor.sabotages <= 0) {
+            return false;
+        }
+        let sabotagedPlayer = this.getPlayerByUsername(victimUsername);
+        if (!sabotagedPlayer) {
+            return false;
+        }
+        this.sabotaged.push(sabotagedPlayer);
+        return true;
     }
 
 

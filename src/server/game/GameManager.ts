@@ -67,7 +67,11 @@ class GameManagerClass {
     }
 
     handleSabotage(player: Player, gameState: GameState, victimUsername: string) {
-        gameState.sabotage(player, victimUsername);
+        if (gameState.sabotage(player, victimUsername)) {
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.SABOTAGE, data: { success: true, remainingSabotages: (player as Traitor).sabotages}}}));
+        } else {
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.SABOTAGE, data: { success: false, message: "Sabotage failed."}}}));
+        }
     }
 
     sendRole(player: Player) {
