@@ -11,7 +11,8 @@ export default class GameState {
     currentRoom: Room;
     exploredRooms: Room[] = [];
     players: Player[] = [];
-    sabotaged: Player[] = [];
+    traitors: Traitor[] = [];
+    traitorToVictim: Map<Traitor, Player> = new Map();
     torches: number;
     playerToRoomView: Map<Player, Room> = new Map();
     playerToVoteDirection: Map<Player, Direction> = new Map();
@@ -36,7 +37,9 @@ export default class GameState {
         players.forEach((player, index) => {
             if (traitorIndexes.has(index)) {
                 console.log(`TRAITOR: ${player.username}`);
-                this.players.push(new Traitor(player.username, 3));    // TODO: make this not hardcoded
+                let traitor = new Traitor(player.username, 3);
+                this.players.push(traitor);    // TODO: make this not hardcoded
+                this.traitors.push(traitor);
             } else {
                 this.players.push(new Player(player.username));
             }
@@ -46,7 +49,7 @@ export default class GameState {
     }
 
     // handles player sabotage. Returns true if sabotage is successful, otherwise returns false
-    sabotage(traitor: Player, victimUsername: string): boolean {
+    setSabotage(traitor: Player, victimUsername: string): boolean {
         if (!(traitor instanceof Traitor) || this.currentPhase !== GamePhase.SABOTAGE || traitor.sabotages <= 0) {
             return false;
         }
@@ -54,7 +57,7 @@ export default class GameState {
         if (!sabotagedPlayer) {
             return false;
         }
-        this.sabotaged.push(sabotagedPlayer);
+        this.traitorToVictim.set(traitor, sabotagedPlayer);
         return true;
     }
 

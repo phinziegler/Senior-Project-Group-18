@@ -51,7 +51,7 @@ class GameManagerClass {
 
         switch (message.action) {
             case UserAction.UPDATE:
-                this.sendRole(player);
+                this.sendRole(player, gameState);
                 this.sendBoard(player, gameState);
                 this.sendTorchAssignments(player, gameState);
                 break;
@@ -68,11 +68,11 @@ class GameManagerClass {
         }
     }
 
-    handleSabotage(player: Player, gameState: GameState, victimUsername: string) {
-        if (gameState.sabotage(player, victimUsername)) {
-            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.SABOTAGE, data: { remainingSabotages: (player as Traitor).sabotages, success: true } } }));
+    handleSabotage(sabotager: Player, gameState: GameState, victimUsername: string) {
+        if (gameState.setSabotage(sabotager, victimUsername)) {
+            gameState.traitors.forEach(traitor => socketManager.sendMessageToUser(traitor.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.SABOTAGE, data: { sabotager: sabotager.username, victim: victimUsername, remainingSabotages: (sabotager as Traitor).sabotages, success: true } } })));
         } else {
-            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.SABOTAGE, data: { message: "Sabotage failed.", success: false } } }));
+            socketManager.sendMessageToUser(sabotager.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.SABOTAGE, data: { message: "Sabotage failed.", success: false } } }));
         }
     }
 
@@ -84,9 +84,13 @@ class GameManagerClass {
         }
     }
 
-    sendRole(player: Player) {
+    sendRole(player: Player, gameState: GameState) {
         let isTraitor: boolean = player instanceof Traitor;
-        socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.ROLE_ASSIGN, data: {isTraitor: isTraitor}}}));
+        if (isTraitor) {
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.ROLE_ASSIGN, data: { traitors: gameState.traitors, isTraitor: isTraitor}}}));
+        } else {
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: {event: GameEvent.ROLE_ASSIGN, data: {isTraitor: isTraitor}}}));
+        }
     }
 
     sendBoard(player: Player, gameState: GameState) {
