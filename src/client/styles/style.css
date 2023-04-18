@@ -29,7 +29,7 @@
 
 .main-font {
   color: white;
-  font-family: Lucida Console;
+  font-family: Share Tech Mono, monospace;
 }
 
 .login-box {
@@ -125,13 +125,13 @@
   margin: 7px;
   font-size:100%;
   border-radius: 6px;
+  background-color: lightgreen;
 }
 
 .join-button:hover {
-  background-color: white;
-  color: green;
-  border-color: green;
-}
+  background-color: green;
+  color: white;
+  }
 
 @media (max-width: 768px) {
     .join-button {
@@ -145,15 +145,14 @@
 .delete-button {
   transition-duration: 0.2s;
   background-color: red;
-  color: white;
+  color: black;
   margin: 7px;
   border-radius: 6px;
 }
 
 .delete-button:hover {
-  background-color: white;
-  color: red;
-  border-color: red;
+  background-color: darkred;
+  color: white;
 }
 
 .border-green {
