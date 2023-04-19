@@ -121,13 +121,6 @@ class GameManagerClass {
         });
     }
 
-    sendGameOutcome(outcome: Role, gameState: GameState) {
-        gameState.players.forEach(player => {
-            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.GAME_END, data: { outcome: outcome } } }));
-        });
-    }
-
-
     sendBoard(player: Player, gameState: GameState) {
         let isTraitor: boolean = player instanceof Traitor;
         let exploredRooms: Room[] = gameState.exploredRooms;
@@ -147,6 +140,12 @@ class GameManagerClass {
 
     sendRoomInfo(player: Player, isSafe: boolean) {
         socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.VIEW_ROOM, data: { isSafe: isSafe } } }));
+    }
+
+    sendGameOutcome(outcome: Role, playerData: { username: string, role: Role }[], gameState: GameState) {
+        gameState.players.forEach(player => {
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.GAME_END, data: { winning: outcome, playerData: playerData } } }));
+        });
     }
 }
 

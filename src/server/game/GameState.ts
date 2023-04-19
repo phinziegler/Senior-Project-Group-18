@@ -290,6 +290,16 @@ export default class GameState {
     }
 
     endGame(outcome: Role) {
-        GameManager.sendGameOutcome(outcome, this);
+        let playerData: { username: string, role: Role }[] = [];
+        let isTraitor = false;
+        this.players.forEach(player => {
+            if (player instanceof Traitor) {
+                isTraitor = true;
+            } else {
+                isTraitor = false;
+            }
+            playerData.push({ username: player.username, role: isTraitor ? Role.TRAITOR : Role.INNOCENT })
+        })
+        GameManager.sendGameOutcome(outcome, playerData, this);
     }
 }
