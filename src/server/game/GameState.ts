@@ -55,12 +55,12 @@ export default class GameState {
     }
 
     updateGame() {
-        if (this.currentPhase == GamePhase.SABOTAGE) {
-            setTimeout(() => this.handleSabotagePhase(), 20000);
-        }
-        if (this.currentPhase == GamePhase.VOTE) {
-            setTimeout(() => this.handleVotePhase(), 60000);
-        }
+        // if (this.currentPhase == GamePhase.SABOTAGE) {
+        //     setTimeout(() => this.handleSabotagePhase(), 20000);
+        // }
+        // if (this.currentPhase == GamePhase.VOTE) {
+        //     setTimeout(() => this.handleVotePhase(), 60000);
+        // }
     }
 
     handleSabotagePhase() {

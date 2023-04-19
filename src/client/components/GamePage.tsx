@@ -11,6 +11,8 @@ import Chat from "./Chat";
 import { GET } from "../tools/fetch";
 import requestUrl from "../tools/requestUrl";
 import ServerRoutes from "../../shared/ServerRoutes";
+import { Link } from "react-router-dom";
+import GamePlayer from "./GamePlayer";
 
 interface GameProps {
     user: User | null
@@ -22,17 +24,21 @@ interface GameState {
     currentRoom: Room | null,
     players: string[];
     torchAssignments: string[];
+    traitors: string[],
     role: Role;
     sabotages: number;
     lobbyId: string;
     rows: number,
-    cols: number
+    cols: number,
+    sabotaging: boolean,
+    isSabotaged: Set<string>
 }
 
 export default class GamePage extends React.Component<GameProps, GameState> {
     constructor(props: GameProps) {
         super(props);
         this.state = {
+            traitors: [],
             rooms: [],
             exploredRooms: [],
             currentRoom: null,
@@ -43,10 +49,14 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             lobbyId: "",
             rows: 0,
             cols: 0,
+            sabotaging: false,
+            isSabotaged: new Set()
         }
 
         this.wsConnectListener = this.wsConnectListener.bind(this);
 
+        this.sabotageEvent = this.sabotageEvent.bind(this);
+        this.unsabotageEvent = this.unsabotageEvent.bind(this);
         this.roleAssignEvent = this.roleAssignEvent.bind(this);
         this.boardUpdateEvent = this.boardUpdateEvent.bind(this);
         this.torchAssignEvent = this.torchAssignEvent.bind(this);
@@ -61,6 +71,8 @@ export default class GamePage extends React.Component<GameProps, GameState> {
     componentWillUnmount(): void {
         window.removeEventListener("wsConnect", this.wsConnectListener);
 
+        window.removeEventListener(GameEvent.SABOTAGE, this.sabotageEvent);
+        window.removeEventListener(GameEvent.UNSABOTAGE, this.unsabotageEvent);
         window.removeEventListener(GameEvent.ROLE_ASSIGN, this.roleAssignEvent);
         window.removeEventListener(GameEvent.BOARD_UPDATE, this.boardUpdateEvent);
         window.removeEventListener(GameEvent.TORCH_ASSIGN, this.torchAssignEvent);
@@ -75,6 +87,8 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         // ADD EVENT LISTENERS
         window.addEventListener("wsConnect", this.wsConnectListener);
 
+        window.addEventListener(GameEvent.SABOTAGE, this.sabotageEvent);
+        window.addEventListener(GameEvent.UNSABOTAGE, this.unsabotageEvent);
         window.addEventListener(GameEvent.ROLE_ASSIGN, this.roleAssignEvent);
         window.addEventListener(GameEvent.BOARD_UPDATE, this.boardUpdateEvent);
         window.addEventListener(GameEvent.TORCH_ASSIGN, this.torchAssignEvent);
@@ -106,12 +120,24 @@ export default class GamePage extends React.Component<GameProps, GameState> {
     }
 
     roleAssignEvent(e: any) {
+        let sabotages;
         let isTraitor = e.detail.data.isTraitor;
+        let traitors;
+        try {
+            sabotages = e.detail.data.sabotages;
+            traitors = e.detail.data.traitors;
+        } catch {
+            console.log("innocent, did not get traitors list");
+        }
 
         if (isTraitor) {
             this.setState({
                 role: Role.TRAITOR
             });
+        }
+
+        if (traitors) {
+            this.setState({ traitors: traitors, sabotages: sabotages });
         }
     }
 
@@ -163,8 +189,28 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         }
     }
 
+    sabotageEvent(e: any) {
+        if(!this.props.user) {
+            return;
+        }
+        if(e.detail.data.sabotager == this.props.user.username) {
+            return;
+        }
+        this.state.isSabotaged.add(e.detail.data.victim);
+    }
+
+    unsabotageEvent(e: any) {
+        if(!this.props.user) {
+            return;
+        }
+        if(e.detail.data.sabotager == this.props.user.username) {
+            return;
+        }
+        this.state.isSabotaged.delete(e.detail.data.victim);
+    }
+
     torchAssignEvent(e: any) {
-        // console.log(e.detail.data.torchAssignments);
+        this.setState({ torchAssignments: e.detail.data.torchAssignments });
     }
 
     viewRoomEvent(e: any) {
@@ -187,7 +233,6 @@ export default class GamePage extends React.Component<GameProps, GameState> {
     // Get the list of users for a lobby
     async getUsersLobby(lobbyId: string) {
         GET(requestUrl(ServerRoutes.GET_LOBBY_USERS(lobbyId))).then(res => res.json()).then((data: any) => {
-            console.log(data);
             this.setState({
                 players: data
             });
@@ -223,7 +268,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                 if (rowIndex == 0) {
                     return;
                 }
-                if(!node) {
+                if (!node) {
                     rowElements1.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
                     return;
                 }
@@ -233,7 +278,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
             let rowElements2: JSX.Element[] = [];
             row.forEach((node: Room | null, index) => {
-                if(!node) {
+                if (!node) {
                     rowElements2.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
                     return;
                 }
@@ -253,7 +298,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                 if (rowIndex == this.state.rooms.length - 1) {
                     return;
                 }
-                if(!node) {
+                if (!node) {
                     rowElements3.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
                     return;
                 }
@@ -405,7 +450,18 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
     // Tell the server to sabotage a player
     sabotage(victim: string) {
-        clientSocketManager?.send(MessageType.GAME, { action: UserAction.SABOTAGE, data: { victim: victim } });
+        if(!this.props.user) {
+            return;
+        }
+        clientSocketManager?.send(MessageType.GAME, { action: UserAction.SABOTAGE, data: { sabotager: this.props.user.username, victim: victim } });
+    }
+
+    // Unsabotage
+    unsabotage(victim: string) {
+        if(!this.props.user) {
+            return;
+        }
+        clientSocketManager?.send(MessageType.GAME, { action: UserAction.UNSABOTAGE, data: { sabotager: this.props.user.username, victim: victim } });
     }
 
     // Tell the server that you intend to view a room
@@ -418,13 +474,23 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         let color = this.state.role == Role.INNOCENT ? "success" : "danger";
         let output: JSX.Element[] = [];
         this.state.players.forEach((player, index) => {
-            if (player == this.props.user?.username) {
-                output.push(<span className={`text-${color}`} key={index}>{player}</span>)
-                return;
-            }
             output.push(
-                <span key={index}>{player}</span>
-            )
+                <GamePlayer
+                    sabotagedList={this.state.isSabotaged}
+                    doSabotage={(victim) => this.sabotage(victim)}
+                    doUnsabotage={(victim) => this.unsabotage(victim)}
+                    changeSabotages={(amount: number) => {
+                        let sabotages = this.state.sabotages + amount;
+                        this.setState({ sabotages: sabotages });
+                    }}
+                    canSabotage={this.state.sabotaging}
+                    role={this.state.role}
+                    key={index}
+                    username={player}
+                    user={this.props.user}
+                    isTraitor={this.state.traitors.includes(player)}
+                    torchBearer={this.state.torchAssignments.includes(player)}
+                />);
         });
 
         return output;
@@ -437,16 +503,34 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         let role = this.state.role == Role.INNOCENT ? "ADVENTURER" : "TRAITOR"
 
         return <>
-            <div className="position-relative">
-                <div style={{
-                    right: "0"
-                }} className="position-absolute">
+            <div className="text-center position-relative flex-grow-1">
+                {/* ROLE */}
+                <div style={{ right: "0" }} className="position-absolute">
                     <span>{phrase}</span><span className={`text-${color}`}>{role}</span>
                 </div>
+
+                {/* SABOTAGES */}
+                {this.isTraitor() && <div style={{ right: "0", bottom: "0" }} className="position-absolute">
+                    <button onClick={() => {
+                        if (this.state.sabotaging) {
+                            this.setState({ sabotaging: false });
+                            return;
+                        }
+                        this.setState({ sabotaging: true });
+                    }} className="btn btn-danger">SABOTAGE</button>
+                    <div className="text-danger small">Remaining: {this.state.sabotages}</div>
+                </div>}
+                <br />
+                {this.state.sabotaging && <div className="text-danger">Click on a torchbearer to sabotage their room clear.</div>}
             </div>
+
+
         </>
     }
 
+    isTraitor() {
+        return this.state.role == Role.TRAITOR;
+    }
 
     /*
         1. MAP
@@ -457,8 +541,16 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         6. ??
     */
     render() {
-        return (<>
+        if (this.state.exploredRooms.length == 0) {
+            return <>
+                <div>
+                    You are not in a game.
+                </div>
+                <Link replace to="/lobby-list">Return to lobby List</Link>
+            </>
+        }
 
+        return (<>
             <div className="border border-warning w-100 mw-100">
                 <div className="d-flex w-100 h-100">
                     {/* NOT CHAT (vertical flex) */}
@@ -472,14 +564,14 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                             </div>
 
                             {/* GAME */}
-                            <div className="border border-success flex-grow-1 p-3">
+                            <div className="border border-success flex-grow-1 p-3 d-flex flex-column">
                                 <h2>GAME</h2>
                                 {this.game()}
                             </div>
                         </div>
 
                         {/* PLAYERS */}
-                        <div className="border border-primary p-3 d-flex justify-content-around">
+                        <div className="border border-primary d-flex justify-content-around">
                             {this.players()}
                         </div>
                     </div>
