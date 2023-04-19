@@ -96,8 +96,10 @@ class GameManagerClass {
 
     sendRole(player: Player, gameState: GameState) {
         let isTraitor: boolean = player instanceof Traitor;
+        let traitorUsernames: string[] = [];
+        gameState.traitors.forEach((traitor => traitorUsernames.push(traitor.username)));
         if (isTraitor) {
-            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.ROLE_ASSIGN, data: { traitors: gameState.traitors, isTraitor: isTraitor } } }));
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.ROLE_ASSIGN, data: { isTraitor: isTraitor, traitors: traitorUsernames, sabotages: (player as Traitor).sabotages } } }));
         } else {
             socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.ROLE_ASSIGN, data: { isTraitor: isTraitor } } }));
         }
