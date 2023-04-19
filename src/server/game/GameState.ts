@@ -5,6 +5,7 @@ import Traitor from "./Traitor";
 import Room from "../../shared/Room";
 import GamePhase from "./GamePhase";
 import GameManager from "./GameManager";
+import Role from "../../shared/Role";
 
 export default class GameState {
     lobbyId: string;
@@ -15,6 +16,7 @@ export default class GameState {
     traitors: Traitor[] = [];
     traitorToVictim: Map<Traitor, Player> = new Map();
     torches: number;
+    currTorchIndex: number = 0;
     playerToRoomView: Map<Player, Room> = new Map();
     playerToVoteDirection: Map<Player, Direction> = new Map();
     directionToVotes: Map<Direction, number> = new Map();
@@ -47,9 +49,7 @@ export default class GameState {
 
         this.torches = Math.min(this.players.length, 3 + ((numTraitors - 1) * 2));
 
-        for (let i = 0; i < this.torches; i++) {
-            this.players[i].hasTorch = true;
-        }
+        this.assignTorchbearers();
 
         this.updateGame();
     }
@@ -65,7 +65,10 @@ export default class GameState {
 
     handleSabotagePhase() {
         let sabotagedPlayers: Set<Player> = new Set();
-        this.traitorToVictim.forEach((player) => sabotagedPlayers.add(player));
+        this.traitorToVictim.forEach((player, traitor) => {
+            sabotagedPlayers.add(player);
+            traitor.sabotages--;
+        });
 
         this.playerToRoomView.forEach((room, player) => {
             let isSafe = room.isSafe;
@@ -92,6 +95,8 @@ export default class GameState {
                 maxVoteDir = voteDir;
             } else if (voteCount == max) {
                 // The vote was tied, revote
+                this.playerToVoteDirection.clear();
+                this.directionToVotes.clear();
                 GameManager.sendVoteResult("tie", this);
                 this.currentPhase = GamePhase.VOTE;
                 this.updateGame();
@@ -99,6 +104,8 @@ export default class GameState {
             }
         });
 
+        this.playerToVoteDirection.clear();
+        this.directionToVotes.clear();
         GameManager.sendVoteResult(maxVoteDir, this);
         
         this.handlePartyMovement(maxVoteDir);
@@ -152,14 +159,35 @@ export default class GameState {
         if (!this.currentRoom.isSafe) {
             this.torches--;
             if (this.torches == 0) {
-                this.endGame("lose");
+                this.endGame(Role.TRAITOR);
+                return;
             }
-        } 
+            this.currentRoom.isSafe = true;
+        }
 
-        this.currentRoom.isSafe = true;
+        if (this.currentRoom === this.board.goal) {
+            this.endGame(Role.INNOCENT);
+        }
+
+        this.clearTorchAssignments();
+        this.assignTorchbearers();
+        this.players.forEach(player => GameManager.sendTorchAssignments(player, this));
+
+        this.exploredRooms.push(this.currentRoom);
 
         this.currentPhase = GamePhase.SABOTAGE;
         this.updateGame();
+    }
+
+    clearTorchAssignments() {
+        this.players.forEach(player => player.hasTorch = false);
+    }
+
+    assignTorchbearers() {
+        for (let i = 0; i < this.torches; i++) {
+            this.players[this.currTorchIndex].hasTorch = true;
+            this.currTorchIndex = (this.currTorchIndex + 1) % this.players.length;
+        }
     }
 
     // handles player sabotage. Returns true if sabotage is successful, otherwise returns false
@@ -259,9 +287,7 @@ export default class GameState {
         return torchbearers;
     }
 
-    endGame(outcome: string) {
-        if (outcome == "lose") {
-            GameManager.sendGameOutcome(outcome, this);
-        }
+    endGame(outcome: Role) {
+        GameManager.sendGameOutcome(outcome, this);
     }
 }

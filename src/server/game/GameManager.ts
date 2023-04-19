@@ -9,6 +9,7 @@ import Board from "./Board";
 import Room from "../../shared/Room";
 import GameEvent from "../../shared/GameEvent";
 import Direction from "../../shared/Direction";
+import Role from "../../shared/Role";
 
 class GameManagerClass {
     games: Map<string, GameState> = new Map();
@@ -114,7 +115,7 @@ class GameManagerClass {
         });
     }
 
-    sendGameOutcome(outcome: string, gameState: GameState) {
+    sendGameOutcome(outcome: Role, gameState: GameState) {
         gameState.players.forEach(player => {
             socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.GAME_END, data: { outcome: outcome } } }));
         });

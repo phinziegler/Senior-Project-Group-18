@@ -2,6 +2,7 @@ import Room from '../../shared/Room'
 
 export default class Board {
     rooms: Room[][] = [];
+    goal: Room = this.newRoom(0, 0);
     rows: number;
     cols: number;
 
@@ -24,6 +25,7 @@ export default class Board {
                 if (this.goalIsReachable(goalRow, goalCol, isGuaranteedSafe)) {
                     this.rooms[goalRow][goalCol].isSafe = true;
                     this.rooms[goalRow][goalCol].isGoal = true;
+                    this.goal = this.rooms[goalRow][goalCol];
                     boardIsCorrect = true;
                 }
                 k++;
