@@ -14,6 +14,7 @@ import ServerRoutes from "../../shared/ServerRoutes";
 import { Link } from "react-router-dom";
 import GamePlayer from "./GamePlayer";
 import ClearOptions from "./ClearOptions";
+import GameMap from "./GameMap";
 
 interface GameProps {
     user: User | null
@@ -169,7 +170,6 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             console.log("Innocent");
         }
 
-
         this.setState({
             exploredRooms: exploredRooms,
             currentRoom: currentRoom
@@ -259,205 +259,6 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         });
     }
 
-    prefillRooms() {
-        let possibleRooms: (Room | null)[][] = [];
-
-        // Fill PossibleRooms
-        for (let r = 0; r < this.state.rows; r++) {
-            let row: (Room | null)[] = [];
-            for (let c = 0; c < this.state.cols; c++) {
-                row.push(null);
-            }
-            possibleRooms.push(row);
-        }
-        return possibleRooms;
-    }
-
-    innocentMap(fontSize: number) {
-        let output: JSX.Element[] = [];
-        let possibleRooms: (Room | null)[][] = this.prefillRooms();
-
-        // Fill possibleRooms
-        this.state.exploredRooms.forEach(room => {
-            possibleRooms[room.row][room.col] = room;
-        });
-
-        possibleRooms.forEach((row: (Room | null)[], rowIndex) => {
-            let rowElements1: JSX.Element[] = [];
-            row.forEach((node: Room | null, index) => {
-                if (rowIndex == 0) {
-                    return;
-                }
-                if (!node) {
-                    rowElements1.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
-                    return;
-                }
-                let up = node.up ? "| " : "  ";
-                rowElements1.push(<span key={`${rowIndex},${index}`}>{`   ${up}  `}</span>);
-            });
-
-            let rowElements2: JSX.Element[] = [];
-            row.forEach((node: Room | null, index) => {
-                if (!node) {
-                    rowElements2.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
-                    return;
-                }
-                let right = node.right ? "――" : "  ";
-                let left = node.left ? "――" : "  ";
-                let nodeType = node.isGoal ? "W" : node.isSafe ? "O" : "X";
-                // let nodeType = " "
-
-                let start = this.state.exploredRooms[0];
-                rowElements2.push(<span key={`${rowIndex},${index}`}>
-                    <span>{`${left}`}</span><span className={node.isGoal ? "text-success" : (node.row == start.row && node.col == start.col) ? "text-warning" : !node.isSafe ? "text-danger" : ""}>{`[${nodeType}]`}</span><span>{`${right}`}</span>
-                </span>)
-            });
-
-            let rowElements3: JSX.Element[] = [];
-            row.forEach((node, index) => {
-                if (rowIndex == this.state.rooms.length - 1) {
-                    return;
-                }
-                if (!node) {
-                    rowElements3.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
-                    return;
-                }
-                let down = node.down ? "| " : "  ";
-                rowElements3.push(<span key={`${rowIndex},${index}`}>{`   ${down}  `}</span>);
-            });
-
-            output.push(
-                <div key={rowIndex}>
-                    <div>
-                        {rowElements1}
-                    </div>
-                    <div>
-                        {rowElements2}
-                    </div>
-                    <div>
-                        {rowElements3}
-                    </div>
-                </div>
-            );
-        });
-
-        return <div style={{ whiteSpace: "pre", lineHeight: `${fontSize}em`, fontSize: `${fontSize}em` }} className="m-0" >{output}</div>;
-    }
-
-    // Returns a text representation of the map
-    map(fontSize: number = 1) {
-
-        if (this.state.role == Role.INNOCENT) {
-            return this.innocentMap(fontSize);
-        }
-
-        let rooms = this.bfs();
-        let output: JSX.Element[] = [];
-        this.state.rooms.forEach((row, rowIndex) => {
-            let rowElements1: JSX.Element[] = [];
-            row.forEach((node, index) => {
-                if (rowIndex == 0) {
-                    return;
-                }
-                if (!rooms.has(node)) {
-                    rowElements1.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
-                    return;
-                }
-                if (!(node.up || node.right || node.down || node.left)) {
-                    rowElements1.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
-                    return;
-                }
-                let up = node.up ? "| " : "  ";
-                rowElements1.push(<span key={`${rowIndex},${index}`}>{`   ${up}  `}</span>);
-            });
-            let rowElements2: JSX.Element[] = [];
-            row.forEach((node, index) => {
-                if (!rooms.has(node)) {
-                    rowElements2.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
-                    return;
-                }
-                if (!(node.up || node.right || node.down || node.left)) {
-                    rowElements2.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
-                    return;
-                }
-                let right = node.right ? "――" : "  ";
-                let left = node.left ? "――" : "  ";
-                let nodeType = node.isGoal ? "W" : node.isSafe ? "O" : "X";
-
-                let start = this.state.exploredRooms[0];
-                rowElements2.push(<span key={`${rowIndex},${index}`}>
-                    <span>{`${left}`}</span><span className={node.isGoal ? "text-success" : (node.row == start.row && node.col == start.col) ? "text-warning" : !node.isSafe ? "text-danger" : ""}>{`[${nodeType}]`}</span><span>{`${right}`}</span>
-                </span>)
-            });
-            let rowElements3: JSX.Element[] = [];
-            row.forEach((node, index) => {
-                if (rowIndex == this.state.rooms.length - 1) {
-                    return;
-                }
-                if (!rooms.has(node)) {
-                    rowElements3.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
-                    return;
-                }
-                if (!(node.up || node.right || node.down || node.left)) {
-                    rowElements3.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
-                    return;
-                }
-                let down = node.down ? "| " : "  ";
-                rowElements3.push(<span key={`${rowIndex},${index}`}>{`   ${down}  `}</span>);
-            });
-
-            output.push(
-                <div key={rowIndex}>
-                    <div>
-                        {rowElements1}
-                    </div>
-                    <div>
-                        {rowElements2}
-                    </div>
-                    <div>
-                        {rowElements3}
-                    </div>
-                </div>
-            );
-        });
-
-        return <div style={{ whiteSpace: "pre", lineHeight: `${fontSize}em`, fontSize: `${fontSize}em` }} className="m-0" >{output}</div>;
-    }
-
-    bfs(): Set<Room> {
-        if (this.state.rooms.length == 0) {
-            return new Set();
-        }
-        let currRow = 0;
-        let currCol = Math.floor(this.state.rooms[0].length / 2);
-        let visitedRooms: Set<Room> = new Set();
-        let roomsToVisit: Room[] = [];
-        roomsToVisit.push(this.state.rooms[currRow][currCol]);
-
-        while (roomsToVisit.length > 0) {
-            currRow = roomsToVisit[0].row;
-            currCol = roomsToVisit[0].col;
-            if (!visitedRooms.has(this.state.rooms[currRow][currCol])) {
-                visitedRooms.add(this.state.rooms[currRow][currCol]);
-
-                if (this.state.rooms[currRow][currCol].up && !visitedRooms.has(this.state.rooms[currRow - 1][currCol])) {
-                    roomsToVisit.push(this.state.rooms[currRow - 1][currCol]);
-                }
-                if (this.state.rooms[currRow][currCol].right && !visitedRooms.has(this.state.rooms[currRow][currCol + 1])) {
-                    roomsToVisit.push(this.state.rooms[currRow][currCol + 1])
-                }
-                if (this.state.rooms[currRow][currCol].down && !visitedRooms.has(this.state.rooms[currRow + 1][currCol])) {
-                    roomsToVisit.push(this.state.rooms[currRow + 1][currCol]);
-                }
-                if (this.state.rooms[currRow][currCol].left && !visitedRooms.has(this.state.rooms[currRow][currCol - 1])) {
-                    roomsToVisit.push(this.state.rooms[currRow][currCol - 1]);
-                }
-            }
-            roomsToVisit.shift();
-        }
-        return visitedRooms;
-    }
-
     // Request update from server
     requestUpdate() {
         clientSocketManager?.send(MessageType.GAME, { action: UserAction.UPDATE, data: {} });     // Sends a WS message requesting an update
@@ -491,7 +292,6 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
     // Render the players
     players() {
-        let color = this.state.role == Role.INNOCENT ? "success" : "danger";
         let output: JSX.Element[] = [];
         this.state.players.forEach((player, index) => {
             output.push(
@@ -556,18 +356,11 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         </>
     }
 
+    // Whether or not the player is a traitor
     isTraitor() {
         return this.state.role == Role.TRAITOR;
     }
 
-    /*
-        1. MAP
-        2. CHAT
-        3. TEXT AREA FOR ROOM INFO
-        4. PLAYER LIST
-        5. SABOTAGE BUTTON?? --> connected to players in player list
-        6. ??
-    */
     render() {
         if (this.state.exploredRooms.length == 0) {
             return <>
@@ -586,9 +379,17 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                         {/* Game/MAP horizontal */}
                         <div className="d-flex flex-row flex-grow-1">
                             {/* MAP */}
-                            <div className="border border-white p-3">
+                            <div className="border border-white p-3 d-flex flex-column justify-content-center">
                                 <h2>MAP</h2>
-                                {this.map()}
+                                <GameMap
+                                    className="flex-grow-1"
+                                    role={this.state.role}
+                                    exploredRooms={this.state.exploredRooms}
+                                    rows={this.state.rows}
+                                    cols={this.state.cols}
+                                    rooms={this.state.rooms} 
+                                    currentRoom={this.state.currentRoom}
+                                />
                             </div>
 
                             {/* GAME */}
