@@ -14,7 +14,7 @@ export default class GameState {
     exploredRooms: Room[] = [];
     players: Player[] = [];
     traitors: Traitor[] = [];
-    traitorToVictim: Map<Traitor, Player> = new Map();
+    traitorToVictims: Map<Traitor, Player[]> = new Map();
     torches: number;
     currTorchIndex: number = 0;
     playerToRoomView: Map<Player, Room> = new Map();
@@ -65,11 +65,15 @@ export default class GameState {
 
     handleSabotagePhase() {
         let sabotagedPlayers: Set<Player> = new Set();
-        this.traitorToVictim.forEach((player, traitor) => {
-            sabotagedPlayers.add(player);
-            traitor.sabotages--;
-            GameManager.sendSabotageNumber(traitor, traitor.sabotages);
+        this.traitorToVictims.forEach((players, traitor) => {
+            players.forEach(player => {
+                sabotagedPlayers.add(player);
+                traitor.sabotages--;
+            }
+            )
         });
+
+        this.traitors.forEach(traitor => GameManager.sendSabotageNumber(traitor, traitor.sabotages));
 
         this.playerToRoomView.forEach((room, player) => {
             let isSafe = room.isSafe;
@@ -79,7 +83,7 @@ export default class GameState {
             GameManager.sendRoomInfo(player, isSafe);
         });
 
-        this.traitorToVictim.clear();
+        this.traitorToVictims.clear();
         this.playerToRoomView.clear();
 
         this.currentPhase = GamePhase.VOTE;
@@ -108,7 +112,7 @@ export default class GameState {
         this.playerToVoteDirection.clear();
         this.directionToVotes.clear();
         GameManager.sendVoteResult(maxVoteDir, this);
-        
+
         this.handlePartyMovement(maxVoteDir);
     }
 
@@ -201,7 +205,13 @@ export default class GameState {
         if (!sabotagedPlayer || !sabotagedPlayer.hasTorch) {
             return false;
         }
-        this.traitorToVictim.set(traitor, sabotagedPlayer);
+
+        if (!this.traitorToVictims.get(traitor)) {
+            this.traitorToVictims.set(traitor, [sabotagedPlayer]);
+        } else {
+            this.traitorToVictims.get(traitor)?.push(sabotagedPlayer);
+        }
+
         return true;
     }
 
