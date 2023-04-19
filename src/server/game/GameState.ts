@@ -21,6 +21,7 @@ export default class GameState {
     playerToVoteDirection: Map<Player, Direction> = new Map();
     directionToVotes: Map<Direction, number> = new Map();
     currentPhase: GamePhase = GamePhase.SABOTAGE;
+    time: number = 0;
 
     constructor(lobbyId: string, players: { username: string }[], numTraitors: number) {
         this.lobbyId = lobbyId;
@@ -55,12 +56,18 @@ export default class GameState {
     }
 
     updateGame() {
-        // if (this.currentPhase == GamePhase.SABOTAGE) {
-        //     setTimeout(() => this.handleSabotagePhase(), 20000);
-        // }
-        // if (this.currentPhase == GamePhase.VOTE) {
-        //     setTimeout(() => this.handleVotePhase(), 60000);
-        // }
+        setInterval(() => {
+            this.time++;
+            this.players.forEach(player => GameManager.updateTimer(player, this.time));
+        }, 1000);
+        if (this.currentPhase == GamePhase.SABOTAGE) {
+            this.time = 0;
+            setTimeout(() => this.handleSabotagePhase(), 20000);
+        }
+        if (this.currentPhase == GamePhase.VOTE) {
+            this.time = 0;
+            setTimeout(() => this.handleVotePhase(), 60000);
+        }
     }
 
     handleSabotagePhase() {

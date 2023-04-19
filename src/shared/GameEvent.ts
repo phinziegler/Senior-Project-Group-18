@@ -11,6 +11,7 @@ enum GameEvent {
     VOTE_RESULT = "voteResult",
     MOVE_RESULT = "moveResult",
     GAME_END = "gameEnd",
+    UPDATE_TIMER = "updateTimer"
 }
 
 export default GameEvent;

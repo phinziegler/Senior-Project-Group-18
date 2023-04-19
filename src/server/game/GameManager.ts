@@ -158,6 +158,10 @@ class GameManagerClass {
             socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.GAME_END, data: { winning: outcome, playerData: playerData } } }));
         });
     }
+
+    updateTimer(player: Player, time: number) {
+        socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.UPDATE_TIMER, data: { time: time } } }));
+    }
 }
 
 const GameManager = new GameManagerClass();
