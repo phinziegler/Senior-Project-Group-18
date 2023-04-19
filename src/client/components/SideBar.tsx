@@ -51,7 +51,7 @@ export default class SideBar extends React.Component<SideBarProps, { pathName: s
                         {this.props.user ? this.link('user', `user/${this.props.user.username}`) : this.link("login", "login")}
                         {this.props.user && this.link("create lobby", "create-lobby")}
                         {this.link("lobby list", "/lobby-list")}
-                        {/* {this.link("GAME_TEST", "/game")} */}
+                        {this.link("Game", "/game")}
                         {this.props.lobby && this.link(this.props.lobby.name, `lobby/${this.props.lobby.id}`)}
                         {this.link("this will error", "/error")}
                     </Nav>
