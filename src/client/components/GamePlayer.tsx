@@ -1,9 +1,11 @@
 import React from "react"
 import User from "../../shared/User";
 import Role from "../../shared/Role";
+import Direction from "../../shared/Direction";
 
 
 interface Props {
+    playerDirection: Direction | undefined,
     sabotagedList: Set<string>,
     role: Role,
     username: string,
@@ -46,6 +48,19 @@ export default class GamePlayer extends React.Component<Props, State> {
         });
     }
 
+    directionEmoji(direction: Direction): string {
+        switch (direction) {
+            case Direction.UP:
+                return "🡱";
+            case Direction.RIGHT:
+                return "🡲";
+            case Direction.DOWN:
+                return "🡳";
+            case Direction.LEFT:
+                return "🡰";
+        }
+    }
+
     render(): React.ReactNode {
         let isMe = this.props.username == this.props.user?.username;
         let myColor = this.props.role == Role.INNOCENT ? "success" : "danger";
@@ -62,6 +77,7 @@ export default class GamePlayer extends React.Component<Props, State> {
                 className={"py-3 text-center text-" + (isMe ? myColor : color)}>
                 {this.props.username}
                 {this.props.torchBearer && <span>️‍🔥</span>}
+                {this.props.playerDirection && <span className="text-white">{this.directionEmoji(this.props.playerDirection)}</span>}
                 {this.state.sabotaged && <span>❌</span>}
                 {this.props.sabotagedList.has(this.props.username) && <span>❗</span>}
             </div>

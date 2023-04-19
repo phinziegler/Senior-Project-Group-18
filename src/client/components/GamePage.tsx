@@ -13,6 +13,8 @@ import requestUrl from "../tools/requestUrl";
 import ServerRoutes from "../../shared/ServerRoutes";
 import { Link } from "react-router-dom";
 import GamePlayer from "./GamePlayer";
+import ClearOptions from "./ClearOptions";
+import GameMap from "./GameMap";
 
 interface GameProps {
     user: User | null
@@ -31,7 +33,8 @@ interface GameState {
     rows: number,
     cols: number,
     sabotaging: boolean,
-    isSabotaged: Set<string>
+    isSabotaged: Set<string>,
+    playerToDirection: Map<string, Direction>,
 }
 
 export default class GamePage extends React.Component<GameProps, GameState> {
@@ -50,11 +53,13 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             rows: 0,
             cols: 0,
             sabotaging: false,
-            isSabotaged: new Set()
+            isSabotaged: new Set(),
+            playerToDirection: new Map()
         }
 
         this.wsConnectListener = this.wsConnectListener.bind(this);
 
+        this.roomSelectEvent = this.roomSelectEvent.bind(this);
         this.sabotageEvent = this.sabotageEvent.bind(this);
         this.unsabotageEvent = this.unsabotageEvent.bind(this);
         this.roleAssignEvent = this.roleAssignEvent.bind(this);
@@ -71,6 +76,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
     componentWillUnmount(): void {
         window.removeEventListener("wsConnect", this.wsConnectListener);
 
+        window.removeEventListener(GameEvent.ROOM_SELECT, this.roomSelectEvent);
         window.removeEventListener(GameEvent.SABOTAGE, this.sabotageEvent);
         window.removeEventListener(GameEvent.UNSABOTAGE, this.unsabotageEvent);
         window.removeEventListener(GameEvent.ROLE_ASSIGN, this.roleAssignEvent);
@@ -87,6 +93,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         // ADD EVENT LISTENERS
         window.addEventListener("wsConnect", this.wsConnectListener);
 
+        window.addEventListener(GameEvent.ROOM_SELECT, this.roomSelectEvent);
         window.addEventListener(GameEvent.SABOTAGE, this.sabotageEvent);
         window.addEventListener(GameEvent.UNSABOTAGE, this.unsabotageEvent);
         window.addEventListener(GameEvent.ROLE_ASSIGN, this.roleAssignEvent);
@@ -145,6 +152,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
     boardUpdateEvent(e: any) {
         let exploredRooms = e.detail.data.exploredRooms;
         let lobbyId = e.detail.data.lobbyId;
+        let currentRoom = e.detail.data.currentRoom;
         let rows;
         let cols;
         let hasDimensions = false;
@@ -162,9 +170,9 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             console.log("Innocent");
         }
 
-
         this.setState({
             exploredRooms: exploredRooms,
+            currentRoom: currentRoom
         });
 
         if (board) {
@@ -190,20 +198,20 @@ export default class GamePage extends React.Component<GameProps, GameState> {
     }
 
     sabotageEvent(e: any) {
-        if(!this.props.user) {
+        if (!this.props.user) {
             return;
         }
-        if(e.detail.data.sabotager == this.props.user.username) {
+        if (e.detail.data.sabotager == this.props.user.username) {
             return;
         }
         this.state.isSabotaged.add(e.detail.data.victim);
     }
 
     unsabotageEvent(e: any) {
-        if(!this.props.user) {
+        if (!this.props.user) {
             return;
         }
-        if(e.detail.data.sabotager == this.props.user.username) {
+        if (e.detail.data.sabotager == this.props.user.username) {
             return;
         }
         this.state.isSabotaged.delete(e.detail.data.victim);
@@ -215,6 +223,18 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
     viewRoomEvent(e: any) {
         // this.setState({});
+    }
+
+    // Triggered when a player declares that they will check a room
+    roomSelectEvent(e: any) {
+        let user = e.detail.data.player;
+        let direction = e.detail.data.direction;
+
+        let map = this.state.playerToDirection;
+        map.set(user, direction);
+        this.setState({
+            playerToDirection: map
+        });
     }
 
     playerVoteEvent(e: any) {
@@ -239,205 +259,6 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         });
     }
 
-    prefillRooms() {
-        let possibleRooms: (Room | null)[][] = [];
-
-        // Fill PossibleRooms
-        for (let r = 0; r < this.state.rows; r++) {
-            let row: (Room | null)[] = [];
-            for (let c = 0; c < this.state.cols; c++) {
-                row.push(null);
-            }
-            possibleRooms.push(row);
-        }
-        return possibleRooms;
-    }
-
-    innocentMap(fontSize: number) {
-        let output: JSX.Element[] = [];
-        let possibleRooms: (Room | null)[][] = this.prefillRooms();
-
-        // Fill possibleRooms
-        this.state.exploredRooms.forEach(room => {
-            possibleRooms[room.row][room.col] = room;
-        });
-
-        possibleRooms.forEach((row: (Room | null)[], rowIndex) => {
-            let rowElements1: JSX.Element[] = [];
-            row.forEach((node: Room | null, index) => {
-                if (rowIndex == 0) {
-                    return;
-                }
-                if (!node) {
-                    rowElements1.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
-                    return;
-                }
-                let up = node.up ? "| " : "  ";
-                rowElements1.push(<span key={`${rowIndex},${index}`}>{`   ${up}  `}</span>);
-            });
-
-            let rowElements2: JSX.Element[] = [];
-            row.forEach((node: Room | null, index) => {
-                if (!node) {
-                    rowElements2.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
-                    return;
-                }
-                let right = node.right ? "――" : "  ";
-                let left = node.left ? "――" : "  ";
-                let nodeType = node.isGoal ? "W" : node.isSafe ? "O" : "X";
-                // let nodeType = " "
-
-                let start = this.state.exploredRooms[0];
-                rowElements2.push(<span key={`${rowIndex},${index}`}>
-                    <span>{`${left}`}</span><span className={node.isGoal ? "text-success" : (node.row == start.row && node.col == start.col) ? "text-warning" : !node.isSafe ? "text-danger" : ""}>{`[${nodeType}]`}</span><span>{`${right}`}</span>
-                </span>)
-            });
-
-            let rowElements3: JSX.Element[] = [];
-            row.forEach((node, index) => {
-                if (rowIndex == this.state.rooms.length - 1) {
-                    return;
-                }
-                if (!node) {
-                    rowElements3.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
-                    return;
-                }
-                let down = node.down ? "| " : "  ";
-                rowElements3.push(<span key={`${rowIndex},${index}`}>{`   ${down}  `}</span>);
-            });
-
-            output.push(
-                <div key={rowIndex}>
-                    <div>
-                        {rowElements1}
-                    </div>
-                    <div>
-                        {rowElements2}
-                    </div>
-                    <div>
-                        {rowElements3}
-                    </div>
-                </div>
-            );
-        });
-
-        return <div style={{ whiteSpace: "pre", lineHeight: `${fontSize}em`, fontSize: `${fontSize}em` }} className="m-0" >{output}</div>;
-    }
-
-    // Returns a text representation of the map
-    map(fontSize: number = 1) {
-
-        if (this.state.role == Role.INNOCENT) {
-            return this.innocentMap(fontSize);
-        }
-
-        let rooms = this.bfs();
-        let output: JSX.Element[] = [];
-        this.state.rooms.forEach((row, rowIndex) => {
-            let rowElements1: JSX.Element[] = [];
-            row.forEach((node, index) => {
-                if (rowIndex == 0) {
-                    return;
-                }
-                if (!rooms.has(node)) {
-                    rowElements1.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
-                    return;
-                }
-                if (!(node.up || node.right || node.down || node.left)) {
-                    rowElements1.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
-                    return;
-                }
-                let up = node.up ? "| " : "  ";
-                rowElements1.push(<span key={`${rowIndex},${index}`}>{`   ${up}  `}</span>);
-            });
-            let rowElements2: JSX.Element[] = [];
-            row.forEach((node, index) => {
-                if (!rooms.has(node)) {
-                    rowElements2.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
-                    return;
-                }
-                if (!(node.up || node.right || node.down || node.left)) {
-                    rowElements2.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
-                    return;
-                }
-                let right = node.right ? "――" : "  ";
-                let left = node.left ? "――" : "  ";
-                let nodeType = node.isGoal ? "W" : node.isSafe ? "O" : "X";
-
-                let start = this.state.exploredRooms[0];
-                rowElements2.push(<span key={`${rowIndex},${index}`}>
-                    <span>{`${left}`}</span><span className={node.isGoal ? "text-success" : (node.row == start.row && node.col == start.col) ? "text-warning" : !node.isSafe ? "text-danger" : ""}>{`[${nodeType}]`}</span><span>{`${right}`}</span>
-                </span>)
-            });
-            let rowElements3: JSX.Element[] = [];
-            row.forEach((node, index) => {
-                if (rowIndex == this.state.rooms.length - 1) {
-                    return;
-                }
-                if (!rooms.has(node)) {
-                    rowElements3.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
-                    return;
-                }
-                if (!(node.up || node.right || node.down || node.left)) {
-                    rowElements3.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
-                    return;
-                }
-                let down = node.down ? "| " : "  ";
-                rowElements3.push(<span key={`${rowIndex},${index}`}>{`   ${down}  `}</span>);
-            });
-
-            output.push(
-                <div key={rowIndex}>
-                    <div>
-                        {rowElements1}
-                    </div>
-                    <div>
-                        {rowElements2}
-                    </div>
-                    <div>
-                        {rowElements3}
-                    </div>
-                </div>
-            );
-        });
-
-        return <div style={{ whiteSpace: "pre", lineHeight: `${fontSize}em`, fontSize: `${fontSize}em` }} className="m-0" >{output}</div>;
-    }
-
-    bfs(): Set<Room> {
-        if (this.state.rooms.length == 0) {
-            return new Set();
-        }
-        let currRow = 0;
-        let currCol = Math.floor(this.state.rooms[0].length / 2);
-        let visitedRooms: Set<Room> = new Set();
-        let roomsToVisit: Room[] = [];
-        roomsToVisit.push(this.state.rooms[currRow][currCol]);
-
-        while (roomsToVisit.length > 0) {
-            currRow = roomsToVisit[0].row;
-            currCol = roomsToVisit[0].col;
-            if (!visitedRooms.has(this.state.rooms[currRow][currCol])) {
-                visitedRooms.add(this.state.rooms[currRow][currCol]);
-
-                if (this.state.rooms[currRow][currCol].up && !visitedRooms.has(this.state.rooms[currRow - 1][currCol])) {
-                    roomsToVisit.push(this.state.rooms[currRow - 1][currCol]);
-                }
-                if (this.state.rooms[currRow][currCol].right && !visitedRooms.has(this.state.rooms[currRow][currCol + 1])) {
-                    roomsToVisit.push(this.state.rooms[currRow][currCol + 1])
-                }
-                if (this.state.rooms[currRow][currCol].down && !visitedRooms.has(this.state.rooms[currRow + 1][currCol])) {
-                    roomsToVisit.push(this.state.rooms[currRow + 1][currCol]);
-                }
-                if (this.state.rooms[currRow][currCol].left && !visitedRooms.has(this.state.rooms[currRow][currCol - 1])) {
-                    roomsToVisit.push(this.state.rooms[currRow][currCol - 1]);
-                }
-            }
-            roomsToVisit.shift();
-        }
-        return visitedRooms;
-    }
-
     // Request update from server
     requestUpdate() {
         clientSocketManager?.send(MessageType.GAME, { action: UserAction.UPDATE, data: {} });     // Sends a WS message requesting an update
@@ -450,7 +271,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
     // Tell the server to sabotage a player
     sabotage(victim: string) {
-        if(!this.props.user) {
+        if (!this.props.user) {
             return;
         }
         clientSocketManager?.send(MessageType.GAME, { action: UserAction.SABOTAGE, data: { sabotager: this.props.user.username, victim: victim } });
@@ -458,7 +279,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
     // Unsabotage
     unsabotage(victim: string) {
-        if(!this.props.user) {
+        if (!this.props.user) {
             return;
         }
         clientSocketManager?.send(MessageType.GAME, { action: UserAction.UNSABOTAGE, data: { sabotager: this.props.user.username, victim: victim } });
@@ -471,11 +292,11 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
     // Render the players
     players() {
-        let color = this.state.role == Role.INNOCENT ? "success" : "danger";
         let output: JSX.Element[] = [];
         this.state.players.forEach((player, index) => {
             output.push(
                 <GamePlayer
+                    playerDirection={this.state.playerToDirection.get(player)}
                     sabotagedList={this.state.isSabotaged}
                     doSabotage={(victim) => this.sabotage(victim)}
                     doUnsabotage={(victim) => this.unsabotage(victim)}
@@ -501,6 +322,9 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         let color = this.state.role == Role.INNOCENT ? "success" : "danger";
         let phrase = this.state.role == Role.INNOCENT ? "You are an " : "You are a ";
         let role = this.state.role == Role.INNOCENT ? "ADVENTURER" : "TRAITOR"
+        if (!this.props.user) {
+            return;
+        }
 
         return <>
             <div className="text-center position-relative flex-grow-1">
@@ -521,6 +345,10 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                     <div className="text-danger small">Remaining: {this.state.sabotages}</div>
                 </div>}
                 <br />
+                {this.state.torchAssignments.includes(this.props.user?.username) &&
+                    <ClearOptions
+                        currentRoom={this.state.currentRoom}
+                        viewRoom={(direction) => this.viewRoom(direction)} />}
                 {this.state.sabotaging && <div className="text-danger">Click on a torchbearer to sabotage their room clear.</div>}
             </div>
 
@@ -528,18 +356,11 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         </>
     }
 
+    // Whether or not the player is a traitor
     isTraitor() {
         return this.state.role == Role.TRAITOR;
     }
 
-    /*
-        1. MAP
-        2. CHAT
-        3. TEXT AREA FOR ROOM INFO
-        4. PLAYER LIST
-        5. SABOTAGE BUTTON?? --> connected to players in player list
-        6. ??
-    */
     render() {
         if (this.state.exploredRooms.length == 0) {
             return <>
@@ -558,9 +379,17 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                         {/* Game/MAP horizontal */}
                         <div className="d-flex flex-row flex-grow-1">
                             {/* MAP */}
-                            <div className="border border-white p-3">
+                            <div className="border border-white p-3 d-flex flex-column justify-content-center">
                                 <h2>MAP</h2>
-                                {this.map()}
+                                <GameMap
+                                    className="flex-grow-1"
+                                    role={this.state.role}
+                                    exploredRooms={this.state.exploredRooms}
+                                    rows={this.state.rows}
+                                    cols={this.state.cols}
+                                    rooms={this.state.rooms} 
+                                    currentRoom={this.state.currentRoom}
+                                />
                             </div>
 
                             {/* GAME */}
