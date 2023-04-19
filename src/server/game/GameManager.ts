@@ -102,6 +102,25 @@ class GameManagerClass {
         }
     }
 
+    sendVoteResult(voteDir: string, gameState: GameState) {
+        gameState.players.forEach(player => {
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.VOTE_RESULT, data: { voteDir: voteDir } } }));
+        });
+    }
+
+    sendMovementResult(nextRoomIsSafe: boolean, gameState: GameState) {
+        gameState.players.forEach(player => {
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.MOVE_RESULT, data: { nextRoomIsSafe: nextRoomIsSafe } } }));
+        });
+    }
+
+    sendGameOutcome(outcome: string, gameState: GameState) {
+        gameState.players.forEach(player => {
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.GAME_END, data: { outcome: outcome } } }));
+        });
+    }
+
+
     sendBoard(player: Player, gameState: GameState) {
         let isTraitor: boolean = player instanceof Traitor;
         let exploredRooms: Room[] = gameState.exploredRooms;

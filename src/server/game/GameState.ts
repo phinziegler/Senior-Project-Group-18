@@ -75,12 +75,91 @@ export default class GameState {
             GameManager.sendRoomInfo(player, isSafe);
         });
 
+        this.traitorToVictim.clear();
+        this.playerToRoomView.clear();
+
         this.currentPhase = GamePhase.VOTE;
         this.updateGame();
     }
 
     handleVotePhase() {
+        let max: number = -1;
+        let maxVoteDir: Direction = Direction.UP;
 
+        this.directionToVotes.forEach((voteCount, voteDir) => {
+            if (voteCount > max) {
+                max = voteCount;
+                maxVoteDir = voteDir;
+            } else if (voteCount == max) {
+                // The vote was tied, revote
+                GameManager.sendVoteResult("tie", this);
+                this.currentPhase = GamePhase.VOTE;
+                this.updateGame();
+                return;
+            }
+        });
+
+        GameManager.sendVoteResult(maxVoteDir, this);
+        
+        this.handlePartyMovement(maxVoteDir);
+    }
+
+    handlePartyMovement(maxVoteDir: Direction) {
+        let nextRoomIsSafe: boolean = true;
+        let nextRoom: Room = this.currentRoom;
+        let row: number;
+        let col: number;
+
+        switch (maxVoteDir) {
+            case Direction.UP:
+                if (this.currentRoom.up) {
+                    row = this.currentRoom.row - 1;
+                    col = this.currentRoom.col;
+                    nextRoom = this.board.rooms[row][col];
+                    nextRoomIsSafe = this.board.rooms[row][col].isSafe;
+                }
+                break;
+            case Direction.RIGHT:
+                if (this.currentRoom.right) {
+                    row = this.currentRoom.row;
+                    col = this.currentRoom.col + 1;
+                    nextRoom = this.board.rooms[row][col];
+                    nextRoomIsSafe = this.board.rooms[row][col].isSafe;
+                }
+                break;
+            case Direction.DOWN:
+                if (this.currentRoom.down) {
+                    row = this.currentRoom.row + 1;
+                    col = this.currentRoom.col;
+                    nextRoom = this.board.rooms[row][col];
+                    nextRoomIsSafe = this.board.rooms[row][col].isSafe;
+                }
+                break;
+            case Direction.LEFT:
+                if (this.currentRoom.left) {
+                    row = this.currentRoom.row;
+                    col = this.currentRoom.col - 1;
+                    nextRoom = this.board.rooms[row][col];
+                    nextRoomIsSafe = this.board.rooms[row][col].isSafe;
+                }
+                break;
+        }
+
+        GameManager.sendMovementResult(nextRoomIsSafe, this);
+
+        this.currentRoom = nextRoom;
+
+        if (!this.currentRoom.isSafe) {
+            this.torches--;
+            if (this.torches == 0) {
+                this.endGame("lose");
+            }
+        } 
+
+        this.currentRoom.isSafe = true;
+
+        this.currentPhase = GamePhase.SABOTAGE;
+        this.updateGame();
     }
 
     // handles player sabotage. Returns true if sabotage is successful, otherwise returns false
@@ -178,5 +257,11 @@ export default class GameState {
             }
         });
         return torchbearers;
+    }
+
+    endGame(outcome: string) {
+        if (outcome == "lose") {
+            GameManager.sendGameOutcome(outcome);
+        }
     }
 }
