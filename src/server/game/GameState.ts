@@ -261,7 +261,7 @@ export default class GameState {
 
     endGame(outcome: string) {
         if (outcome == "lose") {
-            GameManager.sendGameOutcome(outcome);
+            GameManager.sendGameOutcome(outcome, this);
         }
     }
 }
