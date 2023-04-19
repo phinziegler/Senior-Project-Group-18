@@ -20,7 +20,7 @@ interface GameState {
     rooms: Room[][];
     exploredRooms: Room[];
     currentRoom: Room | null,
-    players: User[];
+    players: string[];
     torchAssignments: string[];
     role: Role;
     sabotages: number;
@@ -117,7 +117,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         let lobbyId = e.detail.data.lobbyId;
         let board;
         try {
-            board = e.detail.data.board.board;
+            board = e.detail.data.board.rooms;
         } catch {
             console.log("Innocent");
         }
@@ -300,6 +300,23 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         clientSocketManager?.send(MessageType.GAME, { action: UserAction.VIEW, data: { direction: direction } })
     }
 
+    // Render the players
+    players() {
+        let color = this.state.role == Role.INNOCENT ? "success" : "danger";
+        let output: JSX.Element[] = [];
+        this.state.players.forEach((player, index) => {
+            if(player == this.props.user?.username) {
+                output.push(<span className={`text-${color}`} key={index}>{player}</span>)
+                return;
+            }
+            output.push(
+                <span key={index}>{player}</span>
+            )
+        });
+
+        return output;
+    }
+
     // Gaming
     game() {
         let color = this.state.role == Role.INNOCENT ? "success" : "danger";
@@ -350,8 +367,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
                         {/* PLAYERS */}
                         <div className="border border-primary p-3 d-flex justify-content-around">
-                            <span>Player 1</span>
-                            <span>Player 2</span>
+                            {this.players()}
                         </div>
                     </div>
                     {/* ----------------------------------------------------------------------------------------------- */}
