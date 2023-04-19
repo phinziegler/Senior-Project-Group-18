@@ -25,6 +25,8 @@ interface GameState {
     role: Role;
     sabotages: number;
     lobbyId: string;
+    rows: number,
+    cols: number
 }
 
 export default class GamePage extends React.Component<GameProps, GameState> {
@@ -38,7 +40,9 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             torchAssignments: [],
             role: Role.INNOCENT,
             sabotages: 0,
-            lobbyId: ""
+            lobbyId: "",
+            rows: 0,
+            cols: 0,
         }
 
         this.wsConnectListener = this.wsConnectListener.bind(this);
@@ -115,6 +119,16 @@ export default class GamePage extends React.Component<GameProps, GameState> {
     boardUpdateEvent(e: any) {
         let exploredRooms = e.detail.data.exploredRooms;
         let lobbyId = e.detail.data.lobbyId;
+        let rows;
+        let cols;
+        let hasDimensions = false;
+        try {
+            rows = e.detail.data.rows;
+            cols = e.detail.data.cols;
+            hasDimensions = true;
+        } catch {
+            console.log("Got Dimensions");
+        }
         let board;
         try {
             board = e.detail.data.board.rooms;
@@ -132,6 +146,14 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                 rooms: board
             });
         }
+
+        if (hasDimensions) {
+            this.setState({
+                rows: rows,
+                cols: cols
+            })
+        }
+
         // Now that we have the lobby ID, we can also look up the list of players
         if (lobbyId != this.state.lobbyId) {
             this.setState({
@@ -172,8 +194,98 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         });
     }
 
+    prefillRooms() {
+        let possibleRooms: (Room | null)[][] = [];
+
+        // Fill PossibleRooms
+        for (let r = 0; r < this.state.rows; r++) {
+            let row: (Room | null)[] = [];
+            for (let c = 0; c < this.state.cols; c++) {
+                row.push(null);
+            }
+            possibleRooms.push(row);
+        }
+        return possibleRooms;
+    }
+
+    innocentMap(fontSize: number) {
+        let output: JSX.Element[] = [];
+        let possibleRooms: (Room | null)[][] = this.prefillRooms();
+
+        // Fill possibleRooms
+        this.state.exploredRooms.forEach(room => {
+            possibleRooms[room.row][room.col] = room;
+        });
+
+        possibleRooms.forEach((row: (Room | null)[], rowIndex) => {
+            let rowElements1: JSX.Element[] = [];
+            row.forEach((node: Room | null, index) => {
+                if (rowIndex == 0) {
+                    return;
+                }
+                if(!node) {
+                    rowElements1.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
+                    return;
+                }
+                let up = node.up ? "| " : "  ";
+                rowElements1.push(<span key={`${rowIndex},${index}`}>{`   ${up}  `}</span>);
+            });
+
+            let rowElements2: JSX.Element[] = [];
+            row.forEach((node: Room | null, index) => {
+                if(!node) {
+                    rowElements2.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
+                    return;
+                }
+                let right = node.right ? "――" : "  ";
+                let left = node.left ? "――" : "  ";
+                let nodeType = node.isGoal ? "W" : node.isSafe ? "O" : "X";
+                // let nodeType = " "
+
+                let start = this.state.exploredRooms[0];
+                rowElements2.push(<span key={`${rowIndex},${index}`}>
+                    <span>{`${left}`}</span><span className={node.isGoal ? "text-success" : (node.row == start.row && node.col == start.col) ? "text-warning" : !node.isSafe ? "text-danger" : ""}>{`[${nodeType}]`}</span><span>{`${right}`}</span>
+                </span>)
+            });
+
+            let rowElements3: JSX.Element[] = [];
+            row.forEach((node, index) => {
+                if (rowIndex == this.state.rooms.length - 1) {
+                    return;
+                }
+                if(!node) {
+                    rowElements3.push(<span key={`${rowIndex},${index}`}>{``.padStart(7, " ")}</span>);
+                    return;
+                }
+                let down = node.down ? "| " : "  ";
+                rowElements3.push(<span key={`${rowIndex},${index}`}>{`   ${down}  `}</span>);
+            });
+
+            output.push(
+                <div key={rowIndex}>
+                    <div>
+                        {rowElements1}
+                    </div>
+                    <div>
+                        {rowElements2}
+                    </div>
+                    <div>
+                        {rowElements3}
+                    </div>
+                </div>
+            );
+        });
+
+        return <div style={{ whiteSpace: "pre", lineHeight: `${fontSize}em`, fontSize: `${fontSize}em` }} className="m-0" >{output}</div>;
+    }
+
     // Returns a text representation of the map
     map(fontSize: number = 1) {
+
+        if (this.state.role == Role.INNOCENT) {
+            return this.innocentMap(fontSize);
+        }
+
         let rooms = this.bfs();
         let output: JSX.Element[] = [];
         this.state.rooms.forEach((row, rowIndex) => {
@@ -207,8 +319,9 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                 let left = node.left ? "――" : "  ";
                 let nodeType = node.isGoal ? "W" : node.isSafe ? "O" : "X";
 
+                let start = this.state.exploredRooms[0];
                 rowElements2.push(<span key={`${rowIndex},${index}`}>
-                    <span>{`${left}`}</span><span className={node.isGoal ? "text-success" : !node.isSafe ? "text-danger" : ""}>{`[${nodeType}]`}</span><span>{`${right}`}</span>
+                    <span>{`${left}`}</span><span className={node.isGoal ? "text-success" : (node.row == start.row && node.col == start.col) ? "text-warning" : !node.isSafe ? "text-danger" : ""}>{`[${nodeType}]`}</span><span>{`${right}`}</span>
                 </span>)
             });
             let rowElements3: JSX.Element[] = [];
@@ -305,7 +418,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         let color = this.state.role == Role.INNOCENT ? "success" : "danger";
         let output: JSX.Element[] = [];
         this.state.players.forEach((player, index) => {
-            if(player == this.props.user?.username) {
+            if (player == this.props.user?.username) {
                 output.push(<span className={`text-${color}`} key={index}>{player}</span>)
                 return;
             }
