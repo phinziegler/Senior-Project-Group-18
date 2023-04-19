@@ -7,6 +7,7 @@ enum GameEvent {
     ROOM_SELECT = "roomSelect",
     PLAYER_VOTE = "playerVote",
     VOTE_RESULT = "voteResult",
+    MOVE_RESULT = "moveResult",
     GAME_END = "gameEnd",
 }
 
