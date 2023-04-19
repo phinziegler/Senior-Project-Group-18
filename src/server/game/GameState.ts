@@ -181,6 +181,8 @@ export default class GameState {
             this.exploredRooms.push(this.currentRoom);
         }
 
+        this.players.forEach(player => GameManager.sendBoard(player, this));
+
         this.currentPhase = GamePhase.SABOTAGE;
         this.updateGame();
     }

@@ -139,7 +139,7 @@ class GameManagerClass {
 
 
         if (!isTraitor) {
-            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.BOARD_UPDATE, data: { lobbyId: gameState.lobbyId, exploredRooms: exploredRooms, rows: board.rows, cols: board.cols } } }));
+            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.BOARD_UPDATE, data: { lobbyId: gameState.lobbyId, currentRoom: gameState.currentRoom, exploredRooms: exploredRooms, rows: board.rows, cols: board.cols } } }));
         } else {
             socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.BOARD_UPDATE, data: { lobbyId: gameState.lobbyId, exploredRooms: exploredRooms, board: board } } }));
         }
