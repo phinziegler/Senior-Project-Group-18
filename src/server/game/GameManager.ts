@@ -149,8 +149,8 @@ class GameManagerClass {
         socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.TORCH_ASSIGN, data: { torchAssignments: gameState.getTorchbearers() } } }));
     }
 
-    sendRoomInfo(player: Player, isSafe: boolean) {
-        socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.VIEW_ROOM, data: { isSafe: isSafe } } }));
+    sendRoomInfo(player: Player, direction: Direction, isSafe: boolean) {
+        socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.VIEW_ROOM, data: { direction: direction, isSafe: isSafe } } }));
     }
 
     sendGameOutcome(outcome: Role, playerData: { username: string, role: Role }[], gameState: GameState) {

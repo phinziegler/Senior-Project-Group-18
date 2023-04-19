@@ -17,7 +17,7 @@ export default class GameState {
     traitorToVictims: Map<Traitor, Set<Player>> = new Map();
     torches: number;
     currTorchIndex: number = 0;
-    playerToRoomView: Map<Player, Room> = new Map();
+    playerToRoomView: Map<Player, {direction: Direction, room: Room}> = new Map();
     playerToVoteDirection: Map<Player, Direction> = new Map();
     directionToVotes: Map<Direction, number> = new Map();
     currentPhase: GamePhase = GamePhase.SABOTAGE;
@@ -75,12 +75,12 @@ export default class GameState {
 
         this.traitors.forEach(traitor => GameManager.sendSabotageNumber(traitor, traitor.sabotages));
 
-        this.playerToRoomView.forEach((room, player) => {
-            let isSafe = room.isSafe;
+        this.playerToRoomView.forEach((value, player) => {
+            let isSafe = value.room.isSafe;
             if (sabotagedPlayers.has(player)) {
                 isSafe = !isSafe;
             }
-            GameManager.sendRoomInfo(player, isSafe);
+            GameManager.sendRoomInfo(player, value.direction, isSafe);
         });
 
         this.traitorToVictims.clear();
@@ -251,7 +251,7 @@ export default class GameState {
                 if (this.currentRoom.up) {
                     row = this.currentRoom.row - 1;
                     col = this.currentRoom.col;
-                    this.playerToRoomView.set(player, this.board.rooms[row][col]);
+                    this.playerToRoomView.set(player, { direction: direction, room: this.board.rooms[row][col] });
                     return true;
                 }
                 break;
@@ -259,7 +259,7 @@ export default class GameState {
                 if (this.currentRoom.right) {
                     row = this.currentRoom.row;
                     col = this.currentRoom.col + 1;
-                    this.playerToRoomView.set(player, this.board.rooms[row][col]);
+                    this.playerToRoomView.set(player, { direction: direction, room: this.board.rooms[row][col] });
                     return true;
                 }
                 break;
@@ -267,7 +267,7 @@ export default class GameState {
                 if (this.currentRoom.down) {
                     row = this.currentRoom.row + 1;
                     col = this.currentRoom.col;
-                    this.playerToRoomView.set(player, this.board.rooms[row][col]);
+                    this.playerToRoomView.set(player, { direction: direction, room: this.board.rooms[row][col] });
                     return true;
                 }
                 break;
@@ -275,7 +275,7 @@ export default class GameState {
                 if (this.currentRoom.left) {
                     row = this.currentRoom.row;
                     col = this.currentRoom.col - 1;
-                    this.playerToRoomView.set(player, this.board.rooms[row][col]);
+                    this.playerToRoomView.set(player, { direction: direction, room: this.board.rooms[row][col] });
                     return true;
                 }
                 break;
