@@ -4,6 +4,7 @@ import Player from "./Player";
 import Traitor from "./Traitor";
 import Room from "../../shared/Room";
 import GamePhase from "./GamePhase";
+import GameManager from "./GameManager";
 
 export default class GameState {
     lobbyId: string;
@@ -66,7 +67,16 @@ export default class GameState {
         let sabotagedPlayers: Set<Player> = new Set();
         this.traitorToVictim.forEach((player) => sabotagedPlayers.add(player));
 
-        sabotagedPlayers.forEach((player) => console.log("Hi"));
+        this.playerToRoomView.forEach((room, player) => {
+            let isSafe = room.isSafe;
+            if (sabotagedPlayers.has(player)) {
+                isSafe = !isSafe;
+            }
+            GameManager.sendRoomInfo(player, isSafe);
+        });
+
+        this.currentPhase = GamePhase.VOTE;
+        this.updateGame();
     }
 
     handleVotePhase() {
