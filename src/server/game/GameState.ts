@@ -68,6 +68,7 @@ export default class GameState {
         this.traitorToVictim.forEach((player, traitor) => {
             sabotagedPlayers.add(player);
             traitor.sabotages--;
+            GameManager.sendSabotageNumber(traitor, traitor.sabotages);
         });
 
         this.playerToRoomView.forEach((room, player) => {
@@ -196,7 +197,7 @@ export default class GameState {
             return false;
         }
         let sabotagedPlayer = this.getPlayerByUsername(victimUsername);
-        if (!sabotagedPlayer) {
+        if (!sabotagedPlayer || !sabotagedPlayer.hasTorch) {
             return false;
         }
         this.traitorToVictim.set(traitor, sabotagedPlayer);

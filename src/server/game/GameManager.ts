@@ -72,10 +72,14 @@ class GameManagerClass {
 
     handleSabotage(sabotager: Player, gameState: GameState, victimUsername: string) {
         if (gameState.setSabotage(sabotager, victimUsername)) {
-            gameState.traitors.forEach(traitor => socketManager.sendMessageToUser(traitor.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.SABOTAGE, data: { sabotager: sabotager.username, victim: victimUsername, remainingSabotages: (sabotager as Traitor).sabotages, success: true } } })));
+            gameState.traitors.forEach(traitor => socketManager.sendMessageToUser(traitor.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.SABOTAGE, data: { sabotager: sabotager.username, victim: victimUsername, success: true } } })));
         } else {
             socketManager.sendMessageToUser(sabotager.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.SABOTAGE, data: { message: "Sabotage failed.", success: false } } }));
         }
+    }
+
+    sendSabotageNumber(traitor: Player, sabotages: number) {
+        socketManager.sendMessageToUser(traitor.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.SABOTAGE_NUMBER, data: { remainingSabotages: sabotages, success: true } } }));
     }
 
     handleViewRoom(playerToView: Player, gameState: GameState, direction: Direction) {
