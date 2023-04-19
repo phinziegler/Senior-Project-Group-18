@@ -171,10 +171,11 @@ export default class GameState {
         }
 
         this.clearTorchAssignments();
-        this.assignTorchbearers();
-        this.players.forEach(player => GameManager.sendTorchAssignments(player, this));
-
-        this.exploredRooms.push(this.currentRoom);
+        if (!this.exploredRooms.includes(this.currentRoom)) {
+            this.assignTorchbearers();
+            this.players.forEach(player => GameManager.sendTorchAssignments(player, this));
+            this.exploredRooms.push(this.currentRoom);
+        }
 
         this.currentPhase = GamePhase.SABOTAGE;
         this.updateGame();
