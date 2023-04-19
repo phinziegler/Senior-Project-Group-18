@@ -14,7 +14,7 @@ export default class GameState {
     exploredRooms: Room[] = [];
     players: Player[] = [];
     traitors: Traitor[] = [];
-    traitorToVictims: Map<Traitor, Player[]> = new Map();
+    traitorToVictims: Map<Traitor, Set<Player>> = new Map();
     torches: number;
     currTorchIndex: number = 0;
     playerToRoomView: Map<Player, Room> = new Map();
@@ -207,12 +207,32 @@ export default class GameState {
         }
 
         if (!this.traitorToVictims.get(traitor)) {
-            this.traitorToVictims.set(traitor, [sabotagedPlayer]);
+            this.traitorToVictims.set(traitor, new Set<Player>().add(sabotagedPlayer));
         } else {
-            this.traitorToVictims.get(traitor)?.push(sabotagedPlayer);
+            this.traitorToVictims.get(traitor)?.add(sabotagedPlayer);
         }
 
         return true;
+    }
+
+    resetSabotage(traitor: Player, victimUsername: string): boolean {
+        if (!(traitor instanceof Traitor) || this.currentPhase !== GamePhase.SABOTAGE) {
+            return false;
+        }
+
+        let victimsOfTraitor = this.traitorToVictims.get(traitor);
+
+        if (!victimsOfTraitor) {
+            return false;
+        }
+
+        let victim = this.getPlayerByUsername(victimUsername);
+
+        if (!victim) {
+            return false;
+        }
+
+        return victimsOfTraitor.delete(victim);
     }
 
     // sets room that the player will view. Returns true if successful, otherwise returns false

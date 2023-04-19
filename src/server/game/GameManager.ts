@@ -56,6 +56,9 @@ class GameManagerClass {
                 this.sendBoard(player, gameState);
                 this.sendTorchAssignments(player, gameState);
                 break;
+            case UserAction.UNSABOTAGE:
+                this.handleUnsabotage(player, gameState, message.data.victim);
+                break;
             case UserAction.SABOTAGE:
                 this.handleSabotage(player, gameState, message.data.victim);
                 break;
@@ -75,6 +78,14 @@ class GameManagerClass {
             gameState.traitors.forEach(traitor => socketManager.sendMessageToUser(traitor.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.SABOTAGE, data: { sabotager: sabotager.username, victim: victimUsername, success: true } } })));
         } else {
             socketManager.sendMessageToUser(sabotager.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.SABOTAGE, data: { message: "Sabotage failed.", success: false } } }));
+        }
+    }
+
+    handleUnsabotage(sabotager: Player, gameState: GameState, victimUsername: string) {
+        if (gameState.resetSabotage(sabotager, victimUsername)) {
+            gameState.traitors.forEach(traitor => socketManager.sendMessageToUser(traitor.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.UNSABOTAGE, data: { sabotager: sabotager.username, victim: victimUsername, success: true } } })));
+        } else {
+            socketManager.sendMessageToUser(sabotager.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.UNSABOTAGE, data: { message: "Sabotage failed.", success: false } } }));
         }
     }
 
