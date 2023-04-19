@@ -94,6 +94,7 @@ export default class GameState {
         this.playerToRoomView.clear();
 
         this.currentPhase = GamePhase.VOTE;
+        this.players.forEach(player => GameManager.updatePhase(player, this.currentPhase));
         this.updateGame();
     }
 
@@ -110,7 +111,9 @@ export default class GameState {
                 this.playerToVoteDirection.clear();
                 this.directionToVotes.clear();
                 GameManager.sendVoteResult("tie", this);
+                this.time = 0;
                 this.currentPhase = GamePhase.VOTE;
+                this.players.forEach(player => GameManager.updatePhase(player, this.currentPhase));
                 this.updateGame();
                 return;
             }
@@ -191,6 +194,7 @@ export default class GameState {
         this.players.forEach(player => GameManager.sendBoard(player, this));
 
         this.currentPhase = GamePhase.SABOTAGE;
+        this.players.forEach(player => GameManager.updatePhase(player, this.currentPhase));
         this.updateGame();
     }
 

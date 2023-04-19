@@ -10,6 +10,7 @@ import Room from "../../shared/Room";
 import GameEvent from "../../shared/GameEvent";
 import Direction from "../../shared/Direction";
 import Role from "../../shared/Role";
+import GamePhase from "./GamePhase";
 
 class GameManagerClass {
     games: Map<string, GameState> = new Map();
@@ -55,6 +56,8 @@ class GameManagerClass {
                 this.sendRole(player, gameState);
                 this.sendBoard(player, gameState);
                 this.sendTorchAssignments(player, gameState);
+                this.updatePhase(player, gameState.currentPhase);
+                this.updateTimer(player, gameState.time);
                 break;
             case UserAction.UNSABOTAGE:
                 this.handleUnsabotage(player, gameState, message.data.victim);
@@ -157,6 +160,10 @@ class GameManagerClass {
         gameState.players.forEach(player => {
             socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.GAME_END, data: { winning: outcome, playerData: playerData } } }));
         });
+    }
+
+    updatePhase(player: Player, phase: GamePhase) {
+        socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.UPDATE_PHASE, data: { phase: phase } } }));
     }
 
     updateTimer(player: Player, time: number) {
