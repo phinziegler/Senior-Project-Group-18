@@ -8,7 +8,7 @@ interface Props {
 }
 
 interface State {
-    direction: Direction | null
+    direction: Direction;
 }
 
 export default class DirectionalVote extends React.Component<Props, State> {
@@ -16,7 +16,7 @@ export default class DirectionalVote extends React.Component<Props, State> {
         super(props);
 
         this.state = {
-            direction: null
+            direction: Direction.NONE
         }
     }
 

@@ -18,7 +18,7 @@ interface Props {
     canSabotage: boolean,
     doSabotage: (victim: string) => void;
     doUnsabotage: (victim: string) => void;
-    changeSabotages: (_:number) => void;
+    changeSabotages: (_: number) => void;
 }
 
 interface State {
@@ -55,7 +55,7 @@ export default class GamePlayer extends React.Component<Props, State> {
             case Direction.LEFT:
                 return "🡰";
             case Direction.NONE:
-                return "/"
+                return ""
         }
     }
 
@@ -65,9 +65,9 @@ export default class GamePlayer extends React.Component<Props, State> {
         let color = this.props.isTraitor ? "danger" : ""
         return <>
             <div
-                style={{userSelect: "none", width: "200px", overflow: "none"}}
+                style={{ userSelect: "none", width: "200px", overflow: "none" }}
                 onClick={() => {
-                    if(!this.props.canSabotage || !this.props.torchBearer || this.props.role == Role.INNOCENT || this.props.username == this.props.user?.username || this.props.isTraitor) {
+                    if (!this.props.canSabotage || !this.props.torchBearer || this.props.role == Role.INNOCENT || this.props.username == this.props.user?.username || this.props.isTraitor) {
                         return;
                     }
                     this.sabotage();
