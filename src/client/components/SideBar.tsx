@@ -53,7 +53,7 @@ export default class SideBar extends React.Component<SideBarProps, { pathName: s
                         {this.link("lobby list", "/lobby-list")}
                         {this.link("Game", "/game")}
                         {this.props.lobby && this.link(this.props.lobby.name, `lobby/${this.props.lobby.id}`)}
-                        {this.link("this will error", "/error")}
+                        {/* {this.link("this will error", "/error")} */}
                     </Nav>
                 </Navbar.Collapse>
             </Navbar>
