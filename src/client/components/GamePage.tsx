@@ -35,6 +35,10 @@ interface GameState {
     sabotaging: boolean,
     isSabotaged: Set<string>,
     playerToDirection: Map<string, Direction>,
+    clearedRoomSafe: boolean | null,
+    clearedDirection: Direction | null,
+    gamePhase: string,
+    time: number
 }
 
 export default class GamePage extends React.Component<GameProps, GameState> {
@@ -54,7 +58,11 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             cols: 0,
             sabotaging: false,
             isSabotaged: new Set(),
-            playerToDirection: new Map()
+            playerToDirection: new Map(),
+            clearedRoomSafe: null,
+            clearedDirection: null,
+            gamePhase:"",
+            time: 0
         }
 
         this.wsConnectListener = this.wsConnectListener.bind(this);
@@ -65,10 +73,11 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         this.roleAssignEvent = this.roleAssignEvent.bind(this);
         this.boardUpdateEvent = this.boardUpdateEvent.bind(this);
         this.torchAssignEvent = this.torchAssignEvent.bind(this);
-        this.viewRoomEvent = this.playerVoteEvent.bind(this);
+        this.viewRoomEvent = this.viewRoomEvent.bind(this);
         this.playerVoteEvent = this.playerVoteEvent.bind(this);
         this.voteResultEvent = this.voteResultEvent.bind(this);
         this.gameEndEvent = this.gameEndEvent.bind(this);
+        this.updateTimeEvent = this.updateTimeEvent.bind(this);
 
     }
 
@@ -86,6 +95,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         window.removeEventListener(GameEvent.PLAYER_VOTE, this.playerVoteEvent);
         window.removeEventListener(GameEvent.VOTE_RESULT, this.voteResultEvent);
         window.removeEventListener(GameEvent.GAME_END, this.gameEndEvent);
+        window.removeEventListener(GameEvent.UPDATE_TIMER, this.updateTimeEvent);
     }
 
 
@@ -103,6 +113,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         window.addEventListener(GameEvent.PLAYER_VOTE, this.playerVoteEvent);
         window.addEventListener(GameEvent.VOTE_RESULT, this.voteResultEvent);
         window.addEventListener(GameEvent.GAME_END, this.gameEndEvent);
+        window.addEventListener(GameEvent.UPDATE_TIMER, this.updateTimeEvent);
 
         // REQUEST UPDATE
         if (!clientSocketManager) {
@@ -222,7 +233,15 @@ export default class GamePage extends React.Component<GameProps, GameState> {
     }
 
     viewRoomEvent(e: any) {
-        // this.setState({});
+        let isSafe = e.detail.data.isSafe;
+        let direction = e.detail.data.direction;
+
+        console.log("VIEW ROOM EVENT")
+
+        this.setState({
+            clearedRoomSafe: isSafe,
+            clearedDirection: direction
+        });
     }
 
     // Triggered when a player declares that they will check a room
@@ -239,14 +258,23 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
     playerVoteEvent(e: any) {
         // this.setState({});
+        console.log(`PLAYER VOTE`);
+        console.log(e);
     }
 
     voteResultEvent(e: any) {
+        console.log(`VOTE RESULT`);
+        console.log(e);
         // this.setState({});
     }
 
     gameEndEvent(e: any) {
         // this.setState({})
+    }
+
+    updateTimeEvent(e: any) {
+        let time = e.detail.data.time;
+        this.setState({time: time});
     }
 
 
@@ -317,6 +345,16 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         return output;
     }
 
+    // Show the result of the clear room
+    viewRoomResult() {
+        let message = `You check ${this.state.clearedDirection ? `${this.state.clearedDirection.toUpperCase()} and see that it is ` : "NOTHING and see "}`;
+        let keyword = this.state.clearedRoomSafe == null ? "NOTHING" : this.state.clearedRoomSafe ? "SAFE" : "UNSAFE";
+        let color = this.state.clearedRoomSafe == null ? "text-white" : this.state.clearedRoomSafe ? "text-success" : "text-danger";
+        return (<>
+            <span>{message}</span><span className={color}>{keyword}</span><span>.</span>
+        </>);
+    }
+
     // Gaming
     game() {
         let color = this.state.role == Role.INNOCENT ? "success" : "danger";
@@ -344,15 +382,18 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                     }} className="btn btn-danger">SABOTAGE</button>
                     <div className="text-danger small">Remaining: {this.state.sabotages}</div>
                 </div>}
+
+                {/* TIMER */}
+                <div style={{ left: "0" }}className="position-absolute">TIME {this.state.time}</div>
+
                 <br />
                 {this.state.torchAssignments.includes(this.props.user?.username) &&
                     <ClearOptions
                         currentRoom={this.state.currentRoom}
                         viewRoom={(direction) => this.viewRoom(direction)} />}
+                    {this.viewRoomResult()}
                 {this.state.sabotaging && <div className="text-danger">Click on a torchbearer to sabotage their room clear.</div>}
             </div>
-
-
         </>
     }
 
@@ -387,7 +428,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                                     exploredRooms={this.state.exploredRooms}
                                     rows={this.state.rows}
                                     cols={this.state.cols}
-                                    rooms={this.state.rooms} 
+                                    rooms={this.state.rooms}
                                     currentRoom={this.state.currentRoom}
                                 />
                             </div>

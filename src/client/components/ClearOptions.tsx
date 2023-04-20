@@ -40,7 +40,7 @@ export default class ClearOptions extends React.Component<Props, State> {
                     {this.props.currentRoom?.left && this.option(Direction.LEFT, "LEFT")}
                     {this.props.currentRoom?.right && this.option(Direction.RIGHT, "RIGHT")}
                 </div>
-                {this.props.currentRoom?.down && this.option(Direction.UP, "DOWN")}
+                {this.props.currentRoom?.down && this.option(Direction.DOWN, "DOWN")}
             </div>
         </>
     }

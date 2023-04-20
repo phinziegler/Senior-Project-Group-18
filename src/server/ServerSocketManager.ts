@@ -65,7 +65,6 @@ export default class ServerSocketManager {
                     LobbyController.chat(message.auth, message.data);
                     break;
                 case MessageType.GAME:
-                    console.log("GOT GAME MESSAGE FROM USER");
                     GameManager.handleMessage(message.auth.username, message.data);
                     break;
                 case MessageType.GAME_START:
@@ -94,7 +93,7 @@ export default class ServerSocketManager {
     public sendMessageToUser(username: string, message: string) {
         let ws = this.usernameToSocket.get(username);
         if (!ws) {
-            console.log("could not message user " + JSON.stringify(username) + " not connected");
+            // console.log("could not message user " + JSON.stringify(username) + " not connected");
             return;
         }
         ws.send(message);
