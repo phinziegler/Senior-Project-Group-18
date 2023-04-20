@@ -471,13 +471,16 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                 <hr />
 
                 {/* Clear Room*/}
-                {this.state.gamePhase == GamePhase.SABOTAGE && this.state.torchAssignments.includes(this.props.user?.username) &&
+                {this.state.gamePhase == GamePhase.SABOTAGE && (this.state.torchAssignments.includes(this.props.user?.username) ?
                     <>
                         <h3>Pick a room to clear</h3>
                         <DirectionalVote
                             currentRoom={this.state.currentRoom}
                             voteAction={(direction) => this.viewRoom(direction)} />
-                    </>}
+                    </> : 
+                    <div>
+                        The torch bearers are making their selections...
+                    </div>)}
 
                 {/* Room Result */}
                 {this.state.gamePhase == GamePhase.VOTE && <>
