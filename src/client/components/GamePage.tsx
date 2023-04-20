@@ -34,7 +34,8 @@ interface GameState {
     rows: number,
     cols: number,
     sabotaging: boolean,
-    isSabotaged: Set<string>,
+    sabotagedByOthersList: Set<string>,
+    sabotagedBySelfList: Set<string>,
     playerToDirectionRoomSelect: Map<string, Direction>,
     clearedRoomSafe: boolean | null,
     clearedDirection: Direction | null,
@@ -58,7 +59,8 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             rows: 0,
             cols: 0,
             sabotaging: false,
-            isSabotaged: new Set(),
+            sabotagedByOthersList: new Set(),
+            sabotagedBySelfList: new Set(),
             playerToDirectionRoomSelect: new Map(),
             clearedRoomSafe: null,
             clearedDirection: null,
@@ -80,7 +82,6 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         this.gameEndEvent = this.gameEndEvent.bind(this);
         this.updateTimeEvent = this.updateTimeEvent.bind(this);
         this.updatePhaseEvent = this.updatePhaseEvent.bind(this);
-
     }
 
     // REMOVE EVENT LISTENERS
@@ -126,7 +127,6 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
         if (clientSocketManager.connected) {
             this.requestUpdate();
-            console.log("requested update after game page loading");
             return;
         }
     }
@@ -138,7 +138,6 @@ export default class GamePage extends React.Component<GameProps, GameState> {
     // Connect to websocket listener
     wsConnectListener() {
         this.requestUpdate();
-        console.log("requested update after connection to WS")
     }
 
     roleAssignEvent(e: any) {
@@ -176,13 +175,11 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             cols = e.detail.data.cols;
             hasDimensions = true;
         } catch {
-            console.log("Got Dimensions");
         }
         let board;
         try {
             board = e.detail.data.board.rooms;
         } catch {
-            console.log("Innocent");
         }
 
         this.setState({
@@ -217,9 +214,14 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             return;
         }
         if (e.detail.data.sabotager == this.props.user.username) {
+            let selfSabotage = this.state.sabotagedBySelfList;
+            selfSabotage.add(e.detail.data.victim);
+            this.setState({ sabotagedBySelfList: selfSabotage });
             return;
         }
-        this.state.isSabotaged.add(e.detail.data.victim);
+        let others = this.state.sabotagedByOthersList;
+        others.add(e.detail.data.victim);
+        this.setState({ sabotagedByOthersList: others });
     }
 
     unsabotageEvent(e: any) {
@@ -227,9 +229,14 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             return;
         }
         if (e.detail.data.sabotager == this.props.user.username) {
+            let selfSabotage = this.state.sabotagedBySelfList;
+            selfSabotage.delete(e.detail.data.victim);
+            this.setState({ sabotagedBySelfList: selfSabotage });
             return;
         }
-        this.state.isSabotaged.delete(e.detail.data.victim);
+        let others = this.state.sabotagedByOthersList;
+        others.delete(e.detail.data.victim);
+        this.setState({ sabotagedByOthersList: others });
     }
 
     torchAssignEvent(e: any) {
@@ -279,29 +286,34 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         this.setState({ time: time });
     }
 
-    updatePhaseEvent(e: any) {
-        let gamePhase = this.state.gamePhase;
-        this.setState({
-            gamePhase: e.detail.data.phase,
-        });
+    handleUpdatePhase() {
+        console.log(this.state.gamePhase);
+    }
+    async updatePhaseEvent(e: any) {
+        let oldPhase: GamePhase = this.state.gamePhase;
+        let newPhase: GamePhase = e.detail.data.phase;
+        this.setState({ gamePhase: newPhase }, () => {
+            // VOTE --> SABOTAGE
+            if (oldPhase == GamePhase.VOTE && newPhase == GamePhase.SABOTAGE) {
+                this.setState({
+                    playerToDirectionRoomSelect: new Map(),
+                    clearedDirection: null,
+                    clearedRoomSafe: null,
+                    sabotagedByOthersList: new Set(),
+                    sabotagedBySelfList: new Set()
+                });
+            }
 
-        if (gamePhase == GamePhase.VOTE && this.state.gamePhase == GamePhase.SABOTAGE) {
-            this.setState({
-                playerToDirectionRoomSelect: new Map(),
-                clearedDirection: null,
-                clearedRoomSafe: null,
-                isSabotaged: new Set()
-            });
-        }
+            // SABOTAGE --> VOTE
+            if (oldPhase == GamePhase.SABOTAGE && newPhase == GamePhase.VOTE) {
+                this.setState({
+                    // TODO: Clear vote stuff
+                    sabotaging: false,
+                    playerToDirectionRoomSelect: new Map(),
+                });
+            }
+        })
 
-        // TODO: Does this need to clear old data?
-        if (gamePhase == GamePhase.SABOTAGE && this.state.gamePhase == GamePhase.VOTE) {
-            this.setState({
-                // TODO: Clear vote stuff
-                sabotaging: false,
-                playerToDirectionRoomSelect: new Map(),
-            });
-        }
     }
 
 
@@ -352,13 +364,27 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             output.push(
                 <GamePlayer
                     playerDirection={this.state.playerToDirectionRoomSelect.get(player)}
-                    sabotagedList={this.state.isSabotaged}
-                    doSabotage={(victim) => this.sabotage(victim)}
-                    doUnsabotage={(victim) => this.unsabotage(victim)}
+                    sabotagedByOthersList={this.state.sabotagedByOthersList}
+                    sabotagedBySelfList={this.state.sabotagedBySelfList}
+
+                    doSabotage={(victim) => {
+                        let sabotagedBySelfList = this.state.sabotagedBySelfList;
+                        sabotagedBySelfList.add(victim);
+                        this.setState({sabotagedBySelfList: sabotagedBySelfList})
+                        this.sabotage(victim);
+                    }}
+                    doUnsabotage={(victim) => {
+                        let sabotagedBySelfList = this.state.sabotagedBySelfList;
+                        sabotagedBySelfList.delete(victim);
+                        this.setState({sabotagedBySelfList: sabotagedBySelfList})
+                        this.unsabotage(victim);
+                    }}
+
                     changeSabotages={(amount: number) => {
                         let sabotages = this.state.sabotages + amount;
                         this.setState({ sabotages: sabotages });
                     }}
+
                     canSabotage={this.state.sabotaging}
                     role={this.state.role}
                     key={index}
@@ -447,7 +473,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         }
         let border = " border-success"
 
-        if(this.isTraitor()) {
+        if (this.isTraitor()) {
             border = " border-danger"
         }
 

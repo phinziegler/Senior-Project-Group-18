@@ -6,7 +6,8 @@ import Direction from "../../shared/Direction";
 
 interface Props {
     playerDirection: Direction | undefined,
-    sabotagedList: Set<string>,
+    sabotagedByOthersList: Set<string>,
+    sabotagedBySelfList: Set<string>,
     role: Role,
     username: string,
     user: User | null,
@@ -20,7 +21,7 @@ interface Props {
 }
 
 interface State {
-    sabotaged: boolean
+    // sabotaged: boolean
 }
 
 export default class GamePlayer extends React.Component<Props, State> {
@@ -33,19 +34,13 @@ export default class GamePlayer extends React.Component<Props, State> {
 
 
     sabotage() {
-        if (this.state.sabotaged) {
-            this.setState({
-                sabotaged: false
-            });
+        if (this.props.sabotagedBySelfList.has(this.props.username)) {
             this.props.doUnsabotage(this.props.username);
             this.props.changeSabotages(1);
             return;
         }
         this.props.changeSabotages(-1);
         this.props.doSabotage(this.props.username);
-        this.setState({
-            sabotaged: true
-        });
     }
 
     directionEmoji(direction: Direction): string {
@@ -78,8 +73,8 @@ export default class GamePlayer extends React.Component<Props, State> {
                 {this.props.username}
                 {this.props.torchBearer && <span>️‍🔥</span>}
                 {this.props.playerDirection && <span className="text-white">{this.directionEmoji(this.props.playerDirection)}</span>}
-                {this.state.sabotaged && <span>❌</span>}
-                {this.props.sabotagedList.has(this.props.username) && <span>❗</span>}
+                {this.props.sabotagedBySelfList.has(this.props.username) && <span>❌</span>}
+                {this.props.sabotagedByOthersList.has(this.props.username) && <span>❗❗</span>}
             </div>
         </>
     }
