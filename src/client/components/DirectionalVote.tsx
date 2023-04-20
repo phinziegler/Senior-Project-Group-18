@@ -4,14 +4,14 @@ import Direction from "../../shared/Direction";
 
 interface Props {
     currentRoom: Room | null,
-    viewRoom: (direction: Direction) => void;
+    voteAction: (direction: Direction) => void;
 }
 
 interface State {
     direction: Direction | null
 }
 
-export default class ClearOptions extends React.Component<Props, State> {
+export default class DirectionalVote extends React.Component<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -26,14 +26,13 @@ export default class ClearOptions extends React.Component<Props, State> {
                 this.setState({
                     direction: direction
                 });
-                this.props.viewRoom(direction);
+                this.props.voteAction(direction);
             }}>{text}</div>}
         </>
     }
 
     render() {
         return <>
-            <h2>Pick a room to clear</h2>
             <div className="d-flex flex-column mx-auto justify-content-center align-items-center">
                 {this.props.currentRoom?.up && this.option(Direction.UP, "UP")}
                 <div>

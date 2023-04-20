@@ -5,7 +5,8 @@ import Direction from "../../shared/Direction";
 
 
 interface Props {
-    playerDirection: Direction | undefined,
+    playerDirectionRoomSelect: Direction | undefined,
+    playerDirectionVote: Direction | undefined,
     sabotagedByOthersList: Set<string>,
     sabotagedBySelfList: Set<string>,
     role: Role,
@@ -72,7 +73,8 @@ export default class GamePlayer extends React.Component<Props, State> {
                 className={"py-3 text-center text-" + (isMe ? myColor : color)}>
                 {this.props.username}
                 {this.props.torchBearer && <span>️‍🔥</span>}
-                {this.props.playerDirection && <span className="text-white">{this.directionEmoji(this.props.playerDirection)}</span>}
+                {this.props.playerDirectionRoomSelect && <span className="text-white">{this.directionEmoji(this.props.playerDirectionRoomSelect)}</span>}
+                {this.props.playerDirectionVote && <span className="text-warning">{this.directionEmoji(this.props.playerDirectionVote)}</span>}
                 {this.props.sabotagedBySelfList.has(this.props.username) && <span>❌</span>}
                 {this.props.sabotagedByOthersList.has(this.props.username) && <span>❗❗</span>}
             </div>

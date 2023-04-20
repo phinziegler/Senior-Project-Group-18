@@ -13,7 +13,7 @@ import requestUrl from "../tools/requestUrl";
 import ServerRoutes from "../../shared/ServerRoutes";
 import { Link } from "react-router-dom";
 import GamePlayer from "./GamePlayer";
-import ClearOptions from "./ClearOptions";
+import DirectionalVote from "./DirectionalVote";
 import GameMap from "./GameMap";
 import GamePhase from "../../shared/GamePhase";
 
@@ -37,6 +37,7 @@ interface GameState {
     sabotagedByOthersList: Set<string>,
     sabotagedBySelfList: Set<string>,
     playerToDirectionRoomSelect: Map<string, Direction>,
+    playerToDirectionVote: Map<string, Direction>,
     clearedRoomSafe: boolean | null,
     clearedDirection: Direction | null,
     gamePhase: GamePhase,
@@ -62,14 +63,15 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             sabotagedByOthersList: new Set(),
             sabotagedBySelfList: new Set(),
             playerToDirectionRoomSelect: new Map(),
+            playerToDirectionVote: new Map(),
             clearedRoomSafe: null,
             clearedDirection: null,
             gamePhase: GamePhase.UNKNOWN,
             time: 0,
         }
 
+        // BIND LISTENERS
         this.wsConnectListener = this.wsConnectListener.bind(this);
-
         this.roomSelectEvent = this.roomSelectEvent.bind(this);
         this.sabotageEvent = this.sabotageEvent.bind(this);
         this.unsabotageEvent = this.unsabotageEvent.bind(this);
@@ -87,7 +89,6 @@ export default class GamePage extends React.Component<GameProps, GameState> {
     // REMOVE EVENT LISTENERS
     componentWillUnmount(): void {
         window.removeEventListener("wsConnect", this.wsConnectListener);
-
         window.removeEventListener(GameEvent.ROOM_SELECT, this.roomSelectEvent);
         window.removeEventListener(GameEvent.SABOTAGE, this.sabotageEvent);
         window.removeEventListener(GameEvent.UNSABOTAGE, this.unsabotageEvent);
@@ -103,10 +104,9 @@ export default class GamePage extends React.Component<GameProps, GameState> {
     }
 
 
+    // ADD EVENT LISTENERS
     componentDidMount() {
-        // ADD EVENT LISTENERS
         window.addEventListener("wsConnect", this.wsConnectListener);
-
         window.addEventListener(GameEvent.ROOM_SELECT, this.roomSelectEvent);
         window.addEventListener(GameEvent.SABOTAGE, this.sabotageEvent);
         window.addEventListener(GameEvent.UNSABOTAGE, this.unsabotageEvent);
@@ -132,7 +132,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
     }
 
     /****************************************************************************/
-    /***************************** EVENT LISTENERS ******************************/
+    /***************************** EVENT HANDLERS ******************************/
     /****************************************************************************/
 
     // Connect to websocket listener
@@ -140,6 +140,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         this.requestUpdate();
     }
 
+    // Assign a role to the user -- also # of sabotages for traitors
     roleAssignEvent(e: any) {
         let sabotages;
         let isTraitor = e.detail.data.isTraitor;
@@ -209,6 +210,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         }
     }
 
+    // Display when a fellow traitor sabotages someone
     sabotageEvent(e: any) {
         if (!this.props.user) {
             return;
@@ -224,6 +226,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         this.setState({ sabotagedByOthersList: others });
     }
 
+    // Display when a fellow traitor revokes their sabotage
     unsabotageEvent(e: any) {
         if (!this.props.user) {
             return;
@@ -239,10 +242,12 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         this.setState({ sabotagedByOthersList: others });
     }
 
+    // Inform the user who has torches
     torchAssignEvent(e: any) {
         this.setState({ torchAssignments: e.detail.data.torchAssignments });
     }
 
+    // Tell the user what info they got from using a torch in a room
     viewRoomEvent(e: any) {
         let isSafe = e.detail.data.isSafe;
         let direction = e.detail.data.direction;
@@ -265,38 +270,45 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         });
     }
 
+    // Tell the user when a player places a vote
     playerVoteEvent(e: any) {
-        // this.setState({});
-        // console.log(`PLAYER VOTE`);
-        // console.log(e);
+        let player = e.detail.data.player;
+        let direction = e.detail.data.direction;
+
+        let map = this.state.playerToDirectionVote;
+        map.set(player, direction);
+        this.setState({
+            playerToDirectionVote: map
+        });
     }
 
+    // Tell the user the result of the voting
     voteResultEvent(e: any) {
-        // console.log(`VOTE RESULT`);
-        // console.log(e.detai.data);
+        console.log(`VOTE RESULT`);
+        console.log(e.detail.data);
         // this.setState({});
     }
 
+    // Tell the user that the game has ended
     gameEndEvent(e: any) {
         // this.setState({})
     }
 
+    // Tell the user how much time remains in the given phase
     updateTimeEvent(e: any) {
         let time = e.detail.data.time;
         this.setState({ time: time });
     }
 
-    handleUpdatePhase() {
-        console.log(this.state.gamePhase);
-    }
-    async updatePhaseEvent(e: any) {
+    // Tell the user when the game phase updates
+    updatePhaseEvent(e: any) {
         let oldPhase: GamePhase = this.state.gamePhase;
         let newPhase: GamePhase = e.detail.data.phase;
         this.setState({ gamePhase: newPhase }, () => {
             // VOTE --> SABOTAGE
             if (oldPhase == GamePhase.VOTE && newPhase == GamePhase.SABOTAGE) {
                 this.setState({
-                    playerToDirectionRoomSelect: new Map(),
+                    playerToDirectionVote: new Map(),
                     clearedDirection: null,
                     clearedRoomSafe: null,
                     sabotagedByOthersList: new Set(),
@@ -307,7 +319,6 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             // SABOTAGE --> VOTE
             if (oldPhase == GamePhase.SABOTAGE && newPhase == GamePhase.VOTE) {
                 this.setState({
-                    // TODO: Clear vote stuff
                     sabotaging: false,
                     playerToDirectionRoomSelect: new Map(),
                 });
@@ -325,6 +336,10 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             });
         });
     }
+
+    /**************************************************************/
+    /**********************  PLAYER ACTIONS  **********************/
+    /**************************************************************/
 
     // Request update from server
     requestUpdate() {
@@ -354,7 +369,12 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
     // Tell the server that you intend to view a room
     viewRoom(direction: Direction) {
-        clientSocketManager?.send(MessageType.GAME, { action: UserAction.VIEW, data: { direction: direction } })
+        clientSocketManager?.send(MessageType.GAME, { action: UserAction.VIEW, data: { direction: direction } });
+    }
+
+    // Tell the server that you voted for a room to enter
+    vote(direction: Direction) {
+        clientSocketManager?.send(MessageType.GAME, { action: UserAction.VOTE, data: { direction: direction } });
     }
 
     // Render the players
@@ -363,20 +383,21 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         this.state.players.forEach((player, index) => {
             output.push(
                 <GamePlayer
-                    playerDirection={this.state.playerToDirectionRoomSelect.get(player)}
+                    playerDirectionRoomSelect={this.state.playerToDirectionRoomSelect.get(player)}
+                    playerDirectionVote={this.state.playerToDirectionVote.get(player)}
                     sabotagedByOthersList={this.state.sabotagedByOthersList}
                     sabotagedBySelfList={this.state.sabotagedBySelfList}
 
                     doSabotage={(victim) => {
                         let sabotagedBySelfList = this.state.sabotagedBySelfList;
                         sabotagedBySelfList.add(victim);
-                        this.setState({sabotagedBySelfList: sabotagedBySelfList})
+                        this.setState({ sabotagedBySelfList: sabotagedBySelfList })
                         this.sabotage(victim);
                     }}
                     doUnsabotage={(victim) => {
                         let sabotagedBySelfList = this.state.sabotagedBySelfList;
                         sabotagedBySelfList.delete(victim);
-                        this.setState({sabotagedBySelfList: sabotagedBySelfList})
+                        this.setState({ sabotagedBySelfList: sabotagedBySelfList })
                         this.unsabotage(victim);
                     }}
 
@@ -426,7 +447,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                     <span>{phrase}</span><span className={`text-${color}`}>{role}</span>
                 </div>
 
-                {/* SABOTAGES */}
+                {/* SABOTAGE */}
                 {this.isTraitor() && this.state.gamePhase == GamePhase.SABOTAGE && <div style={{ right: "0", bottom: "0" }} className="position-absolute">
                     <button onClick={() => {
                         if (this.state.sabotaging) {
@@ -441,17 +462,39 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                 {/* TIMER */}
                 <div style={{ left: "0", bottom: "0" }} className="position-absolute">Time: {this.state.time}</div>
 
+                {/* SPACING */}
                 <br />
                 <br />
 
                 {/* Phase */}
                 <h2>Phase: {phase}</h2>
+                <hr />
 
+                {/* Clear Room*/}
                 {this.state.gamePhase == GamePhase.SABOTAGE && this.state.torchAssignments.includes(this.props.user?.username) &&
-                    <ClearOptions
-                        currentRoom={this.state.currentRoom}
-                        viewRoom={(direction) => this.viewRoom(direction)} />}
-                {this.state.gamePhase == GamePhase.VOTE && this.viewRoomResult()}
+                    <>
+                        <h3>Pick a room to clear</h3>
+                        <DirectionalVote
+                            currentRoom={this.state.currentRoom}
+                            voteAction={(direction) => this.viewRoom(direction)} />
+                    </>}
+
+                {/* Room Result */}
+                {this.state.gamePhase == GamePhase.VOTE && <>
+                    {this.viewRoomResult()}
+                    <hr />
+                </>}
+
+                {/* Vote Room */}
+                {this.state.gamePhase == GamePhase.VOTE &&
+                    <>
+                        <h3>Vote for a room to enter</h3>
+                        <DirectionalVote
+                            currentRoom={this.state.currentRoom}
+                            voteAction={(direction) => this.vote(direction)} />
+                    </>}
+
+                {/* Sabotage Tooltip */}
                 {this.state.gamePhase == GamePhase.SABOTAGE && this.state.sabotaging && <div className="text-danger">Click on a torchbearer to sabotage their room clear.</div>}
             </div>
         </>
@@ -462,7 +505,9 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         return this.state.role == Role.TRAITOR;
     }
 
+    // Render the game page
     render() {
+        // No game started page
         if (this.state.exploredRooms.length == 0) {
             return <>
                 <div>
@@ -471,8 +516,10 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                 <Link replace to="/lobby-list">Return to lobby List</Link>
             </>
         }
-        let border = " border-success"
 
+        // Game has started
+
+        let border = " border-success"
         if (this.isTraitor()) {
             border = " border-danger"
         }
