@@ -556,8 +556,9 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                         </div>
 
                         {/* PLAYERS */}
-                        <div className={"border d-flex justify-content-around" + border}>
+                        <div className={"border d-flex justify-content-around flex-wrap" + border}>
                             {this.players()}
+                            <div className="flex-grow-1"/>
                         </div>
                     </div>
                     {/* ----------------------------------------------------------------------------------------------- */}
