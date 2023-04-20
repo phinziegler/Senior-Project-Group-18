@@ -16,6 +16,7 @@ import GamePlayer from "./GamePlayer";
 import DirectionalVote from "./DirectionalVote";
 import GameMap from "./GameMap";
 import GamePhase from "../../shared/GamePhase";
+import { SocketEvent } from "../websockets/SocketEvent";
 
 interface GameProps {
     user: User | null
@@ -46,12 +47,11 @@ interface GameState {
     roomWasSafe: boolean | null,
     voteResult: Direction,
     winner: Role | null,
-    endGamePlayerData: {username: string, role: Role}[],
+    endGamePlayerData: { username: string, role: Role }[],
     navigate: string,
 }
 
 export default class GamePage extends React.Component<GameProps, GameState> {
-    defaultState: GameState;
     constructor(props: GameProps) {
         super(props);
         this.state = {
@@ -83,8 +83,6 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             navigate: ""
         }
 
-        this.defaultState = this.state;
-
         // BIND LISTENERS
         this.wsConnectListener = this.wsConnectListener.bind(this);
         this.roomSelectEvent = this.roomSelectEvent.bind(this);
@@ -100,6 +98,9 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         this.updateTimeEvent = this.updateTimeEvent.bind(this);
         this.updatePhaseEvent = this.updatePhaseEvent.bind(this);
         this.moveResultEvent = this.moveResultEvent.bind(this);
+        this.gameStartListener = this.gameStartListener.bind(this);
+        this.gameEndedExternallyListener = this.gameEndedExternallyListener.bind(this);
+
     }
 
     // REMOVE EVENT LISTENERS
@@ -118,6 +119,9 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         window.removeEventListener(GameEvent.UPDATE_TIMER, this.updateTimeEvent);
         window.removeEventListener(GameEvent.UPDATE_PHASE, this.updatePhaseEvent);
         window.removeEventListener(GameEvent.MOVE_RESULT, this.moveResultEvent);
+        window.removeEventListener(SocketEvent.GAME_START, this.gameStartListener);
+        window.removeEventListener(SocketEvent.GAME_END, this.gameEndedExternallyListener);
+
     }
 
 
@@ -137,7 +141,8 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         window.addEventListener(GameEvent.UPDATE_TIMER, this.updateTimeEvent);
         window.addEventListener(GameEvent.UPDATE_PHASE, this.updatePhaseEvent);
         window.addEventListener(GameEvent.MOVE_RESULT, this.moveResultEvent);
-
+        window.addEventListener(SocketEvent.GAME_START, this.gameStartListener);
+        window.addEventListener(SocketEvent.GAME_END, this.gameEndedExternallyListener);
 
         // REQUEST UPDATE
         if (!clientSocketManager) {
@@ -153,6 +158,17 @@ export default class GamePage extends React.Component<GameProps, GameState> {
     /****************************************************************************/
     /***************************** EVENT HANDLERS ******************************/
     /****************************************************************************/
+
+    gameStartListener() {
+        this.newGame()
+    }
+
+    gameEndedExternallyListener() {
+        console.log("Game Ended Externally");
+        this.setState({
+            navigate: `/lobby/${this.state.lobbyId}`
+        });
+    }
 
     // Connect to websocket listener
     wsConnectListener() {
@@ -175,7 +191,6 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             sabotages = e.detail.data.sabotages;
             traitors = e.detail.data.traitors;
         } catch {
-            console.log("innocent, did not get traitors list");
         }
 
         if (isTraitor) {
@@ -309,15 +324,13 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
     // Tell the user the result of the voting
     voteResultEvent(e: any) {
-        this.setState({voteResult: e.detail.data.voteDir});
+        this.setState({ voteResult: e.detail.data.voteDir });
     }
 
     // Tell the user that the game has ended
     gameEndEvent(e: any) {
-        console.log("END GAME");
-        console.log(e.detail.data);
         let winning = e.detail.data.winning;
-        let playerData: {username: string, role: Role}[] = e.detail.data.playerData;
+        let playerData: { username: string, role: Role }[] = e.detail.data.playerData;
         this.setState({
             winner: winning,
             endGamePlayerData: playerData,
@@ -407,6 +420,39 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         clientSocketManager?.send(MessageType.GAME, { action: UserAction.VOTE, data: { direction: direction } });
     }
 
+    // I personally hate doing this
+    newGame() {
+        this.setState({
+            traitors: [],
+            rooms: [],
+            exploredRooms: [],
+            currentRoom: null,
+            players: [],
+            torchAssignments: [],
+            role: Role.INNOCENT,
+            sabotages: 0,
+            lobbyId: "",
+            rows: 0,
+            cols: 0,
+            sabotaging: false,
+            sabotagedByOthersList: new Set(),
+            sabotagedBySelfList: new Set(),
+            playerToDirectionRoomSelect: new Map(),
+            playerToDirectionVote: new Map(),
+            clearedRoomSafe: null,
+            clearedDirection: Direction.NONE,
+            gamePhase: GamePhase.UNKNOWN,
+            prevGamePhase: GamePhase.UNKNOWN,
+            time: 0,
+            roomWasSafe: null,
+            voteResult: Direction.NONE,
+            winner: null,
+            endGamePlayerData: [],
+            navigate: ""
+        });
+        this.requestUpdate();
+    }
+
     // Render the players
     players() {
         let output: JSX.Element[] = [];
@@ -452,7 +498,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
     // Show the result of the clear room
     viewRoomResult() {
         // let direction = this.state.clearedDirection == Direction.NONE ? "NOTHING" : this.state.clearedDirection.toUpperCase();
-        if(this.state.clearedDirection == Direction.NONE) {
+        if (this.state.clearedDirection == Direction.NONE) {
             return <span>You checked NOTHING</span>
         }
         let message = `You checked ${this.state.clearedDirection ? `${this.state.clearedDirection.toUpperCase()} and saw that it is ` : "NOTHING and saw "}`;
@@ -467,11 +513,11 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         let color = role == Role.TRAITOR ? "text-danger" : "text-success";
         return (
             <div key={username} className="d-flex">
-                <div style={{width: "100px"}} className="text-center ">
+                <div style={{ width: "100px" }} className="text-center ">
                     {username}
                 </div>
                 <div className="border border-secondary border-right-0"></div>
-                <div style={{width: "100px"}} className={" text-center " + color}>
+                <div style={{ width: "100px" }} className={" text-center " + color}>
                     {String(role).toUpperCase()}
                 </div>
             </div>
@@ -483,10 +529,10 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         let adventurers: JSX.Element[] = [];
 
         this.state.endGamePlayerData.forEach(player => {
-            if(player.role == Role.TRAITOR) {
+            if (player.role == Role.TRAITOR) {
                 traitors.push(this.displayPlayerWithRole(player.username, player.role));
             }
-            if(player.role == Role.INNOCENT) {
+            if (player.role == Role.INNOCENT) {
                 adventurers.push(this.displayPlayerWithRole(player.username, player.role));
             }
         })
@@ -507,11 +553,11 @@ export default class GamePage extends React.Component<GameProps, GameState> {
     }
 
     endGame() {
-        if(!this.state.winner) {
+        if (!this.state.winner) {
             return;
         }
 
-        if(!this.props.user) {
+        if (!this.props.user) {
             return;
         }
 
@@ -519,8 +565,6 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         let color = this.state.winner == Role.TRAITOR ? "text-danger" : "text-success";
         let userWins = this.state.role == this.state.winner ? "VICTORY" : "DEFEAT";
         let userColor = this.state.role == this.state.winner ? "text-success" : "text-danger";
-        console.log(winner);
-        console.log(this.state.role);
 
         return (
             <div className="d-flex flex-column flex-grow-1">
@@ -530,16 +574,17 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                 <hr />
                 {this.roles()}
                 <div className="flex-grow-1"></div>
-                
+
+                {/* NEW GAME */}
                 <button onClick={() => {
                     clientSocketManager?.send(MessageType.GAME_START, { lobbyId: this.state.lobbyId });
-                    this.setState(this.defaultState);
-                    this.requestUpdate();
-                    // this.setState({navigate: "/game"});
+                    this.newGame();
                 }} className="my-1 m-auto d-inline btn btn-success">Play again</button>
 
+                {/* END GAME */}
                 <button onClick={() => {
-                    this.setState({navigate: `/lobby/${this.state.lobbyId}`});
+                    clientSocketManager?.send(MessageType.GAME_END, { lobbyId: this.state.lobbyId });
+                    this.setState({ navigate: `/lobby/${this.state.lobbyId}` });
                 }} className="my-1 m-auto d-inline btn btn-danger">End Game</button>
 
             </div>
@@ -548,8 +593,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
     // Gaming
     game() {
-        if(this.state.winner) {
-            console.log("here");
+        if (this.state.winner) {
             return this.endGame();
         }
 
@@ -563,7 +607,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         let phase: string = this.state.gamePhase == GamePhase.VOTE ? "Vote" : this.state.role == Role.INNOCENT ? "Clear" : "Sabotage";
 
         let phraseResult: string = this.state.voteResult == Direction.NONE ? "The group could not agree where to go next..." : `The group moves ${this.state.voteResult.toUpperCase()}.`;
-        let secondaryPhrase: string =  `The path is `;
+        let secondaryPhrase: string = ` The path is `;
         let colorResult: string = this.state.roomWasSafe != null && this.state.roomWasSafe ? "text-success" : "text-danger";
         let resultResult: string = this.state.roomWasSafe != null && this.state.roomWasSafe ? `SAFE` : `UNSAFE`;
         let post: string = this.state.roomWasSafe != null && this.state.roomWasSafe ? ". A stroke of luck." : ". A gust of wind sweeps through, and the room darkens as a torch is blown out.";
@@ -605,7 +649,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                         <DirectionalVote
                             currentRoom={this.state.currentRoom}
                             voteAction={(direction) => this.viewRoom(direction)} />
-                    </> : 
+                    </> :
                     <div>
                         The torch bearers are making their selections...
                     </div>)}
@@ -649,8 +693,8 @@ export default class GamePage extends React.Component<GameProps, GameState> {
     // Render the game page
     render() {
         // Navigate away
-        if(this.state.navigate !+ "") {
-            return <Navigate to={this.state.navigate}/>
+        if (this.state.navigate != "") {
+            return <Navigate to={this.state.navigate} />
         }
 
         // No game started page
@@ -702,7 +746,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                         {/* PLAYERS */}
                         <div className={"border d-flex justify-content-around flex-wrap" + border}>
                             {this.players()}
-                            <div className="flex-grow-1"/>
+                            <div className="flex-grow-1" />
                         </div>
                     </div>
                     {/* ----------------------------------------------------------------------------------------------- */}

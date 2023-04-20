@@ -240,6 +240,7 @@ export default class LobbyController {
         let auth: AuthToken;
         let lobbyId: string;
 
+        // Parse request
         try {
             auth = JSON.parse(req.params.auth);
             lobbyId = req.params.lobbyId;
@@ -261,6 +262,7 @@ export default class LobbyController {
             return res.status(401).json({ messae: `Only the lobby leader can delete a lobby` });
         }
 
+        GameManager.removeGame(lobbyId);
         await lobbyService.deleteLobby(lobbyId);
         return res.status(200).json({ message: "Successfully deleted lobby" });
     }
@@ -308,8 +310,37 @@ export default class LobbyController {
         return res.status(200).json({ message: "Successfully removed user" });
     }
 
-    static async startGame(lobbyId: string) {
+    static async startGame(auth: AuthToken, lobbyId: string) {
         // TODO: Decide how many traitors we want
+
+        // Check if lobby exists and get lobby
+        let lobby = await lobbyService.getLobby(lobbyId);
+        if (!lobby) {
+            return;
+        }
+
+        // Check if the person starting the game is the lobby leader
+        if (auth.username != lobby.leader) {
+            return;
+        }
+
+        GameManager.removeGame(lobbyId);
         GameManager.addGame(lobbyId, 1);
+    }
+
+    static async deleteGame(auth: AuthToken, lobbyId: string) {
+
+        // Check if lobby exists and get lobby
+        let lobby = await lobbyService.getLobby(lobbyId);
+        if (!lobby) {
+            return;
+        }
+
+        // Check if the person starting the game is the lobby leader
+        if (auth.username != lobby.leader) {
+            return;
+        }
+
+        GameManager.removeGame(lobbyId);
     }
 }

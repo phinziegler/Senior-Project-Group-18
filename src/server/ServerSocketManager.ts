@@ -68,9 +68,10 @@ export default class ServerSocketManager {
                     GameManager.handleMessage(message.auth.username, message.data);
                     break;
                 case MessageType.GAME_START:
-                    console.log("STARTED GAME");
-                    LobbyController.startGame(message.data.lobbyId);
+                    LobbyController.startGame(message.auth, message.data.lobbyId);
                     break;
+                case MessageType.GAME_END:
+                    LobbyController.deleteGame(message.auth, message.data.lobbyId);
                 default:
                     console.error("invalid incoming message: " + msg);
             }

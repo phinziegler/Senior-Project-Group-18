@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import ChatMessage from "../../shared/ChatMessage";
 import MessageType from "../../shared/MessageTypes";
 import ServerRoutes from "../../shared/ServerRoutes";
@@ -29,7 +29,8 @@ interface LobbyState {
     // chat: any[],    // TODO: figure out a more elegant type choice for this
     alternateDisplay: string,
     passwordInputValue: string,
-    joinStatus: string
+    joinStatus: string,
+    navigate: string,
 }
 
 export default function LobbyPage(props: { user: User | null, setLobby: (_: Lobby | null) => void }) {
@@ -54,11 +55,13 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
             alternateDisplay: "",
             passwordInputValue: "",
             joinStatus: "",
+            navigate: ""
         }
         this.updateUsersListener = this.updateUsersListener.bind(this);
         this.joinLobby = this.joinLobby.bind(this);
         this.removeUser = this.removeUser.bind(this);
         this.handlePasswordChange = this.handlePasswordChange.bind(this);
+        this.gameStartListener = this.gameStartListener.bind(this);
     }
 
     // Update users event listener function
@@ -66,15 +69,26 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         this.getUsersLobby(this.state.lobbyId);
     }
 
+    // Navigate to game page when a game start event is recieved
+    gameStartListener() {
+        this.setState({
+            navigate: "/game"
+        });
+    }
+
     // Runs when component is loaded
     componentDidMount(): void {
         window.addEventListener(SocketEvent.UPDATE_USER_LIST, this.updateUsersListener);
+        window.addEventListener(SocketEvent.GAME_START, this.gameStartListener);
         this.getLobby(this.props.lobbyId);
     }
 
     // Clean up event listenders upon unloading
     componentWillUnmount(): void {
-        removeEventListener(SocketEvent.UPDATE_USER_LIST, this.updateUsersListener);
+        window.removeEventListener(SocketEvent.UPDATE_USER_LIST, this.updateUsersListener);
+        window.removeEventListener(SocketEvent.GAME_START, this.gameStartListener);
+
+
     }
 
     // Get all lobby information
@@ -226,6 +240,10 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
     }
 
     render() {
+        if (this.state.navigate != "") {
+            return <Navigate to={this.state.navigate} />
+        }
+
         let showDelete = this.props.user && (this.state.lobbyLeader == this.props.user.username);
         let showJoin = this.props.user && !this.state.lobbyUsers.includes(this.props.user.username);
         let showLeave = this.props.user && !showJoin && !showDelete;
@@ -259,7 +277,10 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                                     {/* BUTTONS */}
                                     <div className='ready-box border border-green border-medium'>
                                         {/* JOIN BUTTON */}
-                                        <input type="button" className="button join-button" value="Ready" />
+                                        {/* <input type="button" className="button join-button" value="Ready" /> */}
+                                        {showDelete && <button className="button join-button" onClick={() => {
+                                            clientSocketManager?.send(MessageType.GAME_START, { lobbyId: this.props.lobbyId });  // TODO: THIS IS TEMPORARY
+                                        }}>Start Game</button>}
                                         {showJoin && <>
                                             {/* JOIN BUTTON */}
                                             {this.props.user && <input type="button" className="button join-button" onClick={this.joinLobby} value="Join" />}
@@ -284,10 +305,6 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                         </div>
                     </div>
                 }
-
-                <button onClick={() => {
-                    clientSocketManager?.send(MessageType.GAME_START, { lobbyId: this.props.lobbyId });  // TODO: THIS IS TEMPORARY
-                }}>CLICK HERE TO START THE GAME</button>
 
                 {this.state.joinStatus != "" && <div className="text-danger text-center">{this.state.joinStatus}</div>}
             </>

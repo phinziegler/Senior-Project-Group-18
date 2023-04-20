@@ -15,6 +15,10 @@ import GamePhase from "../../shared/GamePhase";
 class GameManagerClass {
     games: Map<string, GameState> = new Map();
 
+    lobbyHasActiveGame(lobbyId: string) {
+        return this.games.has(lobbyId);
+    }
+
     async addGame(lobbyId: string, numTraitors: number) {
         let players = await lobbyService.getUsers(lobbyId);
 
@@ -28,10 +32,18 @@ class GameManagerClass {
         } catch {
             console.log("Failed to create game: too many traitors");
         }
+
+        console.log(this.games.size);
     }
 
     removeGame(lobbyId: string) {
+        let toRemove = this.games.get(lobbyId);
+        if(!toRemove) {
+            return;
+        }
+        toRemove.players.forEach(player => socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME_END })));
         this.games.delete(lobbyId);
+        console.log(this.games.size);
     }
 
     async handleMessage(username: string, message: { action: UserAction, data: any }) {
@@ -109,7 +121,7 @@ class GameManagerClass {
 
     handleVote(playerToView: Player, gameState: GameState, direction: Direction) {
         if (gameState.setVote(playerToView, direction)) {
-            gameState.players.forEach((player) => socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.PLAYER_VOTE, data: { player: playerToView.username, direction: direction, success: true }}})));
+            gameState.players.forEach((player) => socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.PLAYER_VOTE, data: { player: playerToView.username, direction: direction, success: true } } })));
         } else {
             socketManager.sendMessageToUser(playerToView.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.PLAYER_VOTE, data: { message: "Vote operation failed.", success: false } } }));
         }
@@ -160,7 +172,7 @@ class GameManagerClass {
     }
 
     sendGameOutcome(player: Player, outcome: Role | null, playerData: { username: string, role: Role }[]) {
-            socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.GAME_END, data: { winning: outcome, playerData: playerData } } }));
+        socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.GAME_END, data: { winning: outcome, playerData: playerData } } }));
     }
 
     updatePhase(player: Player, phase: GamePhase) {
