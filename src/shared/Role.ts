@@ -1,6 +1,6 @@
 
 enum Role {
-    INNOCENT,
-    TRAITOR
+    INNOCENT = "innocent",
+    TRAITOR = "traitor"
 }
 export default Role

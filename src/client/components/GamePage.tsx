@@ -11,7 +11,7 @@ import Chat from "./Chat";
 import { GET } from "../tools/fetch";
 import requestUrl from "../tools/requestUrl";
 import ServerRoutes from "../../shared/ServerRoutes";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import GamePlayer from "./GamePlayer";
 import DirectionalVote from "./DirectionalVote";
 import GameMap from "./GameMap";
@@ -44,10 +44,14 @@ interface GameState {
     prevGamePhase: GamePhase,
     time: number,
     roomWasSafe: boolean | null,
-    voteResult: Direction
+    voteResult: Direction,
+    winner: Role | null,
+    endGamePlayerData: {username: string, role: Role}[],
+    navigate: string,
 }
 
 export default class GamePage extends React.Component<GameProps, GameState> {
+    defaultState: GameState;
     constructor(props: GameProps) {
         super(props);
         this.state = {
@@ -73,8 +77,13 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             prevGamePhase: GamePhase.UNKNOWN,
             time: 0,
             roomWasSafe: null,
-            voteResult: Direction.NONE
+            voteResult: Direction.NONE,
+            winner: null,
+            endGamePlayerData: [],
+            navigate: ""
         }
+
+        this.defaultState = this.state;
 
         // BIND LISTENERS
         this.wsConnectListener = this.wsConnectListener.bind(this);
@@ -305,7 +314,14 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
     // Tell the user that the game has ended
     gameEndEvent(e: any) {
-        // this.setState({})
+        console.log("END GAME");
+        console.log(e.detail.data);
+        let winning = e.detail.data.winning;
+        let playerData: {username: string, role: Role}[] = e.detail.data.playerData;
+        this.setState({
+            winner: winning,
+            endGamePlayerData: playerData,
+        });
     }
 
     // Tell the user how much time remains in the given phase
@@ -447,8 +463,96 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         </>);
     }
 
+    displayPlayerWithRole(username: string, role: Role) {
+        let color = role == Role.TRAITOR ? "text-danger" : "text-success";
+        return (
+            <div key={username} className="d-flex">
+                <div style={{width: "100px"}} className="text-center ">
+                    {username}
+                </div>
+                <div className="border border-secondary border-right-0"></div>
+                <div style={{width: "100px"}} className={" text-center " + color}>
+                    {String(role).toUpperCase()}
+                </div>
+            </div>
+        );
+    }
+
+    roles() {
+        let traitors: JSX.Element[] = [];
+        let adventurers: JSX.Element[] = [];
+
+        this.state.endGamePlayerData.forEach(player => {
+            if(player.role == Role.TRAITOR) {
+                traitors.push(this.displayPlayerWithRole(player.username, player.role));
+            }
+            if(player.role == Role.INNOCENT) {
+                adventurers.push(this.displayPlayerWithRole(player.username, player.role));
+            }
+        })
+
+
+        return (
+            <div className="d-flex justify-content-center">
+
+                <div className="me-3 border-right">
+                    {traitors}
+                    <hr />
+                    {adventurers}
+                </div>
+                <div className="mx-e">
+                </div>
+            </div>
+        );
+    }
+
+    endGame() {
+        if(!this.state.winner) {
+            return;
+        }
+
+        if(!this.props.user) {
+            return;
+        }
+
+        let winner = this.state.winner == Role.TRAITOR ? "TRAITORS " : "ADVENTURERS ";
+        let color = this.state.winner == Role.TRAITOR ? "text-danger" : "text-success";
+        let userWins = this.state.role == this.state.winner ? "VICTORY" : "DEFEAT";
+        let userColor = this.state.role == this.state.winner ? "text-success" : "text-danger";
+        console.log(winner);
+        console.log(this.state.role);
+
+        return (
+            <div className="d-flex flex-column flex-grow-1">
+                <h2 className="text-center"><span className={color}>{winner}</span><span>win!</span></h2>
+                <hr />
+                <h1 className={userColor + " text-center"}>{userWins}</h1>
+                <hr />
+                {this.roles()}
+                <div className="flex-grow-1"></div>
+                
+                <button onClick={() => {
+                    clientSocketManager?.send(MessageType.GAME_START, { lobbyId: this.state.lobbyId });
+                    this.setState(this.defaultState);
+                    this.requestUpdate();
+                    // this.setState({navigate: "/game"});
+                }} className="my-1 m-auto d-inline btn btn-success">Play again</button>
+
+                <button onClick={() => {
+                    this.setState({navigate: `/lobby/${this.state.lobbyId}`});
+                }} className="my-1 m-auto d-inline btn btn-danger">End Game</button>
+
+            </div>
+        );
+    }
+
     // Gaming
     game() {
+        if(this.state.winner) {
+            console.log("here");
+            return this.endGame();
+        }
+
         let color = this.state.role == Role.INNOCENT ? "success" : "danger";
         let phrase = this.state.role == Role.INNOCENT ? "You are an " : "You are a ";
         let role = this.state.role == Role.INNOCENT ? "ADVENTURER" : "TRAITOR"
@@ -522,7 +626,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                     </>}
 
                 {/* VOTE/MOVE RESULT */}
-                {this.state.gamePhase == GamePhase.VOTE && <>
+                {<>
                     <div>
                         <span>{phraseResult}</span>
                         {this.state.voteResult != Direction.NONE && <span>{secondaryPhrase}</span>}
@@ -544,6 +648,11 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
     // Render the game page
     render() {
+        // Navigate away
+        if(this.state.navigate !+ "") {
+            return <Navigate to={this.state.navigate}/>
+        }
+
         // No game started page
         if (this.state.exploredRooms.length == 0) {
             return <>
