@@ -111,22 +111,18 @@ export default class GameState {
         // Calculate the majority vote direction
         this.directionToVotes.forEach((voteCount, voteDir) => {
             if(voteCount == max) {
-                console.log("TIE");
                 maxVoteDir = Direction.NONE;
             }
             if(voteCount > max) {
                 max = voteCount;
                 maxVoteDir = voteDir;
-                console.log(`${voteDir} has most votes: ${voteCount}`);
             }
 
         });
 
         // Send result
-        this.playerToVoteDirection.clear();
-        this.directionToVotes.clear();
         GameManager.sendVoteResult(maxVoteDir, this);
-
+        
         // There was a tie
         if(maxVoteDir == Direction.NONE) {
             this.time = 0;
@@ -135,6 +131,9 @@ export default class GameState {
             this.updateGame();
             return;
         }
+        
+        this.playerToVoteDirection.clear();
+        this.directionToVotes.clear();
 
         // No tie, party moves
         this.handlePartyMovement(maxVoteDir);
@@ -334,7 +333,6 @@ export default class GameState {
         // Increment new vote direction and set player vote direction
         this.playerToVoteDirection.set(player, direction);
         this.incrementVote(direction);
-        console.log(this.directionToVotes);
         return true;
     }
 
