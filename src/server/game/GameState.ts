@@ -208,16 +208,20 @@ export default class GameState {
         }
 
         this.clearTorchAssignments();
-        if (!this.exploredRooms.includes(this.currentRoom)) {
+
+        let roomIsExplored = this.exploredRooms.includes(this.currentRoom);
+
+        if (!roomIsExplored) {
             this.assignTorchbearers();
             this.exploredRooms.push(this.currentRoom);
         }
+        
         this.players.forEach(player => GameManager.sendTorchAssignments(player, this));
 
         this.players.forEach(player => GameManager.sendBoard(player, this));
 
-        this.currentPhase = GamePhase.SABOTAGE;
-        this.time = this.sabotageTime;
+        this.currentPhase = roomIsExplored ? GamePhase.VOTE : GamePhase.SABOTAGE;
+        this.time = roomIsExplored ? this.voteTime : this.sabotageTime;
         this.players.forEach(player => GameManager.updatePhase(player, this.currentPhase));
         this.players.forEach(player => GameManager.updateTimer(player, this.time));
         this.updateGame();
