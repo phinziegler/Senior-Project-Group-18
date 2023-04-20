@@ -3,7 +3,7 @@ import GameEvent from "../../shared/GameEvent";
 class GameMessageHandlerClass {
     handle(messageData: { event: GameEvent, data?: any }) {
         console.log(messageData.event);
-        if(messageData.event == GameEvent.VIEW_ROOM) {
+        if(messageData.event == GameEvent.TORCH_ASSIGN) {
             console.log(messageData.data);
         }
         let gameEvent = new CustomEvent(messageData.event, { detail: { data: messageData.data } });

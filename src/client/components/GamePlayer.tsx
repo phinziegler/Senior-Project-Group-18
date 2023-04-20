@@ -69,7 +69,7 @@ export default class GamePlayer extends React.Component<Props, State> {
             <div
                 style={{userSelect: "none", width: "200px", overflow: "none"}}
                 onClick={() => {
-                    if(!this.props.canSabotage || this.props.role == Role.INNOCENT || this.props.username == this.props.user?.username || this.props.isTraitor) {
+                    if(!this.props.canSabotage || !this.props.torchBearer || this.props.role == Role.INNOCENT || this.props.username == this.props.user?.username || this.props.isTraitor) {
                         return;
                     }
                     this.sabotage();

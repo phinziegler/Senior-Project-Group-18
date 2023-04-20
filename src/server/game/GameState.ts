@@ -3,7 +3,7 @@ import Direction from "../../shared/Direction";
 import Player from "./Player";
 import Traitor from "./Traitor";
 import Room from "../../shared/Room";
-import GamePhase from "./GamePhase";
+import GamePhase from "../../shared/GamePhase";
 import GameManager from "./GameManager";
 import Role from "../../shared/Role";
 

@@ -1,6 +1,7 @@
 enum GamePhase {
     VOTE,
-    SABOTAGE
+    SABOTAGE,
+    UNKNOWN
 }
 
 export default GamePhase;

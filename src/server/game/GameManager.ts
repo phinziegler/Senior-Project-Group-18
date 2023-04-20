@@ -10,7 +10,7 @@ import Room from "../../shared/Room";
 import GameEvent from "../../shared/GameEvent";
 import Direction from "../../shared/Direction";
 import Role from "../../shared/Role";
-import GamePhase from "./GamePhase";
+import GamePhase from "../../shared/GamePhase";
 
 class GameManagerClass {
     games: Map<string, GameState> = new Map();
