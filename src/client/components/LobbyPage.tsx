@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import ChatMessage from "../../shared/ChatMessage";
 import MessageType from "../../shared/MessageTypes";
 import ServerRoutes from "../../shared/ServerRoutes";
@@ -11,6 +11,7 @@ import requestUrl from "../tools/requestUrl";
 import { SocketEvent } from "../websockets/SocketEvent";
 import UserPreview from "./UserPreview";
 import Lobby from "../../shared/Lobby";
+import Chat from "./Chat";
 
 interface LobbyPageElementProps {
     lobbyId: string;
@@ -24,11 +25,12 @@ interface LobbyState {
     lobbyLeader: string;
     hasPassword: boolean;
     lobbyUsers: string[];
-    chatInput: string;
-    chat: any[],    // TODO: figure out a more elegant type choice for this
+    // chatInput: string;
+    // chat: any[],    // TODO: figure out a more elegant type choice for this
     alternateDisplay: string,
     passwordInputValue: string,
-    joinStatus: string
+    joinStatus: string,
+    navigate: string,
 }
 
 export default function LobbyPage(props: { user: User | null, setLobby: (_: Lobby | null) => void }) {
@@ -49,29 +51,17 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
             lobbyId: "",
             lobbyLeader: "",
             hasPassword: false,
-            chatInput: "",
             lobbyUsers: [],
-            chat: [],
             alternateDisplay: "",
             passwordInputValue: "",
-            joinStatus: ""
+            joinStatus: "",
+            navigate: ""
         }
-        this.chatListener = this.chatListener.bind(this);
         this.updateUsersListener = this.updateUsersListener.bind(this);
-        this.sendMessage = this.sendMessage.bind(this);
         this.joinLobby = this.joinLobby.bind(this);
         this.removeUser = this.removeUser.bind(this);
         this.handlePasswordChange = this.handlePasswordChange.bind(this);
-        this.handleChatKeyDown = this.handleChatKeyDown.bind(this);
-    }
-
-    // Chat event listener function
-    chatListener(e: any) {
-        let chat = this.state.chat;
-        chat.push(e.detail);
-        this.setState({
-            chat: chat
-        });
+        this.gameStartListener = this.gameStartListener.bind(this);
     }
 
     // Update users event listener function
@@ -79,17 +69,26 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         this.getUsersLobby(this.state.lobbyId);
     }
 
+    // Navigate to game page when a game start event is recieved
+    gameStartListener() {
+        this.setState({
+            navigate: "/game"
+        });
+    }
+
     // Runs when component is loaded
     componentDidMount(): void {
-        window.addEventListener(SocketEvent.CHAT, this.chatListener);
         window.addEventListener(SocketEvent.UPDATE_USER_LIST, this.updateUsersListener);
+        window.addEventListener(SocketEvent.GAME_START, this.gameStartListener);
         this.getLobby(this.props.lobbyId);
     }
 
     // Clean up event listenders upon unloading
     componentWillUnmount(): void {
-        removeEventListener(SocketEvent.CHAT, this.chatListener);
-        removeEventListener(SocketEvent.UPDATE_USER_LIST, this.updateUsersListener);
+        window.removeEventListener(SocketEvent.UPDATE_USER_LIST, this.updateUsersListener);
+        window.removeEventListener(SocketEvent.GAME_START, this.gameStartListener);
+
+
     }
 
     // Get all lobby information
@@ -170,27 +169,6 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         );
     }
 
-    // Send a chat message
-    sendMessage() {
-        if (!this.props.user) {
-            return;
-        }
-
-        // Cannot send blank messages
-        if(this.state.chatInput == "") {
-            return;
-        }
-
-        let data: ChatMessage = { message: this.state.chatInput, user: this.props.user.username, lobbyId: this.props.lobbyId }
-
-        if (!clientSocketManager) {
-            console.error("client socket manager is null");
-            return;
-        }
-        clientSocketManager.send(MessageType.CHAT, data);
-        this.setState({ chatInput: "" });
-    }
-
     // Join the lobby
     joinLobby() {
         if (!this.props.user) {
@@ -256,59 +234,16 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         });
     }
 
-    // Render the chat messages
-    chat() {
-        let output: JSX.Element[] = [];
-        this.state.chat.forEach((messageInfo, index) => {
-            output.push(
-                <div key={index} className={'row ' + (this.props.user && (messageInfo.user == this.props.user.username) ? 'justify-content-end' : '')} style={{ margin: '0px', paddingLeft: '7px', paddingRight: '7px' }}>
-                    <div className={'col-8 border border-green chat ' + (this.props.user && (messageInfo.user == this.props.user.username) ? 'chat-home' : 'chat-away')}>
-                        {`${messageInfo.user}: ${messageInfo.message}`}
-                    </div>
-                </div>
-            );
-        });
-        return <div className='scroller'>{output}</div>
-    }
-
-    chatbox() {
-        return (
-        <>
-            <div className='row'>
-                <h2 className="m-2">Chat</h2>
-                {this.chat()}
-            </div>
-
-            {/* SEND MESSAGE */}
-            {/* <div className='row d-flex flex-row flex-wrap'> */}
-            <div className="p-2 mw-100 d-flex flex-wrap justify-content-end">
-                {/* CHAT MESSAGE INPUT */}
-                <input className="chat-text-input flex-grow-1" 
-                spellCheck={false} 
-                value={this.state.chatInput} 
-                onChange={e => this.setState({ chatInput: e.target.value })} 
-                type="text" 
-                onKeyDown={this.handleChatKeyDown}/>
-                {/* SEND MESSAGE BUTTON */}
-                <button className="button chat-button" onClick={this.sendMessage}>Send</button>
-            </div>
-        </>
-        )
-    }
-
     // Update the state of the password textbox
     handlePasswordChange(e: React.ChangeEvent<HTMLInputElement>) {
         this.setState({ passwordInputValue: e.target.value })
     }
 
-    // When pressing enter while typing, send message
-    handleChatKeyDown(e: React.KeyboardEvent) {
-        if (e.key == "Enter") {
-            this.sendMessage()
-        }
-    }
-
     render() {
+        if (this.state.navigate != "") {
+            return <Navigate to={this.state.navigate} />
+        }
+
         let showDelete = this.props.user && (this.state.lobbyLeader == this.props.user.username);
         let showJoin = this.props.user && !this.state.lobbyUsers.includes(this.props.user.username);
         let showLeave = this.props.user && !showJoin && !showDelete;
@@ -335,13 +270,17 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                                     </div>
 
                                     <div className='col-12 d-md-none chat-box border border-green border-medium'>
-                                        {this.chatbox()}
+                                        <h2 className="m-2">Chat</h2>
+                                        <Chat lobbyId={this.props.lobbyId} user={this.props.user} />
                                     </div>
 
                                     {/* BUTTONS */}
                                     <div className='ready-box border border-green border-medium'>
                                         {/* JOIN BUTTON */}
-                                        <input type="button" className="button join-button" value="Ready" />
+                                        {/* <input type="button" className="button join-button" value="Ready" /> */}
+                                        {showDelete && <button className="button join-button" onClick={() => {
+                                            clientSocketManager?.send(MessageType.GAME_START, { lobbyId: this.props.lobbyId });  // TODO: THIS IS TEMPORARY
+                                        }}>Start Game</button>}
                                         {showJoin && <>
                                             {/* JOIN BUTTON */}
                                             {this.props.user && <input type="button" className="button join-button" onClick={this.joinLobby} value="Join" />}
@@ -357,13 +296,16 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
 
                                 {/* CHAT (RIGHT COLUMN) */}
                                 <div className='col-4 d-none d-md-block chat-box border border-green border-medium'>
-                                    {this.chatbox()}
+                                    {/* {this.chatbox()} */}
+                                    <h2 className="m-2">Chat</h2>
+                                    <Chat lobbyId={this.props.lobbyId} user={this.props.user} />
                                 </div>
 
                             </div>
                         </div>
                     </div>
                 }
+
                 {this.state.joinStatus != "" && <div className="text-danger text-center">{this.state.joinStatus}</div>}
             </>
         )

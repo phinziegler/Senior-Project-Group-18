@@ -4,6 +4,7 @@ import STATIC_PATH from "./tools/static-path";
 import getDb from "./tools/db-connect";
 import Environments from "../shared/Environments";
 import ServerSocketManager from "./ServerSocketManager";
+import Board from "./game/Board";
 const cors = require('cors');
 
 /* 'require' statements are often used by Node.js applications to import modules

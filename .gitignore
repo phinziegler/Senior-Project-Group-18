@@ -6,4 +6,4 @@ builds
 
 # misc
 .env
-
+*.DS_Store

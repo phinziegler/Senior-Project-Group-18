@@ -1,0 +1,48 @@
+import React from "react";
+import Room from "../../shared/Room";
+import Direction from "../../shared/Direction";
+
+interface Props {
+    currentRoom: Room | null,
+    voteAction: (direction: Direction) => void;
+}
+
+interface State {
+    direction: Direction;
+}
+
+export default class DirectionalVote extends React.Component<Props, State> {
+    constructor(props: Props) {
+        super(props);
+
+        this.state = {
+            direction: Direction.NONE
+        }
+    }
+
+    option(direction: Direction, text: string) {
+        let width = direction == Direction.NONE ? "100px" : "200px";
+        return <>
+            {<div style={{ width: width }} className={"btn " + (this.state.direction == direction ? "btn-warning" : "btn-dark") + " my-1 mx-1"} onClick={() => {
+                this.setState({
+                    direction: direction
+                });
+                this.props.voteAction(direction);
+            }}>{text}</div>}
+        </>
+    }
+
+    render() {
+        return <>
+            <div className="d-flex flex-column mx-auto justify-content-center align-items-center">
+                {this.props.currentRoom?.up && this.option(Direction.UP, "UP")}
+                <div>
+                    {this.props.currentRoom?.left && this.option(Direction.LEFT, "LEFT")}
+                    {this.option(Direction.NONE, "NONE")}
+                    {this.props.currentRoom?.right && this.option(Direction.RIGHT, "RIGHT")}
+                </div>
+                {this.props.currentRoom?.down && this.option(Direction.DOWN, "DOWN")}
+            </div>
+        </>
+    }
+}

@@ -1,6 +1,7 @@
 import Environments from "../../shared/Environments";
 import MessageType from "../../shared/MessageTypes";
 import { getAuthToken } from "../tools/auth";
+import GameMessageHandler from "./GameMessageManager";
 import { SocketEvent } from "./SocketEvent";
 
 export default class ClientSocketManager {
@@ -33,10 +34,14 @@ export default class ClientSocketManager {
     }
 
     setupEvents() {
+        let connectEvent: CustomEvent;
+        connectEvent = new CustomEvent("wsConnect", { detail: {}});
+
         this.ws.onopen = () => {
             console.log("established websocket connection");
             this.connected = true;
             this.ws.send(JSON.stringify({type: MessageType.ASSIGN_WEBSOCKET_USER, username: this.username}))
+            window.dispatchEvent(connectEvent);
         }
         this.ws.onclose = () => {
             console.log("closed websocket connection");
@@ -51,10 +56,19 @@ export default class ClientSocketManager {
             messageEvent = new CustomEvent("no-event", { detail: { data: e.data } });
             switch (message.type) {
                 case MessageType.CHAT:
-                    messageEvent = new CustomEvent(SocketEvent.CHAT, { detail: { message: message.message, user: message.user } });
+                messageEvent = new CustomEvent(SocketEvent.CHAT, { detail: { message: message.message, user: message.user } });
                     break;
                 case MessageType.UPDATE_USER_LIST:
                     messageEvent = new CustomEvent(SocketEvent.UPDATE_USER_LIST);
+                    break;
+                case MessageType.GAME:
+                    GameMessageHandler.handle(message.data);
+                    break;
+                case MessageType.GAME_START:
+                    messageEvent = new CustomEvent(SocketEvent.GAME_START);
+                    break;
+                case MessageType.GAME_END:
+                    messageEvent = new CustomEvent(SocketEvent.GAME_END);
                     break;
                 default:
                     console.error("Invalid Socket Message: " + e.data);

@@ -3,6 +3,7 @@ import WebSocket, { Server } from 'ws';
 import Environments from '../shared/Environments';
 import MessageType from '../shared/MessageTypes';
 import LobbyController from './controllers/LobbyController';
+import GameManager from './game/GameManager';
 import { authTokenService } from './tools/services';
 
 require('dotenv').config();
@@ -63,6 +64,14 @@ export default class ServerSocketManager {
                 case MessageType.CHAT:
                     LobbyController.chat(message.auth, message.data);
                     break;
+                case MessageType.GAME:
+                    GameManager.handleMessage(message.auth.username, message.data);
+                    break;
+                case MessageType.GAME_START:
+                    LobbyController.startGame(message.auth, message.data.lobbyId);
+                    break;
+                case MessageType.GAME_END:
+                    LobbyController.deleteGame(message.auth, message.data.lobbyId);
                 default:
                     console.error("invalid incoming message: " + msg);
             }
@@ -85,7 +94,7 @@ export default class ServerSocketManager {
     public sendMessageToUser(username: string, message: string) {
         let ws = this.usernameToSocket.get(username);
         if (!ws) {
-            console.log("could not message user " + username + " not connected");
+            // console.log("could not message user " + JSON.stringify(username) + " not connected");
             return;
         }
         ws.send(message);
