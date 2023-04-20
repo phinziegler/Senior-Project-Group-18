@@ -41,7 +41,10 @@ interface GameState {
     clearedRoomSafe: boolean | null,
     clearedDirection: Direction,
     gamePhase: GamePhase,
+    prevGamePhase: GamePhase,
     time: number,
+    roomWasSafe: boolean | null,
+    voteResult: Direction
 }
 
 export default class GamePage extends React.Component<GameProps, GameState> {
@@ -67,7 +70,10 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             clearedRoomSafe: null,
             clearedDirection: Direction.NONE,
             gamePhase: GamePhase.UNKNOWN,
+            prevGamePhase: GamePhase.UNKNOWN,
             time: 0,
+            roomWasSafe: null,
+            voteResult: Direction.NONE
         }
 
         // BIND LISTENERS
@@ -84,6 +90,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         this.gameEndEvent = this.gameEndEvent.bind(this);
         this.updateTimeEvent = this.updateTimeEvent.bind(this);
         this.updatePhaseEvent = this.updatePhaseEvent.bind(this);
+        this.moveResultEvent = this.moveResultEvent.bind(this);
     }
 
     // REMOVE EVENT LISTENERS
@@ -101,6 +108,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         window.removeEventListener(GameEvent.GAME_END, this.gameEndEvent);
         window.removeEventListener(GameEvent.UPDATE_TIMER, this.updateTimeEvent);
         window.removeEventListener(GameEvent.UPDATE_PHASE, this.updatePhaseEvent);
+        window.removeEventListener(GameEvent.MOVE_RESULT, this.moveResultEvent);
     }
 
 
@@ -119,6 +127,8 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         window.addEventListener(GameEvent.GAME_END, this.gameEndEvent);
         window.addEventListener(GameEvent.UPDATE_TIMER, this.updateTimeEvent);
         window.addEventListener(GameEvent.UPDATE_PHASE, this.updatePhaseEvent);
+        window.addEventListener(GameEvent.MOVE_RESULT, this.moveResultEvent);
+
 
         // REQUEST UPDATE
         if (!clientSocketManager) {
@@ -138,6 +148,13 @@ export default class GamePage extends React.Component<GameProps, GameState> {
     // Connect to websocket listener
     wsConnectListener() {
         this.requestUpdate();
+    }
+
+    // Tell the user what happened in the move
+    moveResultEvent(e: any) {
+        this.setState({
+            roomWasSafe: e.detail.data.nextRoomIsSafe
+        });
     }
 
     // Assign a role to the user -- also # of sabotages for traitors
@@ -283,8 +300,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
     // Tell the user the result of the voting
     voteResultEvent(e: any) {
-        // console.log(e.detail.data);
-        // this.setState({});
+        this.setState({voteResult: e.detail.data.voteDir});
     }
 
     // Tell the user that the game has ended
@@ -302,7 +318,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
     updatePhaseEvent(e: any) {
         let oldPhase: GamePhase = this.state.gamePhase;
         let newPhase: GamePhase = e.detail.data.phase;
-        this.setState({ gamePhase: newPhase }, () => {
+        this.setState({ gamePhase: newPhase, prevGamePhase: oldPhase }, () => {
             // VOTE --> SABOTAGE
             if (oldPhase == GamePhase.VOTE && newPhase == GamePhase.SABOTAGE) {
                 this.setState({
@@ -442,6 +458,12 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
         let phase: string = this.state.gamePhase == GamePhase.VOTE ? "Vote" : this.state.role == Role.INNOCENT ? "Clear" : "Sabotage";
 
+        let phraseResult: string = this.state.voteResult == Direction.NONE ? "The group could not agree where to go next..." : `The group moves ${this.state.voteResult.toUpperCase()}.`;
+        let secondaryPhrase: string =  `The path is `;
+        let colorResult: string = this.state.roomWasSafe != null && this.state.roomWasSafe ? "text-success" : "text-danger";
+        let resultResult: string = this.state.roomWasSafe != null && this.state.roomWasSafe ? `SAFE` : `UNSAFE`;
+        let post: string = this.state.roomWasSafe != null && this.state.roomWasSafe ? ". A stroke of luck." : ". A gust of wind sweeps through, and the room darkens as a torch is blown out.";
+
         return <>
             <div className="text-center position-relative flex-grow-1">
                 {/* ROLE */}
@@ -498,6 +520,16 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                             currentRoom={this.state.currentRoom}
                             voteAction={(direction) => this.vote(direction)} />
                     </>}
+
+                {/* VOTE/MOVE RESULT */}
+                {this.state.gamePhase == GamePhase.VOTE && <>
+                    <div>
+                        <span>{phraseResult}</span>
+                        {this.state.voteResult != Direction.NONE && <span>{secondaryPhrase}</span>}
+                        {this.state.voteResult != Direction.NONE && <span className={colorResult}>{resultResult}</span>}
+                        {this.state.voteResult != Direction.NONE && <span>{post}</span>}
+                    </div>
+                </>}
 
                 {/* Sabotage Tooltip */}
                 {this.state.gamePhase == GamePhase.SABOTAGE && this.state.sabotaging && <div className="text-danger">Click on a torchbearer to sabotage their room clear.</div>}
