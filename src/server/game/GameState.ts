@@ -17,7 +17,7 @@ export default class GameState {
     traitorToVictims: Map<Traitor, Set<Player>> = new Map();
     torches: number;
     currTorchIndex: number = 0;
-    playerToRoomView: Map<Player, {direction: Direction, room: Room}> = new Map();
+    playerToRoomView: Map<Player, { direction: Direction, room: Room }> = new Map();
     playerToVoteDirection: Map<Player, Direction> = new Map();
     directionToVotes: Map<Direction, number> = new Map();
     currentPhase: GamePhase = GamePhase.SABOTAGE;
@@ -105,30 +105,38 @@ export default class GameState {
     }
 
     handleVotePhase() {
-        let max: number = -1;
-        let maxVoteDir: Direction = Direction.UP;
+        let max: number = 0;
+        let maxVoteDir: Direction = Direction.NONE;
 
+        // Calculate the majority vote direction
         this.directionToVotes.forEach((voteCount, voteDir) => {
-            if (voteCount > max) {
+            if(voteCount == max) {
+                console.log("TIE");
+                maxVoteDir = Direction.NONE;
+            }
+            if(voteCount > max) {
                 max = voteCount;
                 maxVoteDir = voteDir;
-            } else if (voteCount == max) {
-                // The vote was tied, revote
-                this.playerToVoteDirection.clear();
-                this.directionToVotes.clear();
-                GameManager.sendVoteResult("tie", this);
-                this.time = 0;
-                this.currentPhase = GamePhase.VOTE;
-                this.players.forEach(player => GameManager.updatePhase(player, this.currentPhase));
-                this.updateGame();
-                return;
+                console.log(`${voteDir} has most votes: ${voteCount}`);
             }
+
         });
 
+        // Send result
         this.playerToVoteDirection.clear();
         this.directionToVotes.clear();
         GameManager.sendVoteResult(maxVoteDir, this);
 
+        // There was a tie
+        if(maxVoteDir == Direction.NONE) {
+            this.time = 0;
+            this.currentPhase = GamePhase.VOTE;
+            this.players.forEach(player => GameManager.updatePhase(player, this.currentPhase));
+            this.updateGame();
+            return;
+        }
+
+        // No tie, party moves
         this.handlePartyMovement(maxVoteDir);
     }
 
@@ -305,8 +313,50 @@ export default class GameState {
         if (this.currentPhase != GamePhase.VOTE) {
             return false;
         }
+
+        // Handle Repeat votes
+        if (this.playerToVoteDirection.has(player)) {
+            // Get their previous vote direction
+            let prevVoteDir = this.playerToVoteDirection.get(player);
+
+            // This shouldn't happen
+            if (!prevVoteDir) {
+                return false;
+            }
+
+            // Decrement their previous vote direction
+            this.decrementVote(prevVoteDir);
+
+            // Clear previous vote direction
+            this.playerToVoteDirection.delete(player);
+        }
+
+        // Increment new vote direction and set player vote direction
         this.playerToVoteDirection.set(player, direction);
+        this.incrementVote(direction);
+        console.log(this.directionToVotes);
         return true;
+    }
+
+    private decrementVote(direction: Direction) {
+        let votes = this.directionToVotes.get(direction);
+        if (votes) {
+            votes--;
+        } else {
+            votes = 0;
+        }
+        this.directionToVotes.set(direction, votes);
+    }
+
+    private incrementVote(direction: Direction) {
+        let votes = this.directionToVotes.get(direction)?.valueOf();
+        if (votes) {
+            votes++;
+        } else {
+            votes = 1;
+        }
+        console.log(votes);
+        this.directionToVotes.set(direction, votes);
     }
 
 
