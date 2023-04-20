@@ -538,6 +538,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                             <div className={"border p-3 d-flex flex-column justify-content-center" + border}>
                                 <h2>MAP</h2>
                                 <GameMap
+                                    fontSize={10}
                                     className="flex-grow-1"
                                     role={this.state.role}
                                     exploredRooms={this.state.exploredRooms}

@@ -3,6 +3,7 @@ import Room from "../../shared/Room";
 import Role from "../../shared/Role";
 
 interface Props {
+    fontSize?: number
     className: string
     role: Role,
     exploredRooms: Room[]
@@ -105,7 +106,7 @@ export default class GameMap extends React.Component<Props, State> {
             );
         });
 
-        return <div style={{ whiteSpace: "pre", lineHeight: `${fontSize}em`, fontSize: `${fontSize}em` }} className="m-0" >{output}</div>;
+        return <div style={{ whiteSpace: "pre", lineHeight: `${fontSize}px`, fontSize: `${fontSize}px` }} className="m-0" >{output}</div>;
     }
 
     // Returns a text representation of the map
@@ -193,7 +194,7 @@ export default class GameMap extends React.Component<Props, State> {
             );
         });
 
-        return <div style={{ whiteSpace: "pre", lineHeight: `${fontSize}em`, fontSize: `${fontSize}em` }} className="m-0" >{output}</div>;
+        return <div style={{ whiteSpace: "pre", lineHeight: `${fontSize}px`, fontSize: `${fontSize}px` }} className="m-0" >{output}</div>;
     }
 
     bfs(): Set<Room> {
@@ -232,7 +233,7 @@ export default class GameMap extends React.Component<Props, State> {
 
     render() {
         return <div className={this.props.className}>
-            {this.map()}
+            {this.map(this.props.fontSize)}
         </div>
     }
 }
