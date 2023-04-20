@@ -56,17 +56,23 @@ export default class GameState {
     }
 
     updateGame() {
-        setInterval(() => {
+        let timerId = setInterval(() => {
             this.time++;
             this.players.forEach(player => GameManager.updateTimer(player, this.time));
         }, 1000);
         if (this.currentPhase == GamePhase.SABOTAGE) {
             this.time = 0;
-            setTimeout(() => this.handleSabotagePhase(), 20000);
+            setTimeout(() => {
+                clearInterval(timerId);
+                this.handleSabotagePhase();
+            }, 10000);
         }
         if (this.currentPhase == GamePhase.VOTE) {
             this.time = 0;
-            setTimeout(() => this.handleVotePhase(), 60000);
+            setTimeout(() => {
+                clearInterval(timerId);
+                this.handleVotePhase();
+            }, 10000);
         }
     }
 
@@ -187,9 +193,9 @@ export default class GameState {
         this.clearTorchAssignments();
         if (!this.exploredRooms.includes(this.currentRoom)) {
             this.assignTorchbearers();
-            this.players.forEach(player => GameManager.sendTorchAssignments(player, this));
             this.exploredRooms.push(this.currentRoom);
         }
+        this.players.forEach(player => GameManager.sendTorchAssignments(player, this));
 
         this.players.forEach(player => GameManager.sendBoard(player, this));
 

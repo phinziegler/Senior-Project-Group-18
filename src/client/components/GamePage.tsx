@@ -240,8 +240,6 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         let isSafe = e.detail.data.isSafe;
         let direction = e.detail.data.direction;
 
-        console.log("VIEW ROOM EVENT")
-
         this.setState({
             clearedRoomSafe: isSafe,
             clearedDirection: direction
