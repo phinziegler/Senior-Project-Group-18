@@ -22,6 +22,9 @@ export default class GameState {
     playerToVoteDirection: Map<Player, Direction> = new Map();
     directionToVotes: Map<Direction, number> = new Map();
     currentPhase: GamePhase = GamePhase.SABOTAGE;
+    gameOver: boolean = false;
+    gameOutcome: Role | null = null;
+    playerData: { username: string, role: Role }[] = [];
     time: number;
     readonly sabotageTime: number;
     readonly voteTime: number;
@@ -215,7 +218,7 @@ export default class GameState {
             this.assignTorchbearers();
             this.exploredRooms.push(this.currentRoom);
         }
-        
+
         this.players.forEach(player => GameManager.sendTorchAssignments(player, this));
 
         this.players.forEach(player => GameManager.sendBoard(player, this));
@@ -405,7 +408,6 @@ export default class GameState {
     }
 
     endGame(outcome: Role) {
-        let playerData: { username: string, role: Role }[] = [];
         let isTraitor = false;
         this.players.forEach(player => {
             if (player instanceof Traitor) {
@@ -413,9 +415,11 @@ export default class GameState {
             } else {
                 isTraitor = false;
             }
-            playerData.push({ username: player.username, role: isTraitor ? Role.TRAITOR : Role.INNOCENT })
+            this.playerData.push({ username: player.username, role: this.gameOutcome = isTraitor ? Role.TRAITOR : Role.INNOCENT })
         })
         this.players.forEach(player => GameManager.sendBoard(player, this));
-        GameManager.sendGameOutcome(outcome, playerData, this);
+        this.gameOver = true;
+        this.gameOutcome = outcome;
+        this.players.forEach(player => GameManager.sendGameOutcome(player, outcome, this.playerData));
     }
 }

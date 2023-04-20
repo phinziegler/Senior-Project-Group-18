@@ -58,6 +58,9 @@ class GameManagerClass {
                 this.sendTorchAssignments(player, gameState);
                 this.updatePhase(player, gameState.currentPhase);
                 this.updateTimer(player, gameState.time);
+                if (gameState.gameOver) {
+                    this.sendGameOutcome(player, gameState.gameOutcome, gameState.playerData);
+                }
                 break;
             case UserAction.UNSABOTAGE:
                 this.handleUnsabotage(player, gameState, message.data.victim);
@@ -156,10 +159,8 @@ class GameManagerClass {
         socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.VIEW_ROOM, data: { direction: direction, isSafe: isSafe } } }));
     }
 
-    sendGameOutcome(outcome: Role, playerData: { username: string, role: Role }[], gameState: GameState) {
-        gameState.players.forEach(player => {
+    sendGameOutcome(player: Player, outcome: Role | null, playerData: { username: string, role: Role }[]) {
             socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.GAME_END, data: { winning: outcome, playerData: playerData } } }));
-        });
     }
 
     updatePhase(player: Player, phase: GamePhase) {
