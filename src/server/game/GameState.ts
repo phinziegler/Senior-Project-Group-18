@@ -6,6 +6,7 @@ import Room from "../../shared/Room";
 import GamePhase from "../../shared/GamePhase";
 import GameManager from "./GameManager";
 import Role from "../../shared/Role";
+import Environments from "../../shared/Environments";
 
 export default class GameState {
     lobbyId: string;
@@ -21,7 +22,9 @@ export default class GameState {
     playerToVoteDirection: Map<Player, Direction> = new Map();
     directionToVotes: Map<Direction, number> = new Map();
     currentPhase: GamePhase = GamePhase.SABOTAGE;
-    time: number = 0;
+    time: number;
+    readonly sabotageTime: number;
+    readonly voteTime: number;
 
     constructor(lobbyId: string, players: { username: string }[], numTraitors: number) {
         this.lobbyId = lobbyId;
@@ -52,27 +55,30 @@ export default class GameState {
 
         this.assignTorchbearers();
 
+        this.sabotageTime = process.env.NODE_ENV === Environments.PRODUCTION ? 20 : 10;
+        this.voteTime = process.env.NODE_ENV === Environments.PRODUCTION ? 60 : 10;
+        
+        this.time = this.sabotageTime;
+
         this.updateGame();
     }
 
     updateGame() {
         let timerId = setInterval(() => {
-            this.time++;
+            this.time--;
             this.players.forEach(player => GameManager.updateTimer(player, this.time));
         }, 1000);
-        if (this.currentPhase == GamePhase.SABOTAGE) {
-            this.time = 0;
+        if (this.currentPhase === GamePhase.SABOTAGE) {
             setTimeout(() => {
                 clearInterval(timerId);
                 this.handleSabotagePhase();
-            }, 10000);
+            }, this.sabotageTime * 1000);
         }
         if (this.currentPhase == GamePhase.VOTE) {
-            this.time = 0;
             setTimeout(() => {
                 clearInterval(timerId);
                 this.handleVotePhase();
-            }, 10000);
+            }, this.voteTime * 1000);
         }
     }
 
@@ -100,7 +106,9 @@ export default class GameState {
         this.playerToRoomView.clear();
 
         this.currentPhase = GamePhase.VOTE;
+        this.time = this.voteTime;
         this.players.forEach(player => GameManager.updatePhase(player, this.currentPhase));
+        this.players.forEach(player => GameManager.updateTimer(player, this.time));
         this.updateGame();
     }
 
@@ -125,9 +133,10 @@ export default class GameState {
         
         // There was a tie
         if(maxVoteDir == Direction.NONE) {
-            this.time = 0;
             this.currentPhase = GamePhase.VOTE;
+            this.time = this.voteTime;
             this.players.forEach(player => GameManager.updatePhase(player, this.currentPhase));
+            this.players.forEach(player => GameManager.updateTimer(player, this.time));
             this.updateGame();
             return;
         }
@@ -195,6 +204,7 @@ export default class GameState {
 
         if (this.currentRoom === this.board.goal) {
             this.endGame(Role.INNOCENT);
+            return;
         }
 
         this.clearTorchAssignments();
@@ -207,7 +217,9 @@ export default class GameState {
         this.players.forEach(player => GameManager.sendBoard(player, this));
 
         this.currentPhase = GamePhase.SABOTAGE;
+        this.time = this.sabotageTime;
         this.players.forEach(player => GameManager.updatePhase(player, this.currentPhase));
+        this.players.forEach(player => GameManager.updateTimer(player, this.time));
         this.updateGame();
     }
 
@@ -399,6 +411,7 @@ export default class GameState {
             }
             playerData.push({ username: player.username, role: isTraitor ? Role.TRAITOR : Role.INNOCENT })
         })
+        this.players.forEach(player => GameManager.sendBoard(player, this));
         GameManager.sendGameOutcome(outcome, playerData, this);
     }
 }
