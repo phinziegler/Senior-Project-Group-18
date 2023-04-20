@@ -303,6 +303,9 @@ export default class GameState {
                     return true;
                 }
                 break;
+            case Direction.NONE:
+                this.playerToRoomView.set(player, { direction: direction, room: this.currentRoom });
+                return true;
         }
         return false;
     }
@@ -353,7 +356,6 @@ export default class GameState {
         } else {
             votes = 1;
         }
-        console.log(votes);
         this.directionToVotes.set(direction, votes);
     }
 

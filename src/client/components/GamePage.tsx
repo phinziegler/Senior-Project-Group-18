@@ -39,7 +39,7 @@ interface GameState {
     playerToDirectionRoomSelect: Map<string, Direction>,
     playerToDirectionVote: Map<string, Direction>,
     clearedRoomSafe: boolean | null,
-    clearedDirection: Direction | null,
+    clearedDirection: Direction,
     gamePhase: GamePhase,
     time: number,
 }
@@ -65,7 +65,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             playerToDirectionRoomSelect: new Map(),
             playerToDirectionVote: new Map(),
             clearedRoomSafe: null,
-            clearedDirection: null,
+            clearedDirection: Direction.NONE,
             gamePhase: GamePhase.UNKNOWN,
             time: 0,
         }
@@ -262,7 +262,6 @@ export default class GamePage extends React.Component<GameProps, GameState> {
     roomSelectEvent(e: any) {
         let user = e.detail.data.player;
         let direction = e.detail.data.direction;
-
         let map = this.state.playerToDirectionRoomSelect;
         map.set(user, direction);
         this.setState({
@@ -284,8 +283,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
     // Tell the user the result of the voting
     voteResultEvent(e: any) {
-        console.log(`VOTE RESULT`);
-        console.log(e.detail.data);
+        // console.log(e.detail.data);
         // this.setState({});
     }
 
@@ -309,7 +307,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             if (oldPhase == GamePhase.VOTE && newPhase == GamePhase.SABOTAGE) {
                 this.setState({
                     playerToDirectionVote: new Map(),
-                    clearedDirection: null,
+                    clearedDirection: Direction.NONE,
                     clearedRoomSafe: null,
                     sabotagedByOthersList: new Set(),
                     sabotagedBySelfList: new Set()
@@ -421,6 +419,10 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
     // Show the result of the clear room
     viewRoomResult() {
+        // let direction = this.state.clearedDirection == Direction.NONE ? "NOTHING" : this.state.clearedDirection.toUpperCase();
+        if(this.state.clearedDirection == Direction.NONE) {
+            return <span>You checked NOTHING</span>
+        }
         let message = `You checked ${this.state.clearedDirection ? `${this.state.clearedDirection.toUpperCase()} and saw that it is ` : "NOTHING and saw "}`;
         let keyword = this.state.clearedRoomSafe == null ? "NOTHING" : this.state.clearedRoomSafe ? "SAFE" : "UNSAFE";
         let color = this.state.clearedRoomSafe == null ? "text-white" : this.state.clearedRoomSafe ? "text-success" : "text-danger";

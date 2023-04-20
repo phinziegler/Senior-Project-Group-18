@@ -21,8 +21,9 @@ export default class DirectionalVote extends React.Component<Props, State> {
     }
 
     option(direction: Direction, text: string) {
+        let width = direction == Direction.NONE ? "100px" : "200px";
         return <>
-            {<div style={{ width: "200px" }} className={"btn " + (this.state.direction == direction ? "btn-warning" : "btn-dark") + " my-1 mx-1"} onClick={() => {
+            {<div style={{ width: width }} className={"btn " + (this.state.direction == direction ? "btn-warning" : "btn-dark") + " my-1 mx-1"} onClick={() => {
                 this.setState({
                     direction: direction
                 });
@@ -37,6 +38,7 @@ export default class DirectionalVote extends React.Component<Props, State> {
                 {this.props.currentRoom?.up && this.option(Direction.UP, "UP")}
                 <div>
                     {this.props.currentRoom?.left && this.option(Direction.LEFT, "LEFT")}
+                    {this.option(Direction.NONE, "NONE")}
                     {this.props.currentRoom?.right && this.option(Direction.RIGHT, "RIGHT")}
                 </div>
                 {this.props.currentRoom?.down && this.option(Direction.DOWN, "DOWN")}
