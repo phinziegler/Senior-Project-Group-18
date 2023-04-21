@@ -22,7 +22,6 @@ export default async function getConnection(): Promise<PoolConnection> {
             if(error) {
                 console.log("Failed to connect");
             }
-            console.log('New connection, id: ' + connection.threadId);
             resolve(connection);
         });
     });
