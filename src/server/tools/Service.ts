@@ -1,4 +1,4 @@
-import { Connection, escape } from "mysql";
+import { escape } from "mysql";
 import util from 'util';
 import getConnection from "./db-connect";
 
@@ -32,11 +32,13 @@ export default class Service {
      */
     async findQuantity(quantity: number, fields: string | string[], where?: string) {
         let query= `${this.select(fields, where)} LIMIT ${quantity}`;
+        let connection = await getConnection();
         try {
-            let connection = await getConnection();
             return await util.promisify(connection.query).bind(connection)(query);
         } catch(e: any) {
             throw new Error(e.message);
+        } finally {
+            connection.release();
         }
     }
 
@@ -56,7 +58,7 @@ export default class Service {
         } catch(e: any) {
             throw new Error(e.message);
         } finally {
-            connection.end();
+            connection.release();
         }
     }
 
@@ -140,7 +142,7 @@ export default class Service {
         } catch(e: any) {
             throw new Error(e.message);
         } finally {
-            connection.end();
+            connection.release();
         }
     }
 
@@ -164,7 +166,7 @@ export default class Service {
         } catch (e: any) {
             throw new Error(e.message);
         } finally {
-            connection.end();
+            connection.release();
         }
     }
 
@@ -178,7 +180,7 @@ export default class Service {
         try {
             return await util.promisify(connection.query).bind(connection)(query);
         } finally {
-            connection.end();
+            connection.release();
         }
     }
 }

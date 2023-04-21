@@ -1,4 +1,4 @@
-import { Connection, escape } from "mysql";
+import { escape } from "mysql";
 import Service from "../tools/Service";
 import AuthToken from "../../shared/AuthToken";
 
