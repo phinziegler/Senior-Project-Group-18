@@ -61,7 +61,7 @@ export default class GameState {
         this.assignTorchbearers();
 
         this.sabotageTime = process.env.NODE_ENV === Environments.PRODUCTION ? 20 : 10;
-        this.voteTime = process.env.NODE_ENV === Environments.PRODUCTION ? 60 : 10;
+        this.voteTime = process.env.NODE_ENV === Environments.PRODUCTION ? 20 : 10;
         
         this.time = this.sabotageTime;
 
