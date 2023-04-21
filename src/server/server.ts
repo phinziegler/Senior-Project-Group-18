@@ -1,7 +1,7 @@
 import { router } from "./routes";
 import http from 'http';
 import STATIC_PATH from "./tools/static-path";
-import getDb from "./tools/db-connect";
+import getDbConnection from "./tools/db-connect";
 import Environments from "../shared/Environments";
 import ServerSocketManager from "./ServerSocketManager";
 import Board from "./game/Board";
@@ -34,7 +34,7 @@ const serverPort = process.env.PORT || 8000;
 const server = http.createServer(app);
 
 // Connect to the database
-getDb();
+getDbConnection();
 
 // Create the websocket server/manager
 const wsPort = 8080;    // NOTE: This port is only used in development

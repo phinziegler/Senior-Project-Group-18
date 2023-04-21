@@ -1,13 +1,13 @@
-import getDb from "./db-connect";
+import getDbConnection from "./db-connect";
 
 import AuthTokenService from "../services/AuthTokenService";
 import UserService from "../services/UserService";
 import FriendService from "../services/FriendService";
 import LobbyService from "../services/LobbyService";
 
-const userService = new UserService(getDb());
-const authTokenService = new AuthTokenService(getDb());
-const friendService = new FriendService(getDb());
-const lobbyService = new LobbyService(getDb());
+const userService = new UserService(getDbConnection());
+const authTokenService = new AuthTokenService(getDbConnection());
+const friendService = new FriendService(getDbConnection());
+const lobbyService = new LobbyService(getDbConnection());
 
 export { userService, authTokenService, friendService, lobbyService }

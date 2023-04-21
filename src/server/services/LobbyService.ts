@@ -2,13 +2,13 @@ import { Connection, escape } from "mysql";
 import Service from "../tools/Service";
 import Lobby from "../../shared/Lobby";
 import LobbyUserService from "./LobbyUserService";
-import getDb from "../tools/db-connect";
+import getDbConnection from "../tools/db-connect";
 
 /**
  * Performs queries on the Lobby table
  */
 export default class LobbyService extends Service {
-    lobbyUserService = new LobbyUserService(getDb());
+    lobbyUserService = new LobbyUserService(getDbConnection());
 
     constructor(db: Connection) {
         super(db, 'lobby');
