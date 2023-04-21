@@ -156,7 +156,7 @@ class GameManagerClass {
         let board: Board = gameState.board;
 
 
-        if (!isTraitor) {
+        if (!isTraitor && !gameState.gameOver) {
             socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.BOARD_UPDATE, data: { lobbyId: gameState.lobbyId, currentRoom: gameState.currentRoom, exploredRooms: exploredRooms, rows: board.rows, cols: board.cols } } }));
         } else {
             socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.BOARD_UPDATE, data: { lobbyId: gameState.lobbyId, currentRoom: gameState.currentRoom, exploredRooms: exploredRooms, board: board } } }));
