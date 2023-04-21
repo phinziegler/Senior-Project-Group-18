@@ -325,7 +325,7 @@ export default class LobbyController {
         }
 
         GameManager.removeGame(lobbyId);
-        GameManager.addGame(lobbyId, 1);
+        GameManager.addGame(lobbyId);
     }
 
     static async deleteGame(auth: AuthToken, lobbyId: string) {

@@ -19,7 +19,7 @@ class GameManagerClass {
         return this.games.has(lobbyId);
     }
 
-    async addGame(lobbyId: string, numTraitors: number) {
+    async addGame(lobbyId: string) {
         let players = await lobbyService.getUsers(lobbyId);
 
         if (!players) {
@@ -27,7 +27,7 @@ class GameManagerClass {
         }
 
         try {
-            this.games.set(lobbyId, new GameState(lobbyId, players, numTraitors));
+            this.games.set(lobbyId, new GameState(lobbyId, players, Math.max(1, Math.floor(players.length / 4))));
             players.forEach(player => socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME_START })));
         } catch {
             console.log("Failed to create game: too many traitors");
