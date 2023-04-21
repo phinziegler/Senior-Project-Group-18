@@ -22,8 +22,11 @@ export default async function getConnection(): Promise<Connection> {
         pool.getConnection((error: MysqlError, connection: Connection) => {
             if(error) {
                 console.log("Failed to connect");
+                reject(error);
             }
             console.log('New connection, id: ' + connection.threadId);
+            resolve(connection);
         });
+
     });
 }
