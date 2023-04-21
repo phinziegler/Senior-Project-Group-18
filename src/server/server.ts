@@ -1,10 +1,8 @@
 import { router } from "./routes";
 import http from 'http';
 import STATIC_PATH from "./tools/static-path";
-import getDbConnection from "./tools/db-connect";
 import Environments from "../shared/Environments";
 import ServerSocketManager from "./ServerSocketManager";
-import Board from "./game/Board";
 const cors = require('cors');
 
 /* 'require' statements are often used by Node.js applications to import modules
@@ -32,9 +30,6 @@ app.use(router);
 // Another use of environment variables --> default to port 8000 if PORT has not been set
 const serverPort = process.env.PORT || 8000;
 const server = http.createServer(app);
-
-// Connect to the database
-getDbConnection();
 
 // Create the websocket server/manager
 const wsPort = 8080;    // NOTE: This port is only used in development

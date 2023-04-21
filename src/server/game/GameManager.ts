@@ -1,5 +1,4 @@
 import GameState from "./GameState";
-import { lobbyService } from "../tools/services";
 import UserAction from "../../shared/UserAction";
 import Player from "./Player";
 import { socketManager } from "../server";
@@ -11,6 +10,7 @@ import GameEvent from "../../shared/GameEvent";
 import Direction from "../../shared/Direction";
 import Role from "../../shared/Role";
 import GamePhase from "../../shared/GamePhase";
+import LobbyService from "../services/LobbyService";
 
 class GameManagerClass {
     games: Map<string, GameState> = new Map();
@@ -20,7 +20,7 @@ class GameManagerClass {
     }
 
     async addGame(lobbyId: string) {
-        let players = await lobbyService.getUsers(lobbyId);
+        let players = await LobbyService.getUsers(lobbyId);
 
         if (!players) {
             return;
@@ -48,7 +48,7 @@ class GameManagerClass {
     }
 
     async handleMessage(username: string, message: { action: UserAction, data: any }) {
-        let lobbyId = await lobbyService.lobbyOfUser(username);
+        let lobbyId = await LobbyService.lobbyOfUser(username);
 
         if (!lobbyId) {
             return;

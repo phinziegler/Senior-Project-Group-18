@@ -5,7 +5,8 @@ import ChatMessage from "../../shared/ChatMessage";
 import Lobby from "../../shared/Lobby";
 import MessageType from "../../shared/MessageTypes";
 import { socketManager } from "../server";
-import { authTokenService, lobbyService } from "../tools/services";
+import AuthTokenService from "../services/AuthTokenService";
+import LobbyService from "../services/LobbyService";
 import GameManager from "../game/GameManager";
 
 export default class LobbyController {
@@ -28,12 +29,12 @@ export default class LobbyController {
         }
 
         // Fail to create the lobby if the leader cannot be authorized with the server
-        if (!await authTokenService.checkAuthorized(leader)) {
+        if (!await AuthTokenService.checkAuthorized(leader)) {
             return res.status(401).json({ message: "Could not create lobby, user is not authenticated" });
         }
 
         // Fail to create the lobby if there is already a lobby for that user OR if the user is in a different lobby
-        if (await lobbyService.userInLobby(leader.username)) {
+        if (await LobbyService.userInLobby(leader.username)) {
             return res.status(403).json({ message: "User is already in a lobby, or is the owner of an existing lobby" });    // TODO: is this too restrictive?
         }
 
@@ -45,7 +46,7 @@ export default class LobbyController {
             leader: leader.username
         }
 
-        return await lobbyService.addLobby(lobby)
+        return await LobbyService.addLobby(lobby)
             .then(data => res.status(200).json({ message: "Successfully created lobby", id: lobby.id }))
             .catch(() => res.status(500).json({ message: "failed to add lobby" }));
     }
@@ -57,7 +58,7 @@ export default class LobbyController {
        Too bad I dont want to do that :)
     */
     static async getLobbies(req: Request, res: Response) {
-        return await lobbyService.getLobbies().then(data => {
+        return await LobbyService.getLobbies().then(data => {
             if (!data) {
                 return res.status(500).json({ message: "failed to get lobbies" });
             }
@@ -86,7 +87,7 @@ export default class LobbyController {
         }
 
         // Check that lobby exists
-        let lobby = await lobbyService.getLobby(req.params.lobbyId);
+        let lobby = await LobbyService.getLobby(req.params.lobbyId);
         if (!lobby) {
             return res.status(403).json({ message: `No lobby with id ${req.params.lobbyId} could be found.` })
         }
@@ -106,13 +107,13 @@ export default class LobbyController {
         } catch {
             return res.status(400).json({ message: "Invalid request" })
         }
-        let lobbyId = await lobbyService.lobbyOfUser(username);
+        let lobbyId = await LobbyService.lobbyOfUser(username);
 
         if (!lobbyId) {
             return res.status(200).json();
         }
 
-        let lobby: Lobby = await lobbyService.getLobby(lobbyId);
+        let lobby: Lobby = await LobbyService.getLobby(lobbyId);
         return res.status(200).json(lobby);
     }
 
@@ -134,12 +135,12 @@ export default class LobbyController {
         }
 
         // Check auth of user
-        if (!await authTokenService.checkAuthorized(user)) {
+        if (!await AuthTokenService.checkAuthorized(user)) {
             return res.status(401).json({ message: "Could not join lobby, user is not authenticated" });
         }
 
         // Check that lobby exists
-        let lobby = await lobbyService.getLobby(lobbyId);
+        let lobby = await LobbyService.getLobby(lobbyId);
         if (!lobby) {
             return res.status(404).json({ message: "Could not join lobby, lobby not foud" });
         }
@@ -151,11 +152,11 @@ export default class LobbyController {
 
         // Fail to join a lobby if the user is in a different lobby
         // TODO: this should not be the case... The user should instead be removed from any previous lobbies and kept in this one
-        if (await lobbyService.userInLobby(user.username)) {
+        if (await LobbyService.userInLobby(user.username)) {
             return res.status(403).json({ message: "Could not join lobby, already part of another lobby" });
         }
 
-        await lobbyService.addUser(lobbyId, user.username)
+        await LobbyService.addUser(lobbyId, user.username)
             .then(() => {
                 LobbyController.updateUserList(lobbyId);
                 res.status(200).json({ message: "added user to lobby" })
@@ -188,7 +189,7 @@ export default class LobbyController {
      * @returns a string[] containing only the usernames of each user in the lobby
      */
     static async getUserList(lobbyId: string) {
-        return await lobbyService.getUsers(lobbyId)
+        return await LobbyService.getUsers(lobbyId)
             .then((data) => {
                 let output: string[] = [];
                 data.forEach(entry => {
@@ -207,7 +208,7 @@ export default class LobbyController {
      * @param message the chat message being sent
      */
     static async chat(auth: AuthToken, message: ChatMessage) {
-        let userLobbyId: any = await lobbyService.lobbyOfUser(auth.username);
+        let userLobbyId: any = await LobbyService.lobbyOfUser(auth.username);
 
         if (userLobbyId != message.lobbyId) {
             console.log("cannot participate in a different lobby's chatroom");
@@ -249,11 +250,11 @@ export default class LobbyController {
         }
 
         // Check if requesting user is logged in.
-        if (!await authTokenService.checkAuthorized(auth)) {
+        if (!await AuthTokenService.checkAuthorized(auth)) {
             return res.status(401).json({ message: "Could not delete lobby, requesting user is not authenticated" });
         }
 
-        let lobby = await lobbyService.getLobby(lobbyId);
+        let lobby = await LobbyService.getLobby(lobbyId);
         if (!lobby) {
             return res.status(403).json({ message: `No lobby with id ${lobbyId} could be found.` });
         }
@@ -263,7 +264,7 @@ export default class LobbyController {
         }
 
         GameManager.removeGame(lobbyId);
-        await lobbyService.deleteLobby(lobbyId);
+        await LobbyService.deleteLobby(lobbyId);
         return res.status(200).json({ message: "Successfully deleted lobby" });
     }
 
@@ -285,12 +286,12 @@ export default class LobbyController {
         }
 
         // Check if requesting user is logged in.
-        if (!await authTokenService.checkAuthorized(auth)) {
+        if (!await AuthTokenService.checkAuthorized(auth)) {
             return res.status(401).json({ message: "Could not remove user, requesting user is not authenticated" });
         }
 
         // Check if lobby exists and get lobby
-        let lobby = await lobbyService.getLobby(lobbyId);
+        let lobby = await LobbyService.getLobby(lobbyId);
         if (!lobby) {
             return res.status(403).json({ message: `No lobby with id ${lobbyId} could be found.` });
         }
@@ -305,7 +306,7 @@ export default class LobbyController {
             return res.status(401).json({ messae: `Only the lobby leader or oneself can remove a user from the lobby` });
         }
 
-        await lobbyService.removeUser(lobbyId, username);
+        await LobbyService.removeUser(lobbyId, username);
         LobbyController.updateUserList(lobbyId);
         return res.status(200).json({ message: "Successfully removed user" });
     }
@@ -314,7 +315,7 @@ export default class LobbyController {
         // TODO: Decide how many traitors we want
 
         // Check if lobby exists and get lobby
-        let lobby = await lobbyService.getLobby(lobbyId);
+        let lobby = await LobbyService.getLobby(lobbyId);
         if (!lobby) {
             return;
         }
@@ -331,7 +332,7 @@ export default class LobbyController {
     static async deleteGame(auth: AuthToken, lobbyId: string) {
 
         // Check if lobby exists and get lobby
-        let lobby = await lobbyService.getLobby(lobbyId);
+        let lobby = await LobbyService.getLobby(lobbyId);
         if (!lobby) {
             return;
         }

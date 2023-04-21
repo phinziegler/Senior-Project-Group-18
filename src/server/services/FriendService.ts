@@ -5,9 +5,9 @@ import User from "../../shared/User";
 /**
  * Performs queries on the friend table
  */
-export default class FriendService extends Service {
-    constructor(db: Connection) {
-        super(db, 'friend');
+class FriendServiceClass extends Service {
+    constructor() {
+        super('friend');
     }
 
     public async addFriend(user: User, friend: User) {
@@ -23,3 +23,6 @@ export default class FriendService extends Service {
         });
     }
 }
+
+const FriendService = new FriendServiceClass();
+export default FriendService;

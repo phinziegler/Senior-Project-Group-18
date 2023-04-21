@@ -2,7 +2,9 @@ import { Request, Response } from "express";
 import User, { safeUser } from "../../shared/User";
 import Crypto, { randomUUID } from "crypto";
 import AuthToken from "../../shared/AuthToken";
-import { userService, authTokenService, friendService } from "../tools/services";
+import UserService from "../services/UserService";
+import AuthTokenService from "../services/AuthTokenService";
+import FriendService from "../services/FriendService";
 
 
 export default class UserController {
@@ -11,7 +13,7 @@ export default class UserController {
      * Return the list of users from the database
      */
     static async users(req: Request, res: Response) {
-        await userService.getUsers().then(users => res.json(users)).catch(() => console.log("Error getting users"));
+        await UserService.getUsers().then(users => res.json(users)).catch(() => console.log("Error getting users"));
     }
 
     /**
@@ -22,7 +24,7 @@ export default class UserController {
         if (!req.params.username) {
             console.log("no username given");
         }
-        await userService.getUserWithName(req.params.username).then((user: User) => {
+        await UserService.getUserWithName(req.params.username).then((user: User) => {
             if (!user) {
                 return res.sendStatus(404);
             }
@@ -68,7 +70,7 @@ export default class UserController {
             return res.status(400).json({ message: "Failed request" });
 
         }
-        await userService.addUser(user)
+        await UserService.addUser(user)
             .then(() => res.status(200).json({ message: "Successfully inserted" }))
             .catch(() => res.status(409).json({ message: "Duplicate username" }));
     }
@@ -78,7 +80,7 @@ export default class UserController {
      * @param req the request with a body of the form {username:"", password:""}
      */
     static async login(req: Request, res: Response) {
-        await userService.getUserWithName(req.body.username)
+        await UserService.getUserWithName(req.body.username)
             .then(user => {
                 if (!user)
                     return res.status(403).json({ message: `No user '${req.body.username}' exists` });
@@ -86,7 +88,7 @@ export default class UserController {
                     return res.status(500).json({ message: `Could not get salt for user '${user.username}'` });
                 if (user.password == UserController.saltedHash(user.salt, req.body.password)) {
                     let token: AuthToken = { username: user.username, token: randomUUID() }
-                    authTokenService.add(token);
+                    AuthTokenService.add(token);
                     let data = { user: user, token: token.token }
                     return res.status(200).json(data);
 
@@ -106,7 +108,7 @@ export default class UserController {
     static async tokenLogin(req: Request, res: Response) {
         try {
             let token = req.body as AuthToken;
-            await authTokenService.checkAuthorized(token).then(success => {
+            await AuthTokenService.checkAuthorized(token).then(success => {
                 if (!success)
                     return res.status(401).json({ message: "Invalid credentials" });
                 return res.status(200).json({ message: "Successfully authenticated" });
@@ -132,7 +134,7 @@ export default class UserController {
         }
 
         // Check if the user is authenticated
-        if (!await authTokenService.checkAuthorized(auth)) {
+        if (!await AuthTokenService.checkAuthorized(auth)) {
             return res.status(401).json({ message: "user could not be authenticated" })
         }
 
@@ -142,8 +144,8 @@ export default class UserController {
         }
 
         // Get the user and friend objects
-        let user = (await userService.getUserWithName(auth.username));
-        let friend = (await userService.getUserWithName(targetUsername));
+        let user = (await UserService.getUserWithName(auth.username));
+        let friend = (await UserService.getUserWithName(targetUsername));
 
         // Check that the user and friend exist in the database
         if (!(user && friend)) {
@@ -151,13 +153,13 @@ export default class UserController {
         }
 
         // Check if already friends
-        if (await friendService.isFriend(user, friend)) {
+        if (await FriendService.isFriend(user, friend)) {
             return res.status(403).json({ message: "This user is already a friend" });
         }
 
 
         // Add the friend for the user
-        await friendService.addFriend(user, friend)
+        await FriendService.addFriend(user, friend)
             .then(() => res.status(200).json({ message: "successfully added friend" }))
             .catch(() => res.status(500).json({ message: "server error" }))
     }
@@ -174,15 +176,15 @@ export default class UserController {
         }
 
         // Get the user and friend objects
-        let user = (await userService.getUserWithName(username));
-        let friend = (await userService.getUserWithName(friendUsername));
+        let user = (await UserService.getUserWithName(username));
+        let friend = (await UserService.getUserWithName(friendUsername));
 
         // Check that the user and friend exist in the database
         if (!(user && friend)) {
             return res.status(404).json({ message: "could not find friend/user" });
         }
 
-        let isFriend = await friendService.isFriend(user, friend).catch(() => {
+        let isFriend = await FriendService.isFriend(user, friend).catch(() => {
             return res.status(500).json({ message: "server error" });
         });
 

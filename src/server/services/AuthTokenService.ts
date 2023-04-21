@@ -5,9 +5,9 @@ import AuthToken from "../../shared/AuthToken";
 /**
  * Performs queries on the user table
  */
-export default class AuthTokenService extends Service {
-    constructor(db: Connection) {
-        super(db, 'authToken');
+class AuthTokenServiceClass extends Service {
+    constructor() {
+        super('authToken');
     }
 
     /** Check if a user is authenticated */
@@ -28,3 +28,6 @@ export default class AuthTokenService extends Service {
         await this.insert(token);
     }
 }
+
+const AuthTokenService = new AuthTokenServiceClass();
+export default AuthTokenService;

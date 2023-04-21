@@ -5,9 +5,9 @@ import User from "../../shared/User";
 /**
  * Performs queries on the user table
  */
-export default class UserService extends Service {
-    constructor(db: Connection) {
-        super(db, 'user');
+class UserServiceClass extends Service {
+    constructor() {
+        super('user');
     }
 
     /**
@@ -37,3 +37,6 @@ export default class UserService extends Service {
         await this.insert(user);
     }
 }
+
+const UserService = new UserServiceClass();
+export default UserService;
