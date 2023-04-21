@@ -12,6 +12,9 @@ export default class AuthTokenService extends Service {
 
     /** Check if a user is authenticated */
     async checkAuthorized(token: AuthToken) {
+        if(!token) {
+            return false;
+        }
         return await this.findOne("*", "username = " + escape(token.username) + " AND token = " + escape(token.token)).then(data => {
             if(!data) {
                 return false;

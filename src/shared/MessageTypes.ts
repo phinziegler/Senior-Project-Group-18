@@ -4,6 +4,7 @@ enum MessageType {
     ASSIGN_WEBSOCKET_USER,
     GAME,
     GAME_START,
-    GAME_END
+    GAME_END,
+    PING
 }
 export default MessageType;
