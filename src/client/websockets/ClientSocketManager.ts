@@ -26,7 +26,7 @@ export default class ClientSocketManager {
     }
 
     connect(): WebSocket {
-        let HOST = window.location.origin.replace(/^http/, 'ws');
+        let HOST = window.location.origin.replace(/^http/, 'wss');
         if (process.env.NODE_ENV === Environments.DEVELOPMENT) {
             HOST = "ws://" + window.location.hostname + ":8080";
         }
