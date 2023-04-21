@@ -7,6 +7,7 @@ import GamePhase from "../../shared/GamePhase";
 import GameManager from "./GameManager";
 import Role from "../../shared/Role";
 import Environments from "../../shared/Environments";
+import { clearInterval } from "timers";
 
 export default class GameState {
     lobbyId: string;
@@ -26,6 +27,7 @@ export default class GameState {
     gameOutcome: Role | null = null;
     playerData: { username: string, role: Role }[] = [];
     time: number;
+    timerId: NodeJS.Timer | null = null;
     readonly sabotageTime: number;
     readonly voteTime: number;
 
@@ -67,19 +69,25 @@ export default class GameState {
     }
 
     updateGame() {
-        let timerId = setInterval(() => {
+        this.timerId = setInterval(() => {
             this.time--;
             this.players.forEach(player => GameManager.updateTimer(player, this.time));
         }, 1000);
         if (this.currentPhase === GamePhase.SABOTAGE) {
             setTimeout(() => {
-                clearInterval(timerId);
+                if (!this.timerId) {
+                    return;
+                }
+                clearInterval(this.timerId);
                 this.handleSabotagePhase();
             }, this.sabotageTime * 1000);
         }
         if (this.currentPhase == GamePhase.VOTE) {
             setTimeout(() => {
-                clearInterval(timerId);
+                if (!this.timerId) {
+                    return;
+                }
+                clearInterval(this.timerId);
                 this.handleVotePhase();
             }, this.voteTime * 1000);
         }
@@ -421,5 +429,12 @@ export default class GameState {
         this.gameOver = true;
         this.gameOutcome = outcome;
         this.players.forEach(player => GameManager.sendGameOutcome(player, outcome, this.playerData));
+    }
+
+    clearIntervals() {
+        if (!this.timerId) {
+            return;
+        }
+        clearInterval(this.timerId);
     }
 }

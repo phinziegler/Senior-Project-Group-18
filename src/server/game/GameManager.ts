@@ -41,6 +41,7 @@ class GameManagerClass {
         if(!toRemove) {
             return;
         }
+        toRemove.clearIntervals();
         toRemove.players.forEach(player => socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME_END })));
         this.games.delete(lobbyId);
         console.log(this.games.size);
