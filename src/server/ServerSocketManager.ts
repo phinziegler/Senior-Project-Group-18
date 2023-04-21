@@ -72,6 +72,9 @@ export default class ServerSocketManager {
                     break;
                 case MessageType.GAME_END:
                     LobbyController.deleteGame(message.auth, message.data.lobbyId);
+                case MessageType.PING:
+                    ws.send(JSON.stringify({type: MessageType.PING}));
+                    break;
                 default:
                     console.error("invalid incoming message: " + msg);
             }
