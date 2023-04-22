@@ -40,7 +40,7 @@ export default class GameState {
 
         let traitorIndexes = this.pickRandomNumbers(numTraitors, players.length);
 
-        let boardSize = players.length * 4;
+        let boardSize = players.length * 2;
         this.board = new Board(boardSize, boardSize, true);
         this.currentRoom = this.board.rooms[0][boardSize / 2];
         this.exploredRooms.push(this.currentRoom);
@@ -425,10 +425,10 @@ export default class GameState {
             }
             this.playerData.push({ username: player.username, role: this.gameOutcome = isTraitor ? Role.TRAITOR : Role.INNOCENT })
         })
-        this.players.forEach(player => GameManager.sendBoard(player, this));
         this.gameOver = true;
         this.gameOutcome = outcome;
         this.players.forEach(player => GameManager.sendGameOutcome(player, outcome, this.playerData));
+        this.players.forEach(player => GameManager.sendBoard(player, this));
     }
 
     clearIntervals() {

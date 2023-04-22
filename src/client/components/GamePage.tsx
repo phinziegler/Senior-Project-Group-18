@@ -216,13 +216,12 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             rows = e.detail.data.rows;
             cols = e.detail.data.cols;
             hasDimensions = true;
-        } catch {
-        }
+        } catch {}
+
         let board;
         try {
             board = e.detail.data.board.rooms;
-        } catch {
-        }
+        } catch {}
 
         this.setState({
             exploredRooms: exploredRooms,
@@ -725,6 +724,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                             <div className={"border p-3 d-flex flex-column justify-content-center" + border}>
                                 <h2>MAP</h2>
                                 <GameMap
+                                    endGame={this.state.winner != null}
                                     fontSize={10}
                                     className="flex-grow-1"
                                     role={this.state.role}
