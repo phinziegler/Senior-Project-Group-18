@@ -48,7 +48,7 @@ class UserPageElement extends React.Component<UserPageElementProps, UserPageElem
 
     // Validate user exists
     componentDidMount(): void {
-        this.getUser(this.props.username).then(() => this.getFriends())
+        this.getUser(this.props.username);
     }
 
     async getUser(username: string) {
@@ -72,7 +72,14 @@ class UserPageElement extends React.Component<UserPageElementProps, UserPageElem
                 this.setState({
                     confirmedUsername: data.username
                 });
-            });
+                return data.username;
+            })
+            .then((username) => {
+                if (!username) {
+                    return;
+                }
+                this.getFriends(username);
+            })
     }
 
     signOut() {
@@ -94,11 +101,8 @@ class UserPageElement extends React.Component<UserPageElementProps, UserPageElem
         return output;
     }
 
-    async getFriends() {
-        if(!this.state.confirmedUsername) {
-            return;
-        }
-        await GET(requestUrl(ServerRoutes.GET_FRIENDS(this.state.confirmedUsername)))
+    async getFriends(username: string) {
+        await GET(requestUrl(ServerRoutes.GET_FRIENDS(username)))
             .then(res => {
                 if (res.status != 200) {
                     return null;
@@ -106,15 +110,13 @@ class UserPageElement extends React.Component<UserPageElementProps, UserPageElem
                 return res.json();
             })
             .then(data => {
-                if(!data) {
+                if (!data) {
                     return;
                 }
                 this.setState({
                     friends: data
                 });
-            })
-
-        return <div>FRIENDS GO HERE</div>
+            });
     }
 
     render() {
@@ -124,15 +126,15 @@ class UserPageElement extends React.Component<UserPageElementProps, UserPageElem
 
         return (
             <>
-                <div className="container-sm mt-3 border border-success">
+                <div className="container-sm p-3 my-3 border border-success">
                     {this.state.signedOut && <Navigate replace to="/login" />}
                     <h1>{this.state.confirmedUsername}</h1>
                     {this.props.user && (this.props.user.username == this.props.username) && <button className="btn btn-danger" onClick={() => this.signOut()}>Sign Out</button>}
                     <hr />
                     <h2>Friends</h2>
-                    <div className="p-3">
+                    {this.state.friends.length > 0 ? <div className="p-3">
                         {this.friends()}
-                    </div>
+                    </div> : <div className="text-muted">No friends added</div>}
                 </div>
             </>
         )
