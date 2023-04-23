@@ -44,11 +44,10 @@ export default class SideBar extends React.Component<SideBarProps, { pathName: s
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav variant="pills">
-                        {this.props.user ? this.link('user', `user/${this.props.user.username}`) : this.link("login", "login")}
-                        {this.props.user && this.link("create lobby", "create-lobby")}
-                        {this.link("lobby list", "/lobby-list")}
-                        {this.link("Game", "/game")}
+                        {this.props.user ? this.link(this.props.user.username, `user/${this.props.user.username}`) : this.link("Login", "login")}
+                        {this.link("Lobbies", "/lobby-list")}
                         {this.props.lobby && this.link(this.props.lobby.name, `lobby/${this.props.lobby.id}`)}
+                        {this.link("Game", "/game")}
                     </Nav>
                 </Navbar.Collapse>
             </Navbar>
