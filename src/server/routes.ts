@@ -15,6 +15,7 @@ router.route(ServerRoutes.TOKEN_LOGIN).post(UserController.tokenLogin);
 
 // User page
 router.route(ServerRoutes.USER(":username")).get(UserController.getUser);
+router.route(ServerRoutes.GET_FRIENDS(":username")).get(UserController.getFriends);
 
 // Lobbies
 router.route(ServerRoutes.MAKE_LOBBY).post(LobbyController.makeLobby)

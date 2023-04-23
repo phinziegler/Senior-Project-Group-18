@@ -22,6 +22,15 @@ class FriendServiceClass extends Service {
             return true;
         });
     }
+
+    public async getFriendIds(user: User): Promise<{friend_id: number}[]> {
+        return await this.find("friend_id", `user_id = ${escape(user.id)}`).then(data => {
+            if(!data) {
+                return [];
+            }
+            return data as {friend_id: number}[];
+        });
+    }
 }
 
 const FriendService = new FriendServiceClass();

@@ -27,6 +27,10 @@ class UserServiceClass extends Service {
         return await this.findOne("*", "username = " + escape(username)) as User;
     }
 
+    public async usernameFromId(id: number): Promise<User> {
+        return await this.findOne(["*"], "id = " + id);
+    }
+
     /**
      * Add a user to the user table
      * @param user the user being added

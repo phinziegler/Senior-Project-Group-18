@@ -184,4 +184,36 @@ export default class UserController {
         return res.status(200).json({ message: "successfully checked if friends", friends: isFriend });
 
     }
+
+    static async getFriends(req: Request, res: Response) {
+        let username: string;
+        try {
+            username = req.params.username;
+        } catch {
+            return res.status(403).json({ message: "invalid request" })
+        }
+
+        let user = (await UserService.getUserWithName(username));
+
+        if(!user) {
+            return res.status(404).json({ message: "user not found"});
+        }
+
+        let friendIds = await FriendService.getFriendIds(user);
+
+        if(friendIds.length < 1) {
+            return res.status(204).json({ message: "No friends"});
+        }
+
+        let friendNames: string[] = [];
+        for(let i = 0; i < friendIds.length; i++) {
+            let user = await UserService.usernameFromId(friendIds[i].friend_id);
+            if(!user) {
+                return;
+            }
+            friendNames.push(user.username);
+        }
+
+        return res.status(200).json(friendNames);
+    }
 }
