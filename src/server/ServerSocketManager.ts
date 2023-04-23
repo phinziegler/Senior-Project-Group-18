@@ -56,7 +56,6 @@ export default class ServerSocketManager {
 
             let authorized = await AuthTokenService.checkAuthorized(message.auth);
             if (!authorized) {
-                console.log("Did not process websocket request from unauthorized user");
                 return;
             }
 

@@ -98,7 +98,6 @@ class UserPageElement extends React.Component<UserPageElementProps, UserPageElem
         if(!this.state.confirmedUsername) {
             return;
         }
-        console.log(this.state.confirmedUsername);
         await GET(requestUrl(ServerRoutes.GET_FRIENDS(this.state.confirmedUsername)))
             .then(res => {
                 if (res.status != 200) {
