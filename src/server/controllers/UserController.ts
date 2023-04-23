@@ -10,13 +10,6 @@ import FriendService from "../services/FriendService";
 export default class UserController {
 
     /**
-     * Return the list of users from the database
-     */
-    static async users(req: Request, res: Response) {
-        await UserService.getUsers().then(users => res.json(users)).catch(() => console.log("Error getting users"));
-    }
-
-    /**
      * Return non-sensitive user information
      * @param req The request should have a username parameter
      */

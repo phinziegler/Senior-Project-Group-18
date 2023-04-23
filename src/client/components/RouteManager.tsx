@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import AdminPage from './AdminPage';
 import Login from '../components/Login';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Root from './Root';
@@ -66,9 +65,6 @@ export default function RouteManager(props: { user: User | null, lobby: Lobby | 
             errorElement: <ErrorPage />,
             children: [
                 {
-                    path: "admin",
-                    element: <AdminPage />
-                }, {
                     path: "login",
                     element: <Login user={user} setUser={setUserFunction} />
                 },
