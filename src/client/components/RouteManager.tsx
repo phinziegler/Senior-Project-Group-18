@@ -16,6 +16,7 @@ import { GET } from '../tools/fetch';
 import ServerRoutes from '../../shared/ServerRoutes';
 import requestUrl from '../tools/requestUrl';
 import GamePage from './GamePage';
+import Intro from './Intro';
 
 export default function RouteManager(props: { user: User | null, lobby: Lobby | null }) {
 
@@ -64,6 +65,10 @@ export default function RouteManager(props: { user: User | null, lobby: Lobby | 
             element: <Root lobby={lobby} user={user} />,
             errorElement: <ErrorPage />,
             children: [
+                {
+                    path: "/",
+                    element: <Intro user={user}/>
+                },
                 {
                     path: "login",
                     element: <Login user={user} setUser={setUserFunction} />
