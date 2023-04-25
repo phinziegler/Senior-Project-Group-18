@@ -49,6 +49,7 @@ interface GameState {
     winner: Role | null,
     endGamePlayerData: { username: string, role: Role }[],
     navigate: string,
+    lobbyLeader: string
 }
 
 export default class GamePage extends React.Component<GameProps, GameState> {
@@ -80,7 +81,8 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             voteResult: Direction.NONE,
             winner: null,
             endGamePlayerData: [],
-            navigate: ""
+            navigate: "",
+            lobbyLeader: "",
         }
 
         // BIND LISTENERS
@@ -216,12 +218,12 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             rows = e.detail.data.rows;
             cols = e.detail.data.cols;
             hasDimensions = true;
-        } catch {}
+        } catch { }
 
         let board;
         try {
             board = e.detail.data.board.rooms;
-        } catch {}
+        } catch { }
 
         this.setState({
             exploredRooms: exploredRooms,
@@ -247,6 +249,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                 lobbyId: lobbyId
             });
             this.getUsersLobby(lobbyId);
+            this.getLobbyInfo(lobbyId);
         }
     }
 
@@ -372,11 +375,18 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
     // Get the list of users for a lobby
     async getUsersLobby(lobbyId: string) {
-        GET(requestUrl(ServerRoutes.GET_LOBBY_USERS(lobbyId))).then(res => res.json()).then((data: any) => {
+        await GET(requestUrl(ServerRoutes.GET_LOBBY_USERS(lobbyId))).then(res => res.json()).then((data: any) => {
             this.setState({
                 players: data
             });
         });
+    }
+
+    // Get Lobby Information
+    async getLobbyInfo(lobbyId: string) {
+        await GET(requestUrl(ServerRoutes.GET_LOBBY(lobbyId))).then(res => res.json()).then((data: any) => {
+            this.setState({ lobbyLeader: data.leader })
+        })
     }
 
     /**************************************************************/
@@ -421,7 +431,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
     // I personally hate doing this
     newGame() {
-        this.setState({
+        let data: GameState = {
             traitors: [],
             rooms: [],
             exploredRooms: [],
@@ -447,8 +457,10 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             voteResult: Direction.NONE,
             winner: null,
             endGamePlayerData: [],
-            navigate: ""
-        });
+            navigate: "",
+            lobbyLeader: ""
+        }
+        this.setState(data);
         this.requestUpdate();
     }
 
@@ -565,6 +577,8 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         let userWins = this.state.role == this.state.winner ? "VICTORY" : "DEFEAT";
         let userColor = this.state.role == this.state.winner ? "text-success" : "text-danger";
 
+        let isOwner = this.state.lobbyLeader == this.props.user.username;
+
         return (
             <div className="d-flex flex-column flex-grow-1">
                 <h2 className="text-center"><span className={color}>{winner}</span><span>win!</span></h2>
@@ -574,17 +588,18 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                 {this.roles()}
                 <div className="flex-grow-1"></div>
 
-                {/* NEW GAME */}
-                <button onClick={() => {
-                    clientSocketManager?.send(MessageType.GAME_START, { lobbyId: this.state.lobbyId });
-                    this.newGame();
-                }} className="my-1 m-auto d-inline btn btn-success">Play again</button>
+                {isOwner && <>
+                    {/* NEW GAME */}
+                    <button onClick={() => {
+                        clientSocketManager?.send(MessageType.GAME_START, { lobbyId: this.state.lobbyId });
+                    }} className="my-1 m-auto d-inline btn btn-success">Play again</button>
 
-                {/* END GAME */}
-                <button onClick={() => {
-                    clientSocketManager?.send(MessageType.GAME_END, { lobbyId: this.state.lobbyId });
-                    this.setState({ navigate: `/lobby/${this.state.lobbyId}` });
-                }} className="my-1 m-auto d-inline btn btn-danger">End Game</button>
+                    {/* END GAME */}
+                    <button onClick={() => {
+                        clientSocketManager?.send(MessageType.GAME_END, { lobbyId: this.state.lobbyId });
+                    }} className="my-1 m-auto d-inline btn btn-danger">End Game</button>
+                </>
+                }
 
             </div>
         );

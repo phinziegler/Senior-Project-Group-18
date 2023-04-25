@@ -32,19 +32,20 @@ class GameManagerClass {
         } catch {
             console.log("Failed to create game: too many traitors");
         }
-
-        console.log(this.games.size);
     }
 
-    removeGame(lobbyId: string) {
+    async removeGame(lobbyId: string, newGame: boolean = false) {
         let toRemove = this.games.get(lobbyId);
-        if(!toRemove) {
+        if (!toRemove) {
             return;
         }
+
+        if(!newGame) {
+            toRemove.players.forEach(player => socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME_END })));
+        }
+        
         toRemove.clearIntervals();
-        toRemove.players.forEach(player => socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME_END })));
         this.games.delete(lobbyId);
-        console.log(this.games.size);
     }
 
     async handleMessage(username: string, message: { action: UserAction, data: any }) {

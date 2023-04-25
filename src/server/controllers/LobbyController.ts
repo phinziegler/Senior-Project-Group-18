@@ -325,7 +325,7 @@ export default class LobbyController {
             return;
         }
 
-        GameManager.removeGame(lobbyId);
+        GameManager.removeGame(lobbyId, true);
         GameManager.addGame(lobbyId);
     }
 
