@@ -45,7 +45,7 @@ interface GameState {
     prevGamePhase: GamePhase,
     time: number,
     roomWasSafe: boolean | null,
-    voteResult: Direction,
+    voteResult: Direction | null,
     winner: Role | null,
     endGamePlayerData: { username: string, role: Role }[],
     navigate: string,
@@ -78,7 +78,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             prevGamePhase: GamePhase.UNKNOWN,
             time: 0,
             roomWasSafe: null,
-            voteResult: Direction.NONE,
+            voteResult: null,
             winner: null,
             endGamePlayerData: [],
             navigate: "",
@@ -454,7 +454,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             prevGamePhase: GamePhase.UNKNOWN,
             time: 0,
             roomWasSafe: null,
-            voteResult: Direction.NONE,
+            voteResult: null,
             winner: null,
             endGamePlayerData: [],
             navigate: "",
@@ -620,7 +620,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
         let phase: string = this.state.gamePhase == GamePhase.VOTE ? "Vote" : this.state.role == Role.INNOCENT ? "Clear" : "Sabotage";
 
-        let phraseResult: string = this.state.voteResult == Direction.NONE ? "The group could not agree where to go next..." : `The group moves ${this.state.voteResult.toUpperCase()}.`;
+        let phraseResult: string = this.state.voteResult ? (this.state.voteResult == Direction.NONE ? "The group could not agree where to go next..." : `The group moves ${this.state.voteResult.toUpperCase()}.`) : "";
         let secondaryPhrase: string = ` The path is `;
         let colorResult: string = this.state.roomWasSafe != null && this.state.roomWasSafe ? "text-success" : "text-danger";
         let resultResult: string = this.state.roomWasSafe != null && this.state.roomWasSafe ? `SAFE` : `UNSAFE`;
@@ -684,13 +684,15 @@ export default class GamePage extends React.Component<GameProps, GameState> {
                     </>}
 
                 {/* VOTE/MOVE RESULT */}
-                {<>
+                {this.state.voteResult && <>
+                <hr />
                     <div>
                         <span>{phraseResult}</span>
                         {this.state.voteResult != Direction.NONE && <span>{secondaryPhrase}</span>}
                         {this.state.voteResult != Direction.NONE && <span className={colorResult}>{resultResult}</span>}
                         {this.state.voteResult != Direction.NONE && <span>{post}</span>}
                     </div>
+                    <hr />
                 </>}
 
                 {/* Sabotage Tooltip */}
