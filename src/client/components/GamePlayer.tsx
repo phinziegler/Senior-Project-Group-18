@@ -55,7 +55,7 @@ export default class GamePlayer extends React.Component<Props, State> {
             case Direction.LEFT:
                 return "⬅";
             case Direction.NONE:
-                return ""
+                return "/"
         }
     }
 
