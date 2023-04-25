@@ -715,12 +715,12 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
         // No game started page
         if (this.state.exploredRooms.length == 0) {
-            return <>
-                <div>
+            return <div className="p-3 text-center rounded container-sm my-3 border border-success">
+                <h2>
                     You are not in a game.
-                </div>
-                <Link replace to="/lobby-list">Return to lobby List</Link>
-            </>
+                </h2>
+                <Link className="h3 btn btn-success" replace to="/lobby-list">Return to lobby List</Link>
+            </div>
         }
 
         // Game has started

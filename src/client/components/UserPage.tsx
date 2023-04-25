@@ -121,12 +121,16 @@ class UserPageElement extends React.Component<UserPageElementProps, UserPageElem
 
     render() {
         if (this.state.confirmedUsername == null) {
-            return <div>{`Profile '${this.props.username}' not found`}</div>
+            return (
+                <div className="text-danger container-sm p-3 my-3 border border-success rounded text-center">
+                    <div>{`Profile '${this.props.username}' not found`}</div>
+                </div>
+            )
         }
 
         return (
             <>
-                <div className="container-sm p-3 my-3 border border-success">
+                <div className="container-sm p-3 my-3 border border-success rounded">
                     {this.state.signedOut && <Navigate replace to="/login" />}
                     <h1>{this.state.confirmedUsername}</h1>
                     {this.props.user && (this.props.user.username == this.props.username) && <button className="btn btn-danger" onClick={() => this.signOut()}>Sign Out</button>}

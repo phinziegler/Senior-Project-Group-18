@@ -60,7 +60,7 @@ class LobbyListElement extends React.Component<{}, LobbyListState> {
         let rows: JSX.Element[] = [];
         this.state.lobbyList.forEach((lobby, index) => {
             rows.push(
-                <div key={index} className="row align-items-center border-bottom border-success py-3">
+                <div key={index} className="row align-items-center border-top border-success py-3">
                     {this.link(lobby.name, `/lobby/${lobby.id}`)}
                     <div className="col-5">{lobby.leader}</div>
                     <div className="col-2">{lobby.password == ""
@@ -93,7 +93,7 @@ class LobbyListElement extends React.Component<{}, LobbyListState> {
     render() {
         return (
             <>
-                <div className='container-sm border border-success mt-3'>
+                <div className='container-sm pt-3 rounded border border-success mt-3'>
                     <h1 className='text-center text-white'>Lobbies</h1>
                     <div className="d-flex justify-content-between">
                         <Link className="btn btn-success my-4" to="/create-lobby">Create Lobby</Link>

@@ -19,7 +19,7 @@ export default class Intro extends React.Component<Props, State> {
     }
 
     render() {
-        return(<div className="container-sm border border-success my-3">
+        return(<div className="container-sm border border-success my-3 rounded">
             <h1 className="text-center">Welcome to Tricks of the Trade!</h1>
             <div>
                 {/* PUT SOME STUFF IN HERE I REALLY DESPERATELY DO NOT WANT TO DO IT, NOR DO I KNOW HOW TO INTRODUCE OUR GAME <3*/}
