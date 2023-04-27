@@ -11,7 +11,11 @@ class FriendServiceClass extends Service {
     }
 
     public async addFriend(user: User, friend: User) {
-        return await this.insert({ user_id: user.id, friend_id: friend.id })
+        return await this.insert({ user_id: user.id, friend_id: friend.id });
+    }
+
+    public async removeFriend(user: User, friend: User) {
+        return await this.delete(`user_id = ${escape(user.id)} AND friend_id = ${escape(friend.id)}`);
     }
 
     public async isFriend(user: User, friend: User) {

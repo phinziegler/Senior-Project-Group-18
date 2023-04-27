@@ -17,6 +17,7 @@ const ServerRoutes = {
     USER: ((username: string) => "/server/get-user/" + username),
     JOIN_LOBBY: "/server/join-lobby",
     ADD_FRIEND: "/server/add-friend",
+    REMOVE_FRIEND: "/server/remove-friend",
     IS_FRIEND:((username: string, friend: string) => `/server/is-friend/${username}/${friend}`),
     GET_FRIENDS: (username: string) => `/server/get-friends/${username}`
 }

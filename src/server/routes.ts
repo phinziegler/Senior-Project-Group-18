@@ -29,6 +29,7 @@ router.route(ServerRoutes.REMOVE_USER(":auth", ":lobbyId", ":username")).delete(
 
 // Friends
 router.route(ServerRoutes.ADD_FRIEND).post(UserController.addFriend);
+router.route(ServerRoutes.REMOVE_FRIEND).delete(UserController.removeFriend);
 router.route(ServerRoutes.IS_FRIEND(":user", ":friend")).get(UserController.isFriend)
 
 /*  This route catches any unexpected route and returns index.html

@@ -157,6 +157,40 @@ export default class UserController {
             .catch(() => res.status(500).json({ message: "server error" }))
     }
 
+    /**
+     * Remove a friend
+     * @param req body of the form {auth: AuthToken, target: string}
+     */
+    static async removeFriend(req: Request, res: Response) {
+        let auth: AuthToken;
+        let targetUsername: string;
+
+        try {
+            auth = req.body.auth;
+            targetUsername = req.body.target;
+        } catch {
+            return res.status(403).json({ message: "invalid request body" })
+        }
+
+        // Check if the user is authenticated
+        if (!await AuthTokenService.checkAuthorized(auth)) {
+            return res.status(401).json({ message: "user could not be authenticated" })
+        }
+
+        // Get the user and friend objects
+        let user = (await UserService.getUserWithName(auth.username));
+        let friend = (await UserService.getUserWithName(targetUsername));
+
+        // Check if actually friends
+        if (!await FriendService.isFriend(user, friend)) {
+            return res.status(403).json({ message: "This user is not a friend" });
+        }
+
+        await FriendService.removeFriend(user, friend)
+            .then(() => res.status(200).json({message: "Removed friend"}))
+            .catch(() => res.status(500).json({message: "Server Error"}));
+    }
+
     static async isFriend(req: Request, res: Response) {
         let username: string;
         let friendUsername: string;
@@ -195,20 +229,20 @@ export default class UserController {
 
         let user = (await UserService.getUserWithName(username));
 
-        if(!user) {
-            return res.status(404).json({ message: "user not found"});
+        if (!user) {
+            return res.status(404).json({ message: "user not found" });
         }
 
         let friendIds = await FriendService.getFriendIds(user);
 
-        if(friendIds.length < 1) {
-            return res.status(204).json({ message: "No friends"});
+        if (friendIds.length < 1) {
+            return res.status(204).json({ message: "No friends" });
         }
 
         let friendNames: string[] = [];
-        for(let i = 0; i < friendIds.length; i++) {
+        for (let i = 0; i < friendIds.length; i++) {
             let user = await UserService.usernameFromId(friendIds[i].friend_id);
-            if(!user) {
+            if (!user) {
                 return;
             }
             friendNames.push(user.username);
