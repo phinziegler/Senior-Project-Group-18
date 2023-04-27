@@ -28,6 +28,7 @@ export default class GameState {
     playerData: { username: string, role: Role }[] = [];
     time: number;
     timerId: NodeJS.Timer | null = null;
+    timeOutId: NodeJS.Timer | null = null;
     readonly sabotageTime: number;
     readonly voteTime: number;
 
@@ -69,12 +70,15 @@ export default class GameState {
     }
 
     updateGame() {
+        if (this.timerId) {
+            clearInterval(this.timerId);
+        }
         this.timerId = setInterval(() => {
             this.time--;
             this.players.forEach(player => GameManager.updateTimer(player, this.time));
         }, 1000);
         if (this.currentPhase === GamePhase.SABOTAGE) {
-            setTimeout(() => {
+            this.timeOutId = setTimeout(() => {
                 if (!this.timerId) {
                     return;
                 }
@@ -83,7 +87,7 @@ export default class GameState {
             }, this.sabotageTime * 1000);
         }
         if (this.currentPhase == GamePhase.VOTE) {
-            setTimeout(() => {
+            this.timeOutId = setTimeout(() => {
                 if (!this.timerId) {
                     return;
                 }
@@ -432,9 +436,11 @@ export default class GameState {
     }
 
     clearIntervals() {
-        if (!this.timerId) {
-            return;
+        if (this.timerId) {
+            clearInterval(this.timerId);
         }
-        clearInterval(this.timerId);
+        if (this.timeOutId) {
+            clearTimeout(this.timeOutId);
+        }
     }
 }

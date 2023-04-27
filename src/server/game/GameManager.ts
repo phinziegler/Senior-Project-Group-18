@@ -40,11 +40,11 @@ class GameManagerClass {
             return;
         }
 
+        toRemove.clearIntervals();
+
         if(!newGame) {
             toRemove.players.forEach(player => socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME_END })));
         }
-        
-        toRemove.clearIntervals();
         this.games.delete(lobbyId);
     }
 
