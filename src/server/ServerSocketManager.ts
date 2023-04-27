@@ -4,7 +4,7 @@ import Environments from '../shared/Environments';
 import MessageType from '../shared/MessageTypes';
 import LobbyController from './controllers/LobbyController';
 import GameManager from './game/GameManager';
-import { authTokenService } from './tools/services';
+import AuthTokenService from './services/AuthTokenService';
 
 require('dotenv').config();
 const ENV = process.env.NODE_ENV || Environments.DEVELOPMENT;
@@ -54,9 +54,8 @@ export default class ServerSocketManager {
         try {
             const message = JSON.parse(msg);
 
-            let authorized = await authTokenService.checkAuthorized(message.auth);
+            let authorized = await AuthTokenService.checkAuthorized(message.auth);
             if (!authorized) {
-                console.log("Did not process websocket request from unauthorized user");
                 return;
             }
 
@@ -72,6 +71,9 @@ export default class ServerSocketManager {
                     break;
                 case MessageType.GAME_END:
                     LobbyController.deleteGame(message.auth, message.data.lobbyId);
+                case MessageType.PING:
+                    ws.send(JSON.stringify({type: MessageType.PING}));
+                    break;
                 default:
                     console.error("invalid incoming message: " + msg);
             }

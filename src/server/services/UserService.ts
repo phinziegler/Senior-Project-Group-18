@@ -5,9 +5,9 @@ import User from "../../shared/User";
 /**
  * Performs queries on the user table
  */
-export default class UserService extends Service {
-    constructor(db: Connection) {
-        super(db, 'user');
+class UserServiceClass extends Service {
+    constructor() {
+        super('user');
     }
 
     /**
@@ -27,6 +27,10 @@ export default class UserService extends Service {
         return await this.findOne("*", "username = " + escape(username)) as User;
     }
 
+    public async usernameFromId(id: number): Promise<User> {
+        return await this.findOne(["*"], "id = " + id);
+    }
+
     /**
      * Add a user to the user table
      * @param user the user being added
@@ -37,3 +41,6 @@ export default class UserService extends Service {
         await this.insert(user);
     }
 }
+
+const UserService = new UserServiceClass();
+export default UserService;

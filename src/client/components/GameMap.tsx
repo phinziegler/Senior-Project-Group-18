@@ -3,6 +3,7 @@ import Room from "../../shared/Room";
 import Role from "../../shared/Role";
 
 interface Props {
+    endGame: boolean
     fontSize?: number
     className: string
     role: Role,
@@ -112,7 +113,7 @@ export default class GameMap extends React.Component<Props, State> {
     // Returns a text representation of the map
     map(fontSize: number = 1) {
 
-        if (this.props.role == Role.INNOCENT) {
+        if (this.props.role == Role.INNOCENT && !(this.props.endGame)) {
             return this.innocentMap(fontSize);
         }
 

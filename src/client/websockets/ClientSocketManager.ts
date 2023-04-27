@@ -8,6 +8,7 @@ export default class ClientSocketManager {
     ws: WebSocket;
     connected: boolean;
     username: string;
+    pingInterval: NodeJS.Timer | null = null;
 
     constructor(username: string) {
         this.connected = false;
@@ -35,16 +36,19 @@ export default class ClientSocketManager {
 
     setupEvents() {
         let connectEvent: CustomEvent;
-        connectEvent = new CustomEvent("wsConnect", { detail: {}});
+        connectEvent = new CustomEvent("wsConnect", { detail: {} });
 
         this.ws.onopen = () => {
             console.log("established websocket connection");
             this.connected = true;
-            this.ws.send(JSON.stringify({type: MessageType.ASSIGN_WEBSOCKET_USER, username: this.username}))
+            this.ws.send(JSON.stringify({ type: MessageType.ASSIGN_WEBSOCKET_USER, username: this.username }))
             window.dispatchEvent(connectEvent);
+            this.pingInterval = setInterval(() => this.send(MessageType.PING), 20_000);
+            this.ws.send(JSON.stringify({ type: MessageType.PING }));
         }
         this.ws.onclose = () => {
             console.log("closed websocket connection");
+            this.pingInterval && clearInterval(this.pingInterval);
             this.connected = false;
         }
     }
@@ -56,7 +60,7 @@ export default class ClientSocketManager {
             messageEvent = new CustomEvent("no-event", { detail: { data: e.data } });
             switch (message.type) {
                 case MessageType.CHAT:
-                messageEvent = new CustomEvent(SocketEvent.CHAT, { detail: { message: message.message, user: message.user } });
+                    messageEvent = new CustomEvent(SocketEvent.CHAT, { detail: { message: message.message, user: message.user } });
                     break;
                 case MessageType.UPDATE_USER_LIST:
                     messageEvent = new CustomEvent(SocketEvent.UPDATE_USER_LIST);
@@ -69,6 +73,9 @@ export default class ClientSocketManager {
                     break;
                 case MessageType.GAME_END:
                     messageEvent = new CustomEvent(SocketEvent.GAME_END);
+                    break;
+                case MessageType.PING:
+                    console.log("PING");
                     break;
                 default:
                     console.error("Invalid Socket Message: " + e.data);

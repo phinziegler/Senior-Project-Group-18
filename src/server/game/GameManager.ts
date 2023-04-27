@@ -1,5 +1,4 @@
 import GameState from "./GameState";
-import { lobbyService } from "../tools/services";
 import UserAction from "../../shared/UserAction";
 import Player from "./Player";
 import { socketManager } from "../server";
@@ -11,6 +10,7 @@ import GameEvent from "../../shared/GameEvent";
 import Direction from "../../shared/Direction";
 import Role from "../../shared/Role";
 import GamePhase from "../../shared/GamePhase";
+import LobbyService from "../services/LobbyService";
 
 class GameManagerClass {
     games: Map<string, GameState> = new Map();
@@ -19,35 +19,37 @@ class GameManagerClass {
         return this.games.has(lobbyId);
     }
 
-    async addGame(lobbyId: string, numTraitors: number) {
-        let players = await lobbyService.getUsers(lobbyId);
+    async addGame(lobbyId: string) {
+        let players = await LobbyService.getUsers(lobbyId);
 
         if (!players) {
             return;
         }
 
         try {
-            this.games.set(lobbyId, new GameState(lobbyId, players, numTraitors));
+            this.games.set(lobbyId, new GameState(lobbyId, players, Math.max(1, Math.floor(players.length / 4))));
             players.forEach(player => socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME_START })));
         } catch {
             console.log("Failed to create game: too many traitors");
         }
-
-        console.log(this.games.size);
     }
 
-    removeGame(lobbyId: string) {
+    async removeGame(lobbyId: string, newGame: boolean = false) {
         let toRemove = this.games.get(lobbyId);
-        if(!toRemove) {
+        if (!toRemove) {
             return;
         }
-        toRemove.players.forEach(player => socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME_END })));
+
+        if(!newGame) {
+            toRemove.players.forEach(player => socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME_END })));
+        }
+        
+        toRemove.clearIntervals();
         this.games.delete(lobbyId);
-        console.log(this.games.size);
     }
 
     async handleMessage(username: string, message: { action: UserAction, data: any }) {
-        let lobbyId = await lobbyService.lobbyOfUser(username);
+        let lobbyId = await LobbyService.lobbyOfUser(username);
 
         if (!lobbyId) {
             return;
@@ -156,7 +158,7 @@ class GameManagerClass {
         let board: Board = gameState.board;
 
 
-        if (!isTraitor) {
+        if (!isTraitor && !gameState.gameOver) {
             socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.BOARD_UPDATE, data: { lobbyId: gameState.lobbyId, currentRoom: gameState.currentRoom, exploredRooms: exploredRooms, rows: board.rows, cols: board.cols } } }));
         } else {
             socketManager.sendMessageToUser(player.username, JSON.stringify({ type: MessageType.GAME, data: { event: GameEvent.BOARD_UPDATE, data: { lobbyId: gameState.lobbyId, currentRoom: gameState.currentRoom, exploredRooms: exploredRooms, board: board } } }));

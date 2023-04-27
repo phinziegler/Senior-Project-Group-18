@@ -1,24 +1,28 @@
+import { MysqlError, Pool, PoolConnection } from "mysql";
+
 const mysql = require('mysql');
 const socketPath = (process.env.SYSTEM === "windows") ? null : '/tmp/mysql.sock';
 
-// Create database connection object
-const db = mysql.createConnection({
+const pool: Pool = mysql.createPool({
     database: process.env.DATABASE_NAME,
     host: process.env.DATABASE_HOST,
     socketPath: socketPath,
     user: process.env.DATABASE_USERNAME,
     password: process.env.DATABASE_PASSWORD,
+    connectionLimit: 100
 });
 
-// Attempt to connect to database
-db.connect((error: Error) => {
-    if (error) {
-        console.error('Error connecting to MySQL database: ' + error.stack);
-        return;
-    }
-    console.log('Connected to MySQL database as id ' + db.threadId);
-});
-
-export default function getDb() {
-    return db;
+/**
+ * Get a connection from the connection
+ * @returns Promise<PoolConnection> containing the connection object
+ */
+export default async function getConnection(): Promise<PoolConnection> {
+    return new Promise<any>((resolve) => {
+        pool.getConnection((error: MysqlError, connection: PoolConnection) => {
+            if(error) {
+                console.log("Failed to connect");
+            }
+            resolve(connection);
+        });
+    });
 }

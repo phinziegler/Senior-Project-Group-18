@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import AdminPage from './AdminPage';
 import Login from '../components/Login';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Root from './Root';
@@ -17,6 +16,7 @@ import { GET } from '../tools/fetch';
 import ServerRoutes from '../../shared/ServerRoutes';
 import requestUrl from '../tools/requestUrl';
 import GamePage from './GamePage';
+import Intro from './Intro';
 
 export default function RouteManager(props: { user: User | null, lobby: Lobby | null }) {
 
@@ -66,9 +66,10 @@ export default function RouteManager(props: { user: User | null, lobby: Lobby | 
             errorElement: <ErrorPage />,
             children: [
                 {
-                    path: "admin",
-                    element: <AdminPage />
-                }, {
+                    path: "/",
+                    element: <Intro user={user}/>
+                },
+                {
                     path: "login",
                     element: <Login user={user} setUser={setUserFunction} />
                 },

@@ -1,13 +1,12 @@
-import { Connection, escape } from "mysql";
-import Lobby from "../../shared/Lobby";
+import { escape } from "mysql";
 import Service from "../tools/Service";
 
 /**
  * Performs queries on the lobby_user table
  */
-export default class LobbyUserService extends Service {
-    constructor(db: Connection) {
-        super(db, 'lobby_user');
+class LobbyUserServiceClass extends Service {
+    constructor() {
+        super('lobby_user');
     }
 
     public async add(lobbyId: string, username: string) {
@@ -36,3 +35,6 @@ export default class LobbyUserService extends Service {
         return await this.delete(`lobby_id = ${escape(lobbyId)} AND username = ${escape(username)}`);
     }
 }
+
+const LobbyUserService = new LobbyUserServiceClass();
+export default LobbyUserService;

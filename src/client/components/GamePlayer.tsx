@@ -47,15 +47,15 @@ export default class GamePlayer extends React.Component<Props, State> {
     directionEmoji(direction: Direction): string {
         switch (direction) {
             case Direction.UP:
-                return "🡱";
+                return "⬆";
             case Direction.RIGHT:
-                return "🡲";
+                return "⮕";
             case Direction.DOWN:
-                return "🡳";
+                return "⬇";
             case Direction.LEFT:
-                return "🡰";
+                return "⬅";
             case Direction.NONE:
-                return ""
+                return "/"
         }
     }
 

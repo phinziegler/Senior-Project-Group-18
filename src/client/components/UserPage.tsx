@@ -32,25 +32,54 @@ export default function UserPage(props: UserPageProps) {
 
 interface UserPageElementState {
     signedOut: boolean;
+    confirmedUsername: string | null;
+    friends: string[]
 }
 
 class UserPageElement extends React.Component<UserPageElementProps, UserPageElementState> {
     constructor(props: UserPageElementProps) {
         super(props);
-        this.getUser(props.username);
         this.state = {
-            signedOut: false
+            signedOut: false,
+            confirmedUsername: null,
+            friends: []
         }
     }
 
-    /* TODO: check if the user is logged in as the searched account, if they are, also return password information */
+    // Validate user exists
+    componentDidMount(): void {
+        this.getUser(this.props.username);
+    }
+
     async getUser(username: string) {
         if (!username) {
             return;
         }
-        GET(requestUrl(ServerRoutes.USER(username))).then(res => res.json()).then((data: User) => {
-            // TODO: Render more information on this page using the data from this GET request
-        });
+        await GET(requestUrl(ServerRoutes.USER(username)))
+            .then(res => {
+                if (res.status != 200) {
+                    return null;
+                }
+                return res.json();
+            })
+            .then((data: User) => {
+                if (!data) {
+                    this.setState({
+                        confirmedUsername: null
+                    });
+                    return;
+                }
+                this.setState({
+                    confirmedUsername: data.username
+                });
+                return data.username;
+            })
+            .then((username) => {
+                if (!username) {
+                    return;
+                }
+                this.getFriends(username);
+            })
     }
 
     signOut() {
@@ -60,13 +89,57 @@ class UserPageElement extends React.Component<UserPageElementProps, UserPageElem
         this.setState({ signedOut: true })
     }
 
+    friends() {
+        let output: JSX.Element[] = [];
+
+        this.state.friends.forEach((friend, index) => {
+            output.push(
+                <div key={index}>{friend}</div>
+            );
+        });
+
+        return output;
+    }
+
+    async getFriends(username: string) {
+        await GET(requestUrl(ServerRoutes.GET_FRIENDS(username)))
+            .then(res => {
+                if (res.status != 200) {
+                    return null;
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (!data) {
+                    return;
+                }
+                this.setState({
+                    friends: data
+                });
+            });
+    }
+
     render() {
+        if (this.state.confirmedUsername == null) {
+            return (
+                <div className="text-danger container-sm p-3 my-3 border border-success rounded text-center">
+                    <div>{`Profile '${this.props.username}' not found`}</div>
+                </div>
+            )
+        }
+
         return (
             <>
-                {this.state.signedOut && <Navigate replace to="/login" />}
-                {/* FIXME: This should not accquire the username from the props, it should only render a username once the getUser request is complete */}
-                <h1>{this.props.username}</h1>  
-                {this.props.user && (this.props.user.username == this.props.username) && <button onClick={() => this.signOut()}>Sign Out</button>}
+                <div className="container-sm p-3 my-3 border border-success rounded">
+                    {this.state.signedOut && <Navigate replace to="/login" />}
+                    <h1>{this.state.confirmedUsername}</h1>
+                    {this.props.user && (this.props.user.username == this.props.username) && <button className="btn btn-danger" onClick={() => this.signOut()}>Sign Out</button>}
+                    <hr />
+                    <h2>Friends</h2>
+                    {this.state.friends.length > 0 ? <div className="p-3">
+                        {this.friends()}
+                    </div> : <div className="text-muted">No friends added</div>}
+                </div>
             </>
         )
     }

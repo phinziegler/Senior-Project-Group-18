@@ -1,17 +1,20 @@
-import { Connection, escape } from "mysql";
+import { escape } from "mysql";
 import Service from "../tools/Service";
 import AuthToken from "../../shared/AuthToken";
 
 /**
  * Performs queries on the user table
  */
-export default class AuthTokenService extends Service {
-    constructor(db: Connection) {
-        super(db, 'authToken');
+class AuthTokenServiceClass extends Service {
+    constructor() {
+        super('authToken');
     }
 
     /** Check if a user is authenticated */
     async checkAuthorized(token: AuthToken) {
+        if(!token) {
+            return false;
+        }
         return await this.findOne("*", "username = " + escape(token.username) + " AND token = " + escape(token.token)).then(data => {
             if(!data) {
                 return false;
@@ -25,3 +28,6 @@ export default class AuthTokenService extends Service {
         await this.insert(token);
     }
 }
+
+const AuthTokenService = new AuthTokenServiceClass();
+export default AuthTokenService;

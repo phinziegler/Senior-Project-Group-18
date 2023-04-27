@@ -2,16 +2,13 @@ import { Connection, escape } from "mysql";
 import Service from "../tools/Service";
 import Lobby from "../../shared/Lobby";
 import LobbyUserService from "./LobbyUserService";
-import getDb from "../tools/db-connect";
 
 /**
  * Performs queries on the Lobby table
  */
-export default class LobbyService extends Service {
-    lobbyUserService = new LobbyUserService(getDb());
-
-    constructor(db: Connection) {
-        super(db, 'lobby');
+class LobbyServiceClass extends Service {
+    constructor() {
+        super('lobby');
     }
 
     /**
@@ -28,7 +25,7 @@ export default class LobbyService extends Service {
      * @param username the username of the added user
      */
     public async addUser(lobbyId: string, username: string) {
-        return await this.lobbyUserService.add(lobbyId, username);
+        return await LobbyUserService.add(lobbyId, username);
     }
 
     /**
@@ -51,7 +48,7 @@ export default class LobbyService extends Service {
      * @param username the user being checked
      */
     public async userInLobby(username: string) {
-        return await this.lobbyUserService.userInLobby(username);
+        return await LobbyUserService.userInLobby(username);
     }
 
     /**
@@ -60,7 +57,7 @@ export default class LobbyService extends Service {
      * @returns a string lobby id or null
      */
     public async lobbyOfUser(username: string) {
-        return await this.lobbyUserService.lobbyOfUser(username).then(data => data.lobby_id).catch(() => null);
+        return await LobbyUserService.lobbyOfUser(username).then(data => data.lobby_id).catch(() => null);
     }
 
     /**
@@ -69,7 +66,7 @@ export default class LobbyService extends Service {
      * @param username the user being removed
      */
     public async removeUser(lobbyId: string, username: string) {
-        return await this.lobbyUserService.removeUser(lobbyId, username)
+        return await LobbyUserService.removeUser(lobbyId, username)
     }
 
     /**
@@ -85,6 +82,9 @@ export default class LobbyService extends Service {
      * @param lobbyId the lobby to get the users of
      */
     public async getUsers(lobbyId: string) {
-        return await this.lobbyUserService.getUsers(lobbyId) as any[];
+        return await LobbyUserService.getUsers(lobbyId) as any[];
     }
 }
+
+const LobbyService = new LobbyServiceClass();
+export default LobbyService;

@@ -11,6 +11,7 @@ interface CreateLobbyState {
     lobbyPassword: string;   // the lobby password
     reroute: boolean;
     lobbyId: string;
+    message: string;
 }
 
 export default class CreateLobby extends React.Component<{}, CreateLobbyState> {
@@ -21,6 +22,7 @@ export default class CreateLobby extends React.Component<{}, CreateLobbyState> {
             lobbyPassword: "",
             reroute: false,
             lobbyId: "",
+            message: ""
         }
     }
 
@@ -43,6 +45,7 @@ export default class CreateLobby extends React.Component<{}, CreateLobbyState> {
         POST(requestUrl(ServerRoutes.MAKE_LOBBY), data).then(res => {
             if (res.status != 200) {
                 console.error("Failed to create lobby");
+                this.setState({ message: "You cannot create a lobby when you are the owner of an existing lobby." })
                 return;
             }
             return res.json();/* TODO: make this reroute to the newly created lobby page */
@@ -51,7 +54,7 @@ export default class CreateLobby extends React.Component<{}, CreateLobbyState> {
                 return;
             }
             try {
-                this.setState({reroute: true, lobbyId: e.id});
+                this.setState({ reroute: true, lobbyId: e.id });
             } catch (error: any) {
                 console.error(`Something went wrong: ${error.message}`)
             }
@@ -97,6 +100,7 @@ export default class CreateLobby extends React.Component<{}, CreateLobbyState> {
                             type="submit" />
                     </div>
                 </form>
+                {this.state.message != "" && <div className="text-danger p-3">{this.state.message}</div>}
             </div>
         </React.Fragment>
     }

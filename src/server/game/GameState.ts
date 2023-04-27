@@ -7,6 +7,7 @@ import GamePhase from "../../shared/GamePhase";
 import GameManager from "./GameManager";
 import Role from "../../shared/Role";
 import Environments from "../../shared/Environments";
+import { clearInterval } from "timers";
 
 export default class GameState {
     lobbyId: string;
@@ -26,6 +27,7 @@ export default class GameState {
     gameOutcome: Role | null = null;
     playerData: { username: string, role: Role }[] = [];
     time: number;
+    timerId: NodeJS.Timer | null = null;
     readonly sabotageTime: number;
     readonly voteTime: number;
 
@@ -38,7 +40,7 @@ export default class GameState {
 
         let traitorIndexes = this.pickRandomNumbers(numTraitors, players.length);
 
-        let boardSize = players.length * 4;
+        let boardSize = players.length * 2;
         this.board = new Board(boardSize, boardSize, true);
         this.currentRoom = this.board.rooms[0][boardSize / 2];
         this.exploredRooms.push(this.currentRoom);
@@ -59,7 +61,7 @@ export default class GameState {
         this.assignTorchbearers();
 
         this.sabotageTime = process.env.NODE_ENV === Environments.PRODUCTION ? 20 : 10;
-        this.voteTime = process.env.NODE_ENV === Environments.PRODUCTION ? 60 : 10;
+        this.voteTime = process.env.NODE_ENV === Environments.PRODUCTION ? 20 : 10;
         
         this.time = this.sabotageTime;
 
@@ -67,19 +69,25 @@ export default class GameState {
     }
 
     updateGame() {
-        let timerId = setInterval(() => {
+        this.timerId = setInterval(() => {
             this.time--;
             this.players.forEach(player => GameManager.updateTimer(player, this.time));
         }, 1000);
         if (this.currentPhase === GamePhase.SABOTAGE) {
             setTimeout(() => {
-                clearInterval(timerId);
+                if (!this.timerId) {
+                    return;
+                }
+                clearInterval(this.timerId);
                 this.handleSabotagePhase();
             }, this.sabotageTime * 1000);
         }
         if (this.currentPhase == GamePhase.VOTE) {
             setTimeout(() => {
-                clearInterval(timerId);
+                if (!this.timerId) {
+                    return;
+                }
+                clearInterval(this.timerId);
                 this.handleVotePhase();
             }, this.voteTime * 1000);
         }
@@ -417,9 +425,16 @@ export default class GameState {
             }
             this.playerData.push({ username: player.username, role: this.gameOutcome = isTraitor ? Role.TRAITOR : Role.INNOCENT })
         })
-        this.players.forEach(player => GameManager.sendBoard(player, this));
         this.gameOver = true;
         this.gameOutcome = outcome;
         this.players.forEach(player => GameManager.sendGameOutcome(player, outcome, this.playerData));
+        this.players.forEach(player => GameManager.sendBoard(player, this));
+    }
+
+    clearIntervals() {
+        if (!this.timerId) {
+            return;
+        }
+        clearInterval(this.timerId);
     }
 }

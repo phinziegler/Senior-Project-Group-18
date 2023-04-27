@@ -6,8 +6,7 @@ import LobbyController from "./controllers/LobbyController";
 const express = require("express");
 const router = express.Router();
 
-// 'Other' page
-router.route(ServerRoutes.SHOW_USERS).get(UserController.users);
+// CreateAccount
 router.route(ServerRoutes.ADD_USER).post(UserController.addUser);
 
 // Authentication
@@ -16,6 +15,7 @@ router.route(ServerRoutes.TOKEN_LOGIN).post(UserController.tokenLogin);
 
 // User page
 router.route(ServerRoutes.USER(":username")).get(UserController.getUser);
+router.route(ServerRoutes.GET_FRIENDS(":username")).get(UserController.getFriends);
 
 // Lobbies
 router.route(ServerRoutes.MAKE_LOBBY).post(LobbyController.makeLobby)

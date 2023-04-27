@@ -1,15 +1,14 @@
-import { Connection, escape } from "mysql";
+import { escape } from "mysql";
 import util from 'util';
+import getConnection from "./db-connect";
 
 /**
  * Service classes connect to a particular table and perform SQL queries on them
  */
 export default class Service {
-    db: Connection;
     table: string;
 
-    constructor(db: Connection, table: string) {
-        this.db = db;
+    constructor(table: string) {
         this.table = table;
     }
 
@@ -33,10 +32,13 @@ export default class Service {
      */
     async findQuantity(quantity: number, fields: string | string[], where?: string) {
         let query= `${this.select(fields, where)} LIMIT ${quantity}`;
+        let connection = await getConnection();
         try {
-            return await util.promisify(this.db.query).bind(this.db)(query);
+            return await util.promisify(connection.query).bind(connection)(query);
         } catch(e: any) {
             throw new Error(e.message);
+        } finally {
+            connection.release();
         }
     }
 
@@ -49,10 +51,14 @@ export default class Service {
      */
     async find(fields: string | string[], where?: string) {
         const query = this.select(fields, where)
+        let connection = await getConnection();
+
         try {
-            return await util.promisify(this.db.query).bind(this.db)(query);
+            return await util.promisify(connection.query).bind(connection)(query);
         } catch(e: any) {
             throw new Error(e.message);
+        } finally {
+            connection.release();
         }
     }
 
@@ -129,10 +135,14 @@ export default class Service {
         let valueString = `(${this.valuesToSQL(values)})`;
 
         let query = `INSERT INTO ${this.table} ${insertString} VALUES ${valueString}`;
+        let connection = await getConnection();
+
         try {
-            return await util.promisify(this.db.query).bind(this.db)(query);
+            return await util.promisify(connection.query).bind(connection)(query);
         } catch(e: any) {
             throw new Error(e.message);
+        } finally {
+            connection.release();
         }
     }
 
@@ -149,11 +159,14 @@ export default class Service {
         });
 
         let query = `UPDATE ${this.table} SET ${this.commaList(queryItems)} WHERE ${where}`;
+        let connection = await getConnection();
 
         try {
-            return await util.promisify(this.db.query).bind(this.db)(query);
+            return await util.promisify(connection.query).bind(connection)(query);
         } catch (e: any) {
             throw new Error(e.message);
+        } finally {
+            connection.release();
         }
     }
 
@@ -163,6 +176,11 @@ export default class Service {
      */
     async delete(where: string) {
         let query = `DELETE FROM ${this.table} WHERE ${where}`;
-        return await util.promisify(this.db.query).bind(this.db)(query);
+        let connection = await getConnection();
+        try {
+            return await util.promisify(connection.query).bind(connection)(query);
+        } finally {
+            connection.release();
+        }
     }
 }
