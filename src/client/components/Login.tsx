@@ -68,7 +68,7 @@ export default class Other extends React.Component<LoginProps, loginState> {
                             <label htmlFor="password">password:&nbsp;</label>
                             <input value={this.state.password} onChange={(e) => this.setState({ password: e.target.value })} id="password" type="password" />
                         </div>
-                        <div><button className='btn submit-button' type="submit">Submit</button></div>
+                        <div><button className='submit-button' type="submit">Sign In</button></div>
                     </form>
 
                     <div style={{'marginBottom': '1vh'}}>No account? <Link to={"/create-account"}>Create one!</Link></div>
