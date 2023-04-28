@@ -41,7 +41,7 @@ export default class GameState {
 
         let traitorIndexes = this.pickRandomNumbers(numTraitors, players.length);
 
-        let boardSize = players.length * 2;
+        let boardSize = this.calculateBoardSize(players.length);
         this.board = new Board(boardSize, boardSize, true);
         this.currentRoom = this.board.rooms[0][boardSize / 2];
         this.exploredRooms.push(this.currentRoom);
@@ -67,6 +67,11 @@ export default class GameState {
         this.time = this.sabotageTime;
 
         this.updateGame();
+    }
+
+    calculateBoardSize(numPlayers: number) {
+        let boardSize = Math.round(3 * Math.sqrt(numPlayers));
+        return boardSize;
     }
 
     updateGame() {
