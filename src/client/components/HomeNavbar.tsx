@@ -6,14 +6,14 @@ import User from '../../shared/User';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 
-interface NavbarProps {
+interface HomeNavbarProps {
     user: User | null,
     lobby: Lobby | null
 }
 
-export default class HomeNavbar extends React.Component<NavbarProps, { pathName: string }> {
+export default class HomeNavbar extends React.Component<HomeNavbarProps, { pathName: string }> {
 
-    constructor(props: NavbarProps) {
+    constructor(props: HomeNavbarProps) {
         super(props);
         this.state = {
             pathName: window.location.pathname

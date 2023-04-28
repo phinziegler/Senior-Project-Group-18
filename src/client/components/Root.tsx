@@ -2,7 +2,7 @@ import React from "react";
 import { NavigateFunction, Outlet } from "react-router-dom";
 import Lobby from "../../shared/Lobby";
 import User from "../../shared/User";
-import HomeNavbar from "./Navbar";
+import HomeNavbar from "./HomeNavbar";
 
 interface RootProps {
     user: User | null,
