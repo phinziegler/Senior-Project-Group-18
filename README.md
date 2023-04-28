@@ -4,4 +4,4 @@ This is a multiplayer social deduction game in the style of a text adventure tha
 [Click here](https://tricks-of-the-trade.herokuapp.com/) to see the site!
 
 ## Context
-This project was made for our senior year capstone at CWRU.
+This project was made for our senior year capstone at Case Western Reserve University.
