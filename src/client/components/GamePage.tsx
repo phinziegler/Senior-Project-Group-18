@@ -518,9 +518,9 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         let message = `You checked ${this.state.clearedDirection ? `${this.state.clearedDirection.toUpperCase()} and saw that it is ` : "NOTHING and saw "}`;
         let keyword = this.state.clearedRoomSafe == null ? "NOTHING" : this.state.clearedRoomSafe ? "SAFE" : "UNSAFE";
         let color = this.state.clearedRoomSafe == null ? "text-white" : this.state.clearedRoomSafe ? "text-success" : "text-danger";
-        return (<>
+        return (<div>
             <span>{message}</span><span className={color}>{keyword}</span><span>.</span>
-        </>);
+        </div>);
     }
 
     displayPlayerWithRole(username: string, role: Role) {

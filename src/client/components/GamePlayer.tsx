@@ -73,7 +73,7 @@ export default class GamePlayer extends React.Component<Props, State> {
                     this.sabotage();
                 }}
                 className={"py-3 text-center text-" + (isMe ? myColor : color)}>
-                {this.props.username}
+                <span>{this.props.username + " "}</span>
                 {this.props.torchBearer && <span>️‍🔥</span>}
                 {this.props.playerDirectionRoomSelect && <span className="text-white">{this.directionEmoji(this.props.playerDirectionRoomSelect)}</span>}
                 {this.props.playerDirectionVote && <span className="text-warning">{this.directionEmoji(this.props.playerDirectionVote)}</span>}
