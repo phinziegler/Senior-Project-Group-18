@@ -49,7 +49,8 @@ interface GameState {
     winner: Role | null,
     endGamePlayerData: { username: string, role: Role }[],
     navigate: string,
-    lobbyLeader: string
+    lobbyLeader: string,
+    openChat: boolean,
 }
 
 export default class GamePage extends React.Component<GameProps, GameState> {
@@ -83,6 +84,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             endGamePlayerData: [],
             navigate: "",
             lobbyLeader: "",
+            openChat: false,
         }
 
         // BIND LISTENERS
@@ -458,7 +460,8 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             winner: null,
             endGamePlayerData: [],
             navigate: "",
-            lobbyLeader: ""
+            lobbyLeader: "",
+            openChat: false,
         }
         this.setState(data);
         this.requestUpdate();
@@ -610,10 +613,6 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         if (this.state.winner) {
             return this.endGame();
         }
-
-        let color = this.state.role == Role.INNOCENT ? "success" : "danger";
-        let phrase = this.state.role == Role.INNOCENT ? "You are an " : "You are a ";
-        let role = this.state.role == Role.INNOCENT ? "ADVENTURER" : "TRAITOR"
         if (!this.props.user) {
             return;
         }
@@ -627,31 +626,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
         let post: string = this.state.roomWasSafe != null && this.state.roomWasSafe ? ". A stroke of luck." : ". A gust of wind sweeps through, and the room darkens as a torch is blown out.";
 
         return <>
-            <div className="text-center position-relative flex-grow-1">
-                {/* ROLE */}
-                <div style={{ right: "0" }} className="position-absolute">
-                    <span>{phrase}</span><span className={`text-${color}`}>{role}</span>
-                </div>
-
-                {/* SABOTAGE */}
-                {this.isTraitor() && this.state.gamePhase == GamePhase.SABOTAGE && <div style={{ right: "0", bottom: "0" }} className="position-absolute">
-                    <button onClick={() => {
-                        if (this.state.sabotaging) {
-                            this.setState({ sabotaging: false });
-                            return;
-                        }
-                        this.setState({ sabotaging: true });
-                    }} className="btn btn-danger">SABOTAGE</button>
-                    <div className="text-danger small">Remaining: {this.state.sabotages}</div>
-                </div>}
-
-                {/* TIMER */}
-                <div style={{ left: "0", bottom: "0" }} className="position-absolute">Time: {this.state.time}</div>
-
-                {/* SPACING */}
-                <br />
-                <br />
-
+            <div className="d-flex flex-column text-center position-relative flex-grow-1">
                 {/* Phase */}
                 <h2>Phase: {phase}</h2>
                 <hr />
@@ -685,7 +660,7 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
                 {/* VOTE/MOVE RESULT */}
                 {this.state.voteResult && <>
-                <hr />
+                    <hr />
                     <div>
                         <span>{phraseResult}</span>
                         {this.state.voteResult != Direction.NONE && <span>{secondaryPhrase}</span>}
@@ -697,6 +672,24 @@ export default class GamePage extends React.Component<GameProps, GameState> {
 
                 {/* Sabotage Tooltip */}
                 {this.state.gamePhase == GamePhase.SABOTAGE && this.state.sabotaging && <div className="text-danger">Click on a torchbearer to sabotage their room clear.</div>}
+
+                <div className="d-flex flex-grow-1 align-items-end justify-content-between">
+                    {/* TIMER */}
+                    <div>
+                        Time: {this.state.time}
+                    </div>
+                    {/* SABOTAGE */}
+                    {this.isTraitor() && this.state.gamePhase == GamePhase.SABOTAGE && <div>
+                        <button onClick={() => {
+                            if (this.state.sabotaging) {
+                                this.setState({ sabotaging: false });
+                                return;
+                            }
+                            this.setState({ sabotaging: true });
+                        }} className="btn btn-danger">SABOTAGE</button>
+                        <div className="text-danger small">Remaining: {this.state.sabotages}</div>
+                    </div>}
+                </div>
             </div>
         </>
     }
@@ -704,6 +697,10 @@ export default class GamePage extends React.Component<GameProps, GameState> {
     // Whether or not the player is a traitor
     isTraitor() {
         return this.state.role == Role.TRAITOR;
+    }
+
+    openCloseChat = () => {
+        this.setState((prevState) => ({ openChat: !prevState.openChat }));
     }
 
     // Render the game page
@@ -730,50 +727,73 @@ export default class GamePage extends React.Component<GameProps, GameState> {
             border = " border-danger"
         }
 
-        return (<>
-            <div className={"border w-100 mw-100" + border}>
-                <div className="d-flex w-100 h-100">
-                    {/* NOT CHAT (vertical flex) */}
-                    <div className="d-flex flex-column flex-grow-1">
-                        {/* Game/MAP horizontal */}
-                        <div className="d-flex flex-row flex-grow-1">
-                            {/* MAP */}
-                            <div className={"border p-3 d-flex flex-column justify-content-center" + border}>
-                                <h2>MAP</h2>
-                                <GameMap
-                                    endGame={this.state.winner != null}
-                                    fontSize={10}
-                                    className="flex-grow-1"
-                                    role={this.state.role}
-                                    exploredRooms={this.state.exploredRooms}
-                                    rows={this.state.rows}
-                                    cols={this.state.cols}
-                                    rooms={this.state.rooms}
-                                    currentRoom={this.state.currentRoom}
-                                />
-                            </div>
+        let gameDisplay = ""
+        let chatDisplay = " d-none"
+        let chatFlexRow = ""
+        if (this.state.openChat)
+        {
+            gameDisplay = " d-none"
+            chatDisplay = ""
+            chatFlexRow = " flex-row"
+        }
 
-                            {/* GAME */}
-                            <div className={"border flex-grow-1 p-3 d-flex flex-column" + border}>
-                                <h2>GAME</h2>
-                                {this.game()}
-                            </div>
+        let color = this.state.role == Role.INNOCENT ? "success" : "danger";
+        let phrase = this.state.role == Role.INNOCENT ? "You are an " : "You are a ";
+        let role = this.state.role == Role.INNOCENT ? "ADVENTURER" : "TRAITOR"
+
+        return (
+        <>
+            <div className={"d-flex w-100 flex-column flex-md-row mobile-vh100 border" + border}>
+                {/* NOT CHAT (vertical flex) */}
+                <div className="d-flex flex-column flex-grow-1">
+                    {/* Game/MAP horizontal */}
+                    <div className="d-flex flex-column flex-md-row flex-grow-1">
+                        {/* MAP */}
+                        <div className={"border p-3 d-flex d-md-block flex-row flex-md-column justify-content-center" + border + gameDisplay}>
+                            <h2>MAP</h2>
+                            <GameMap
+                                endGame={this.state.winner != null}
+                                fontSize={10}
+                                className="d-flex justify-content-center flex-grow-1"
+                                role={this.state.role}
+                                exploredRooms={this.state.exploredRooms}
+                                rows={this.state.rows}
+                                cols={this.state.cols}
+                                rooms={this.state.rooms}
+                                currentRoom={this.state.currentRoom}
+                            />
+                            {/* OPEN CHAT BUTTON (mobile only)*/}
+                            <button className={"d-md-none open-chat-button align-self-start"} onClick={this.openCloseChat}>"Open Chat"</button>
                         </div>
 
-                        {/* PLAYERS */}
-                        <div className={"border d-flex justify-content-around flex-wrap" + border}>
-                            {this.players()}
-                            <div className="flex-grow-1" />
+                        {/* GAME */}
+                        <div className={"border flex-grow-1 p-3 d-flex flex-column" + border}>
+                            <div className={"d-flex flex-row justify-content-between"}>
+                                <h2>GAME</h2>
+                                <span>{phrase}<span className={`text-${color}`}>{role}</span></span>
+                            </div>
+                            {this.game()}
                         </div>
                     </div>
-                    {/* ----------------------------------------------------------------------------------------------- */}
-                    {/* CHAT */}
-                    <div className={"border p-3" + border}>
-                        <h3>Chat</h3>
-                        <Chat lobbyId={this.state.lobbyId} user={this.props.user} />
+
+                    {/* PLAYERS */}
+                    <div className={"border d-flex justify-content-around flex-wrap" + border}>
+                        {this.players()}
+                        <div className="flex-grow-1" />
                     </div>
                 </div>
+                {/* ----------------------------------------------------------------------------------------------- */}
+                {/* CHAT */}
+                <div className={"border p-3 d-md-block order-first order-md-last" + border + chatDisplay}>
+                    <div className={"d-flex flex-row justify-content-between"}>
+                        <h2>Chat</h2>
+                        {/* CLOSE CHAT BUTTON (mobile only) */}
+                        <button className={"d-md-none mb-auto align-self-start close-chat-button"} onClick={this.openCloseChat}>"Close Chat"</button>
+                    </div>
+                    <Chat lobbyId={this.state.lobbyId} user={this.props.user} />
+                </div>
             </div>
-        </>);
+        </>
+        );
     }
 }

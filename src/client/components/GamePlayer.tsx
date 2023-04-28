@@ -65,7 +65,7 @@ export default class GamePlayer extends React.Component<Props, State> {
         let color = this.props.isTraitor ? "danger" : ""
         return <>
             <div
-                style={{ userSelect: "none", width: "200px", overflow: "none" }}
+                style={{ userSelect: "none", margin:"0px 1vw", minWidth: "15vw", maxWidth: "200px", overflow: "none" }}
                 onClick={() => {
                     if (!this.props.canSabotage || !this.props.torchBearer || this.props.role == Role.INNOCENT || this.props.username == this.props.user?.username || this.props.isTraitor) {
                         return;

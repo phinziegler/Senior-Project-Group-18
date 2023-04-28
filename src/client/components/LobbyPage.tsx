@@ -247,7 +247,7 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
         return (
             <>
                 {this.state.alternateDisplay != "" ? <p className="m-5 text-center text-success">{this.state.alternateDisplay}</p> :
-                    <div className='lobby-box border border-success'>
+                    <div className='lobby-box border-success'>
                         <div className='container m-0 p-0'>
                             <div className='row m-0 p-0'>
 
@@ -255,7 +255,7 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                                 <div className='col-12 col-md-8 d-flex flex-column m-0 p-0'>
 
                                     {/* LOBBY NAME */}
-                                    <div className='lobby-header-box p-2 border border-success border-medium text-break'>
+                                    <div className='lobby-header-box p-2 border-success text-break'>
                                         <span className='h1'>Lobby: </span>
                                         <span className='h1'>{this.state.lobbyName}</span>
                                     </div>
@@ -266,13 +266,15 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                                         {this.usersList()}
                                     </div>
 
-                                    <div className='col-12 d-md-none chat-box border border-success border-medium'>
+                                    {/* This only shows up if the screen is too small, in which the}
+                                    {/* CHAT ON MOBILE */}
+                                    <div className='col-12 d-md-none chat-box border-success border-medium'>
                                         <h2 className="m-2">Chat</h2>
                                         <Chat lobbyId={this.props.lobbyId} user={this.props.user} />
                                     </div>
 
                                     {/* BUTTONS */}
-                                    <div className='ready-box border border-success border-medium'>
+                                    <div className='ready-box border-success border-medium'>
                                         {/* JOIN BUTTON */}
                                         {/* <input type="button" className="button join-button" value="Ready" /> */}
                                         {showDelete && <button className="button join-button" onClick={() => {
@@ -292,7 +294,7 @@ class LobbyPageElement extends React.Component<LobbyPageElementProps, LobbyState
                                 </div>
 
                                 {/* CHAT (RIGHT COLUMN) */}
-                                <div className='col-4 d-none d-md-block chat-box border border-success border-medium'>
+                                <div className='col-4 d-none d-md-block chat-box border-success border-medium'>
                                     {/* {this.chatbox()} */}
                                     <h2 className="m-2">Chat</h2>
                                     <Chat lobbyId={this.props.lobbyId} user={this.props.user} />

@@ -6,14 +6,14 @@ import User from '../../shared/User';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 
-interface SideBarProps {
+interface NavbarProps {
     user: User | null,
     lobby: Lobby | null
 }
 
-export default class SideBar extends React.Component<SideBarProps, { pathName: string }> {
+export default class HomeNavbar extends React.Component<NavbarProps, { pathName: string }> {
 
-    constructor(props: SideBarProps) {
+    constructor(props: NavbarProps) {
         super(props);
         this.state = {
             pathName: window.location.pathname
@@ -39,7 +39,7 @@ export default class SideBar extends React.Component<SideBarProps, { pathName: s
 
     render() {
         return (
-            <Navbar bg="secondary" expand="lg" variant="dark" style={{ padding: '.5rem 1.5rem' }} id="sidebar">
+            <Navbar fixed="top" bg="secondary" expand="lg" variant="dark" style={{ padding: '.5rem 1.5rem' }} id="sidebar">
                 <Navbar.Brand className="me-3">{this.link("Tricks of the Trade", "/")}</Navbar.Brand>
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">

@@ -77,7 +77,7 @@ export default class Chat extends React.Component<ChatProps, ChatState> {
         this.state.chat.forEach((messageInfo, index) => {
             output.push(
                 <div key={index} className={'row ' + (this.props.user && (messageInfo.user == this.props.user.username) ? 'justify-content-end' : '')} style={{ margin: '0px', paddingLeft: '7px', paddingRight: '7px' }}>
-                    <div className={'col-8 border border-green chat ' + (this.props.user && (messageInfo.user == this.props.user.username) ? 'chat-home' : 'chat-away')}>
+                    <div className={'col-8 chat ' + (this.props.user && (messageInfo.user == this.props.user.username) ? 'chat-home' : 'chat-away')}>
                         {`${messageInfo.user}: ${messageInfo.message}`}
                     </div>
                 </div>
