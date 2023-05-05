@@ -4,9 +4,12 @@ import STATIC_PATH from "./tools/static-path";
 import Environments from "../shared/Environments";
 import ServerSocketManager from "./ServerSocketManager";
 const cors = require('cors');
+const Ddos = require('ddos')
+
+var ddos = new Ddos;
 
 /* 'require' statements are often used by Node.js applications to import modules
-    this particular require statement allows us to access environment variables */
+this particular require statement allows us to access environment variables */
 require('dotenv').config();
 
 /*  Now we can use process.env.<variable-name> to read from the .env file
@@ -16,12 +19,13 @@ require('dotenv').config();
     as such, .env files should never be committed.
 */
 const ENV = process.env.NODE_ENV || Environments.DEVELOPMENT;  // ENV will be equal to the NODE_ENV environment variable, and 
-                                                    // if it is undefined, it will default to 'development'
+// if it is undefined, it will default to 'development'
 
 const express = require('express');
 const app = express();
 
 // The static path is the path to the client files.
+app.use(ddos.express)
 app.use(cors());
 app.use(express.json());
 app.use(express.static(STATIC_PATH));
